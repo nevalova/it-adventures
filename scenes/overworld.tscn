@@ -1,0 +1,178 @@
+[gd_scene load_steps=9 format=3 uid="uid://c28k4m9v3j7r"]
+
+[ext_resource type="Script" path="res://scripts/overworld.gd" id="1_overworld"]
+[ext_resource type="Texture2D" path="res://assets/floor_tile.png" id="2_floor"]
+[ext_resource type="Texture2D" path="res://assets/wall_tile.png" id="3_wall"]
+[ext_resource type="Texture2D" path="res://assets/server_rack.png" id="4_rack"]
+[ext_resource type="Texture2D" path="res://assets/desk.png" id="5_desk"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="6_player"]
+[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="7_enemy"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
+size = Vector2(640, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_v"]
+size = Vector2(20, 360)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_prop"]
+size = Vector2(28, 20)
+
+[node name="Overworld" type="Node2D"]
+script = ExtResource("1_overworld")
+
+[node name="Floor" type="TextureRect" parent="."]
+texture_filter = 0
+offset_right = 640.0
+offset_bottom = 360.0
+texture = ExtResource("2_floor")
+stretch_mode = 1
+
+[node name="Walls" type="StaticBody2D" parent="."]
+collision_layer = 2
+collision_mask = 1
+
+[node name="WallTop" type="TextureRect" parent="Walls"]
+texture_filter = 0
+offset_right = 640.0
+offset_bottom = 24.0
+texture = ExtResource("3_wall")
+stretch_mode = 1
+
+[node name="CollTop" type="CollisionShape2D" parent="Walls"]
+position = Vector2(320, 10)
+shape = SubResource("RectangleShape2D_wall_h")
+
+[node name="CollBottom" type="CollisionShape2D" parent="Walls"]
+position = Vector2(320, 350)
+shape = SubResource("RectangleShape2D_wall_h")
+
+[node name="CollLeft" type="CollisionShape2D" parent="Walls"]
+position = Vector2(10, 180)
+shape = SubResource("RectangleShape2D_wall_v")
+
+[node name="CollRight" type="CollisionShape2D" parent="Walls"]
+position = Vector2(630, 180)
+shape = SubResource("RectangleShape2D_wall_v")
+
+[node name="EnvironmentProps" type="Node2D" parent="."]
+
+[node name="ServerRack1" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 0
+position = Vector2(60, 50)
+texture = ExtResource("4_rack")
+
+[node name="ServerRack2" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 0
+position = Vector2(90, 50)
+texture = ExtResource("4_rack")
+
+[node name="ServerRack3" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 0
+position = Vector2(120, 50)
+texture = ExtResource("4_rack")
+
+[node name="Desk1" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 0
+position = Vector2(200, 150)
+texture = ExtResource("5_desk")
+
+[node name="Desk2" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 0
+position = Vector2(400, 150)
+texture = ExtResource("5_desk")
+
+[node name="Desk3" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 0
+position = Vector2(300, 260)
+texture = ExtResource("5_desk")
+
+[node name="Player" parent="." instance=ExtResource("6_player")]
+position = Vector2(320, 200)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+limit_left = 0
+limit_top = 0
+limit_right = 640
+limit_bottom = 360
+
+[node name="EnemyPrinter" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(180, 220)
+enemy_type = "printer"
+
+[node name="EnemyBug" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(480, 100)
+enemy_type = "bug"
+
+[node name="EnemyBug2" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(480, 250)
+enemy_type = "bug"
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="HUD" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PanelTop" type="Panel" parent="CanvasLayer/HUD"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 36.0
+grow_horizontal = 2
+
+[node name="HeroInfo" type="HBoxContainer" parent="CanvasLayer/HUD"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = -12.0
+offset_bottom = 28.0
+grow_horizontal = 2
+theme_override_constants/separation = 15
+
+[node name="HeroName" type="Label" parent="CanvasLayer/HUD/HeroInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "JAVIER"
+
+[node name="HeroRole" type="Label" parent="CanvasLayer/HUD/HeroInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 12
+text = "[Sysadmin Senior]"
+
+[node name="HeroStats" type="Label" parent="CanvasLayer/HUD/HeroInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "HP: 160/160"
+
+[node name="Hint" type="Label" parent="CanvasLayer/HUD/HeroInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "WASD / Flechas para explorar | Toca un error para combatir"
+horizontal_alignment = 2
+
+[node name="SwitchBtn" type="Button" parent="CanvasLayer/HUD"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -32.0
+offset_right = -10.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 11
+text = "Cambiar Personaje"

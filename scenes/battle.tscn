@@ -1,0 +1,193 @@
+[gd_scene load_steps=3 format=3 uid="uid://df8k3j2x9a4n"]
+
+[ext_resource type="Script" path="res://scripts/battle.gd" id="1_battle"]
+[ext_resource type="Texture2D" path="res://assets/printer_enemy.png" id="2_enemy_spr"]
+
+[node name="Battle" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_battle")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.08, 0.14, 1)
+
+[node name="MainBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = 10.0
+offset_right = -16.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="BattleArena" type="HBoxContainer" parent="MainBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="EnemySide" type="VBoxContainer" parent="MainBox/BattleArena"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+alignment = 1
+
+[node name="EnemyPanel" type="PanelContainer" parent="MainBox/BattleArena/EnemySide"]
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="MainBox/BattleArena/EnemySide/EnemyPanel"]
+layout_mode = 2
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+theme_override_constants/separation = 4
+
+[node name="EnemyName" type="Label" parent="MainBox/BattleArena/EnemySide/EnemyPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+text = "IMPRESORA MALDITA"
+horizontal_alignment = 1
+
+[node name="EnemyHPBar" type="ProgressBar" parent="MainBox/BattleArena/EnemySide/EnemyPanel/VBox"]
+custom_minimum_size = Vector2(200, 16)
+layout_mode = 2
+value = 100.0
+
+[node name="EnemyHPText" type="Label" parent="MainBox/BattleArena/EnemySide/EnemyPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "90 / 90 HP"
+horizontal_alignment = 1
+
+[node name="Center" type="CenterContainer" parent="MainBox/BattleArena/EnemySide"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+
+[node name="EnemySprite" type="TextureRect" parent="MainBox/BattleArena/EnemySide/Center"]
+texture_filter = 0
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture = ExtResource("2_enemy_spr")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PartySide" type="VBoxContainer" parent="MainBox/BattleArena"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Title" type="Label" parent="MainBox/BattleArena/PartySide"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "EQUIPO DE TECNOLOGÍAS DE INFORMACIÓN:"
+
+[node name="PartyContainer" type="VBoxContainer" parent="MainBox/BattleArena/PartySide"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LogPanel" type="PanelContainer" parent="MainBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="MainBox/LogPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 4
+
+[node name="LogLabel" type="Label" parent="MainBox/LogPanel/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "¡Inicia el combate por el control de la red!"
+autowrap_mode = 2
+
+[node name="CommandPanel" type="PanelContainer" parent="MainBox"]
+custom_minimum_size = Vector2(0, 86)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="MainBox/CommandPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="MainBox/CommandPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ActiveHeroBox" type="VBoxContainer" parent="MainBox/CommandPanel/Margin/HBox"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+alignment = 1
+
+[node name="TurnIndicator" type="Label" parent="MainBox/CommandPanel/Margin/HBox/ActiveHeroBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 10
+text = "TURNO ACTUAL:"
+
+[node name="HeroName" type="Label" parent="MainBox/CommandPanel/Margin/HBox/ActiveHeroBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "JAVIER"
+
+[node name="HeroStatus" type="Label" parent="MainBox/CommandPanel/Margin/HBox/ActiveHeroBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
+theme_override_font_sizes/font_size = 10
+text = "¡Listo para actuar!"
+autowrap_mode = 2
+
+[node name="Commands" type="GridContainer" parent="MainBox/CommandPanel/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 6
+columns = 2
+
+[node name="BtnAttack" type="Button" parent="MainBox/CommandPanel/Margin/HBox/Commands"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "⚔ Atacar"
+
+[node name="BtnSkill" type="Button" parent="MainBox/CommandPanel/Margin/HBox/Commands"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "⚡ Habilidad IT"
+
+[node name="BtnItem" type="Button" parent="MainBox/CommandPanel/Margin/HBox/Commands"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "☕ Tomar Café (Curar)"
+
+[node name="BtnFlee" type="Button" parent="MainBox/CommandPanel/Margin/HBox/Commands"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "🏃 Huir al Comedor"
