@@ -1,11 +1,13 @@
 # 🎮 IT Adventures
 
-RPG retro 16-bit desarrollado en **Godot 4**, inspirado en el humor corporativo de Tecnologías de Información y clásicos como **Chrono Trigger** y **Final Fantasy VI**.
+### 🚀 **[▶ ¡HAZ CLIC AQUÍ PARA JUGAR EN TU NAVEGADOR!](https://nevalova.github.io/it-adventures/)**
+*(No necesitas instalar nada, corre directamente con WebAssembly/HTML5 en cualquier navegador)*
 
-[![Deploy IT Adventures Web to GitHub Pages](https://github.com/nevalova/it-adventures/actions/workflows/deploy.yml/badge.svg)](https://github.com/nevalova/it-adventures/actions/workflows/deploy.yml)
+---
 
-🌐 **Jugar en el Navegador (GitHub Pages):**  
-[https://nevalova.github.io/it-adventures/](https://nevalova.github.io/it-adventures/)
+🌐 **Enlace web en vivo:** [https://nevalova.github.io/it-adventures/](https://nevalova.github.io/it-adventures/)  
+📂 **Archivos compilados web:** Rama [`gh-pages`](https://github.com/nevalova/it-adventures/tree/gh-pages)  
+💻 **Código fuente del motor:** Rama [`main`](https://github.com/nevalova/it-adventures/tree/main)
 
 ---
 
