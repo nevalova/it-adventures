@@ -95,15 +95,17 @@ var office_cutscene_done: bool = false
 var printer_defeated: bool = false
 
 var battle_items = {
-	"cafe": {"name": "Café Espresso Doble", "heal": 45, "count": 4, "desc": "Cura 45 HP"},
-	"dona": {"name": "Dona Glaseada RH", "heal": 85, "count": 3, "desc": "Cura 85 HP"},
-	"monster": {"name": "Bebida Energética 500ml", "heal": 140, "count": 2, "desc": "Cura 140 HP"}
+	"pepsi": {"name": "Lata de Pepsi", "count": 4, "desc": "Cura 20 HP (50 HP a Alejandro)"},
+	"cafe": {"name": "Taza de Café", "count": 4, "desc": "Cura 50 HP (0 HP a Alex y Javier)"},
+	"predator": {"name": "Lata de Predator", "count": 3, "desc": "Cura 50 HP (100 HP a Toño)"},
+	"foto": {"name": "Foto de Sra. Limpieza", "count": 2, "desc": "Cura 0 a todos (100 HP a Juan Carlos)"}
 }
 
 func reset_battle_items():
+	battle_items["pepsi"]["count"] = 4
 	battle_items["cafe"]["count"] = 4
-	battle_items["dona"]["count"] = 3
-	battle_items["monster"]["count"] = 2
+	battle_items["predator"]["count"] = 3
+	battle_items["foto"]["count"] = 2
 
 func _ready():
 	# Party por defecto con los héroes principales

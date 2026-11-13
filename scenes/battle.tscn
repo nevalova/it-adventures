@@ -212,33 +212,40 @@ text = "[HUIR] Huir al Comedor"
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 4
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 3
 columns = 2
 
+[node name="BtnItemPepsi" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Pepsi (+20/50 HP) x4"
+
 [node name="BtnItemCafe" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 10
-text = "Café Espresso (+45 HP) x4"
+text = "Café (+50 HP) x4"
 
-[node name="BtnItemDona" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
-custom_minimum_size = Vector2(0, 30)
+[node name="BtnItemPredator" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 10
-text = "Dona de RH (+85 HP) x3"
+text = "Predator (+50/100 HP) x3"
 
-[node name="BtnItemMonster" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
-custom_minimum_size = Vector2(0, 30)
+[node name="BtnItemFoto" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 10
-text = "Monster 500ml (+140 HP) x2"
+text = "Foto Sra. Limpieza x2"
 
 [node name="BtnItemBack" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 10

@@ -18,9 +18,10 @@ extends Control
 @onready var btn_flee = $MainBox/CommandPanel/Margin/HBox/Commands/BtnFlee
 
 @onready var items_menu = $MainBox/CommandPanel/Margin/HBox/ItemsMenu
+@onready var btn_item_pepsi = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemPepsi
 @onready var btn_item_cafe = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemCafe
-@onready var btn_item_dona = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemDona
-@onready var btn_item_monster = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemMonster
+@onready var btn_item_predator = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemPredator
+@onready var btn_item_foto = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemFoto
 @onready var btn_item_back = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemBack
 
 @onready var active_hero_portrait = $MainBox/CommandPanel/Margin/HBox/ActiveHeroBox/ActiveHeroPortrait
@@ -45,6 +46,7 @@ const PARTY_FORWARD_X: float = 72.0
 
 # Javier mechanic: ataca un turno si y otro no
 var javier_can_attack: bool = true
+var javier_first_attack: bool = true
 
 func _ready():
 	setup_battle()
@@ -53,12 +55,14 @@ func _ready():
 	btn_item.pressed.connect(_on_item_pressed)
 	btn_flee.pressed.connect(_on_flee_pressed)
 	
+	btn_item_pepsi.pressed.connect(func(): _use_item("pepsi"))
 	btn_item_cafe.pressed.connect(func(): _use_item("cafe"))
-	btn_item_dona.pressed.connect(func(): _use_item("dona"))
-	btn_item_monster.pressed.connect(func(): _use_item("monster"))
+	btn_item_predator.pressed.connect(func(): _use_item("predator"))
+	btn_item_foto.pressed.connect(func(): _use_item("foto"))
 	btn_item_back.pressed.connect(_on_item_back_pressed)
 
 func setup_battle():
+	javier_first_attack = true
 	# Cargar enemigo
 	if GameManager.current_enemy_data.is_empty():
 		enemy = {
@@ -212,7 +216,7 @@ func start_turn():
 			active_hero_status.text = "¡LISTO PARA ATACAR! (Turno Sí)"
 			active_hero_status.modulate = Color(0.4, 1.0, 0.4)
 			btn_attack.disabled = false
-			btn_attack.text = "[ATQ] Atacar (Reinicio Forzado)"
+			btn_attack.text = "[ATQ] Atacar"
 			if spr: spr.frame = 2 * 4 + 0 # Listo mirando al enemigo
 		else:
 			active_hero_status.text = "[Zz] Tomando Café & Memes (Turno No)"
@@ -262,7 +266,13 @@ func _on_attack_pressed():
 			javier_can_attack = false # el siguiente turno descansará
 			var dmg = member["atk"] + randi_range(6, 14)
 			play_attack_anim(spr)
-			deal_damage_to_enemy(dmg, "[ESP] ¡Javier le propinó un REINICIO FORZADO al enemigo!")
+			var atk_msg = ""
+			if javier_first_attack:
+				javier_first_attack = false
+				atk_msg = "Javier grita: '¡Esto es por no dejarme disfrutar de este atardecer tequilero!'"
+			else:
+				atk_msg = "[ESP] ¡Javier le propinó un REINICIO FORZADO al enemigo!"
+			deal_damage_to_enemy(dmg, atk_msg)
 			return
 			
 	# Otros miembros
@@ -287,7 +297,13 @@ func _on_skill_pressed():
 			javier_can_attack = false
 			var dmg = int(member["atk"] * 1.6)
 			play_attack_anim(spr)
-			deal_damage_to_enemy(dmg, "[BOM] ¡Javier usó %s! ¡El rack tembló!" % skill_name)
+			var atk_msg = ""
+			if javier_first_attack:
+				javier_first_attack = false
+				atk_msg = "Javier grita: '¡Esto es por no dejarme disfrutar de este atardecer tequilero!' (%s)" % skill_name
+			else:
+				atk_msg = "[BOM] ¡Javier usó %s! ¡El rack tembló!" % skill_name
+			deal_damage_to_enemy(dmg, atk_msg)
 			return
 			
 	var dmg = int(member["atk"] * 1.4)
@@ -303,22 +319,77 @@ func _on_item_pressed():
 	update_items_ui()
 
 func update_items_ui():
+	var pepsi = GameManager.battle_items["pepsi"]
 	var cafe = GameManager.battle_items["cafe"]
-	var dona = GameManager.battle_items["dona"]
-	var monster = GameManager.battle_items["monster"]
+	var predator = GameManager.battle_items["predator"]
+	var foto = GameManager.battle_items["foto"]
 	
-	btn_item_cafe.text = "%s (+%d HP) x%d" % [cafe["name"], cafe["heal"], cafe["count"]]
+	btn_item_pepsi.text = "Pepsi (+20/50) x%d" % pepsi["count"]
+	btn_item_pepsi.disabled = pepsi["count"] <= 0
+	
+	btn_item_cafe.text = "Café (+50/0) x%d" % cafe["count"]
 	btn_item_cafe.disabled = cafe["count"] <= 0
 	
-	btn_item_dona.text = "%s (+%d HP) x%d" % [dona["name"], dona["heal"], dona["count"]]
-	btn_item_dona.disabled = dona["count"] <= 0
+	btn_item_predator.text = "Predator (+50/100) x%d" % predator["count"]
+	btn_item_predator.disabled = predator["count"] <= 0
 	
-	btn_item_monster.text = "%s (+%d HP) x%d" % [monster["name"], monster["heal"], monster["count"]]
-	btn_item_monster.disabled = monster["count"] <= 0
+	btn_item_foto.text = "Foto Sra. Limpieza x%d" % foto["count"]
+	btn_item_foto.disabled = foto["count"] <= 0
 
 func _on_item_back_pressed():
 	items_menu.visible = false
 	commands_box.visible = true
+
+func get_item_heal_amount(item_key: String, member: Dictionary) -> int:
+	var name_lower = member.get("name", "").to_lower()
+	match item_key:
+		"pepsi":
+			# Cura 20 puntos en todos, en Alejandro cura 50
+			if "alejandro" in name_lower or "alex" in name_lower:
+				return 50
+			return 20
+		"cafe":
+			# Cura 50 en todos menos en Alex y en Javier (cura 0)
+			if "alejandro" in name_lower or "alex" in name_lower or "javier" in name_lower:
+				return 0
+			return 50
+		"predator":
+			# Cura 50 a todos, a Toño 100
+			if "toño" in name_lower or "toñazo" in name_lower:
+				return 100
+			return 50
+		"foto":
+			# Foto de la señora de la limpieza cura 0 a todos menos a Juan Carlos (cura 100)
+			if "juan" in name_lower:
+				return 100
+			return 0
+		_:
+			return 20
+
+func get_item_log_message(item_key: String, member: Dictionary, heal: int) -> String:
+	var name = member["name"]
+	var name_lower = name.to_lower()
+	match item_key:
+		"pepsi":
+			if "alejandro" in name_lower or "alex" in name_lower:
+				return "[+] ¡%s abrió una lata de Pepsi bien fría y su odio al mundo se convirtió en salud (+50 HP)!" % name
+			return "[+] ¡%s se tomó una lata de Pepsi (+%d HP)!" % [name, heal]
+		"cafe":
+			if "alejandro" in name_lower or "alex" in name_lower:
+				return "[!] A %s el café no le hace efecto, ¡él vive a base de Pepsi (+0 HP)!" % name
+			elif "javier" in name_lower:
+				return "[!] %s ya tiene tolerancia sobrehumana al café, necesita algo más fuerte (+0 HP)." % name
+			return "[+] ¡%s se tomó una buena taza de café caliente (+%d HP)!" % [name, heal]
+		"predator":
+			if "toño" in name_lower or "toñazo" in name_lower:
+				return "[+] ¡A %s el Predator le activó el modo turbo junto a su USB azul milagrosa (+100 HP)!" % name
+			return "[+] ¡%s se tomó una lata de Predator (+%d HP)!" % [name, heal]
+		"foto":
+			if "juan" in name_lower:
+				return "[+] ¡Juan Carlos contempla con devoción la foto de la señora de la limpieza y siente una paz absoluta (+100 HP)!" % name
+			return "[!] %s miró la foto de la señora de la limpieza con respeto, pero no le curó nada (+0 HP)." % name
+		_:
+			return "[+] ¡%s usó el item (+%d HP)!" % [name, heal]
 
 func _use_item(item_key: String):
 	if not is_player_turn or is_battle_over:
@@ -330,18 +401,21 @@ func _use_item(item_key: String):
 		
 	item["count"] -= 1
 	var member = get_active_member()
-	var heal_amt = item["heal"]
-	member["hp"] = min(member["max_hp"], member["hp"] + heal_amt)
-	render_party_ui()
-	
-	# Efecto visual verde de curación en el héroe activo
-	var spr = get_active_sprite()
-	if spr:
-		var tween = create_tween()
-		tween.tween_property(spr, "modulate", Color(0.3, 1.8, 0.4), 0.15)
-		tween.tween_property(spr, "modulate", Color.WHITE, 0.15)
+	var heal_amt = get_item_heal_amount(item_key, member)
+	if heal_amt > 0:
+		member["hp"] = min(member["max_hp"], member["hp"] + heal_amt)
+		render_party_ui()
+		# Destello verde en sprite
+		var spr = get_active_sprite()
+		if spr:
+			var tween = create_tween()
+			tween.tween_property(spr, "modulate", Color(0.3, 1.8, 0.4), 0.15)
+			tween.tween_property(spr, "modulate", Color.WHITE, 0.15)
+	else:
+		render_party_ui()
 		
-	set_log("[+] ¡%s usó %s y recuperó %d HP! (Quedan: %d)" % [member["name"], item["name"], heal_amt, item["count"]])
+	var msg = get_item_log_message(item_key, member, heal_amt)
+	set_log(msg)
 	
 	items_menu.visible = false
 	commands_box.visible = true
