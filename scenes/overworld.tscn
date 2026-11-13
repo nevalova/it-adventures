@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://c28k4m9v3j7r"]
+[gd_scene load_steps=26 format=3 uid="uid://c28k4m9v3j7r"]
 
 [ext_resource type="Script" path="res://scripts/overworld.gd" id="1_overworld"]
 [ext_resource type="Texture2D" path="res://assets/floor_tile.png" id="2_floor"]
@@ -13,7 +13,9 @@
 [ext_resource type="Texture2D" path="res://assets/props/desk_light.png" id="11_desk_light"]
 [ext_resource type="Texture2D" path="res://assets/props/desk_office.png" id="12_desk_office"]
 [ext_resource type="Texture2D" path="res://assets/props/workstation_executive.png" id="13_workstation_exec"]
-[ext_resource type="Texture2D" path="res://assets/props/printer.png" id="14_printer_prop"]
+[ext_resource type="Texture2D" path="res://assets/characters/npc_don_ramiro.png" id="14_ramiro_spr"]
+[ext_resource type="Texture2D" path="res://assets/characters/npc_lic_brenda.png" id="15_brenda_spr"]
+[ext_resource type="Texture2D" path="res://assets/characters/novato_spritesheet.png" id="16_novato_spr"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
 size = Vector2(1280, 20)
@@ -529,7 +531,7 @@ theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "Carlos (Facturación)"
+text = "Carlos (Facturacion)"
 horizontal_alignment = 1
 
 [node name="InteractArea" type="Area2D" parent="Carlos"]
@@ -570,6 +572,149 @@ collision_mask = 1
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Mariana/InteractArea"]
 shape = SubResource("CircleShape2D_npc_interact")
 
+
+[node name="DonRamiro" type="Node2D" parent="."]
+position = Vector2(470, 75)
+
+[node name="Sprite2D" type="Sprite2D" parent="DonRamiro"]
+texture_filter = 1
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("14_ramiro_spr")
+
+[node name="NameTag" type="Label" parent="DonRamiro"]
+offset_left = -50.0
+offset_top = -28.0
+offset_right = 50.0
+offset_bottom = -15.0
+theme_override_colors/font_color = Color(1, 0.8, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Don Ramiro (Cafe)"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="DonRamiro"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DonRamiro/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
+[node name="LicBrenda" type="Node2D" parent="."]
+position = Vector2(620, 140)
+
+[node name="Sprite2D" type="Sprite2D" parent="LicBrenda"]
+texture_filter = 1
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("15_brenda_spr")
+
+[node name="NameTag" type="Label" parent="LicBrenda"]
+offset_left = -50.0
+offset_top = -28.0
+offset_right = 50.0
+offset_bottom = -15.0
+theme_override_colors/font_color = Color(1, 0.6, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Lic. Brenda (RH)"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="LicBrenda"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LicBrenda/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
+[node name="PacoGodinez" type="Node2D" parent="."]
+position = Vector2(300, 55)
+
+[node name="Sprite2D" type="Sprite2D" parent="PacoGodinez"]
+modulate = Color(1.2, 1.1, 0.7, 1)
+texture_filter = 1
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("8_roberto_spr")
+hframes = 4
+vframes = 12
+frame = 0
+
+[node name="NameTag" type="Label" parent="PacoGodinez"]
+offset_left = -50.0
+offset_top = -34.0
+offset_right = 50.0
+offset_bottom = -21.0
+theme_override_colors/font_color = Color(1, 1, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Paco Godinez"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="PacoGodinez"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PacoGodinez/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
+[node name="BecarioTI" type="Node2D" parent="."]
+position = Vector2(110, 230)
+
+[node name="Sprite2D" type="Sprite2D" parent="BecarioTI"]
+modulate = Color(0.9, 1.2, 0.9, 1)
+texture_filter = 1
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("16_novato_spr")
+hframes = 4
+vframes = 12
+frame = 0
+
+[node name="NameTag" type="Label" parent="BecarioTI"]
+offset_left = -50.0
+offset_top = -34.0
+offset_right = 50.0
+offset_bottom = -21.0
+theme_override_colors/font_color = Color(0.6, 1, 0.6, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Becario de TI"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="BecarioTI"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BecarioTI/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
+
+[node name="EnemyOutlook" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(230, 150)
+enemy_type = "outlook"
+enemy_id = "enemy_outlook_1"
+
+[node name="EnemyTeclado" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(420, 260)
+enemy_type = "teclado"
+enemy_id = "enemy_teclado_1"
+
+[node name="EnemyUsuarioRed" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(530, 180)
+enemy_type = "usuario_red"
+enemy_id = "enemy_usuario_red_1"
+
+[node name="EnemyCPU" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(840, 135)
+enemy_type = "cpu"
+enemy_id = "enemy_cpu_1"
+
+[node name="EnemyPhone" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(1010, 240)
+enemy_type = "wifi_phone"
+enemy_id = "enemy_phone_1"
+
 [node name="OfficeTrigger" type="Area2D" parent="."]
 position = Vector2(640, 190)
 collision_layer = 0
@@ -581,6 +726,7 @@ shape = SubResource("RectangleShape2D_trigger")
 [node name="EnemyPrinter" parent="." instance=ExtResource("7_enemy")]
 position = Vector2(1140, 175)
 enemy_type = "printer"
+enemy_id = "enemy_printer_boss"
 
 [node name="PrinterInteract" type="Area2D" parent="EnemyPrinter"]
 collision_layer = 0
@@ -627,7 +773,7 @@ text = "JAVIER"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
 theme_override_font_sizes/font_size = 12
-text = "[Soporte Técnico]"
+text = "[Soporte Tecnico]"
 
 [node name="HeroStats" type="Label" parent="CanvasLayer/HUD/HeroInfo"]
 layout_mode = 2

@@ -89,6 +89,8 @@ func setup_battle():
 	enemy_name_label.text = enemy.get("name", "Enemigo")
 	if ResourceLoader.exists(enemy.get("texture_path", "")):
 		enemy_sprite.texture = load(enemy.get("texture_path"))
+	enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	update_enemy_ui()
 	
 	# Cargar party desde GameManager
@@ -152,7 +154,7 @@ func render_party_ui():
 		vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
 		var name_lbl = Label.new()
-		name_lbl.text = member["name"]
+		name_lbl.text = "%s [Nv. %d]" % [member["name"], member.get("level", 1)]
 		name_lbl.modulate = member["color"]
 		name_lbl.add_theme_font_size_override("font_size", 10)
 		vb.add_child(name_lbl)
@@ -513,14 +515,36 @@ func enemy_turn():
 func enemy_defeated():
 	is_battle_over = true
 	GameManager.victorious_count += 1
-	GameManager.printer_defeated = true
-	set_log("[!] ¡VICTORIA! ¡La Impresora Maldita fue neutralizada! ¡La nómina y la quincena están a salvo!")
+	
+	if GameManager.current_enemy_id != "" and not GameManager.defeated_enemies.has(GameManager.current_enemy_id):
+		GameManager.defeated_enemies.append(GameManager.current_enemy_id)
+		
+	var enemy_type_str = enemy.get("type", "printer")
+	var exp_gained = enemy.get("exp_reward", 45)
 	
 	for i in range(min(GameManager.party.size(), battle_party.size())):
 		GameManager.party[i]["hp"] = battle_party[i]["hp"]
 		
-	# Reposicionar al jugador a salvo lejos del trigger de la impresora para que no vuelva a empezar
-	GameManager.player_saved_position = Vector2(980, 200)
+	# Entregar EXP y calcular subidas de nivel
+	var level_ups = GameManager.add_exp_to_party(exp_gained)
+	
+	# Sincronizar datos de la party con GameManager
+	battle_party = GameManager.party.duplicate(true)
+	render_party_ui()
+	
+	if enemy_type_str == "printer":
+		GameManager.printer_defeated = true
+		GameManager.player_saved_position = Vector2(980, 200)
+		set_log("[!] ¡VICTORIA TOTAL! ¡La Impresora Maldita fue neutralizada! (+%d EXP)" % exp_gained)
+	else:
+		set_log("[!] ¡Ticket resuelto! '%s' ha sido neutralizado. (+%d EXP)" % [enemy.get("name", "Enemigo"), exp_gained])
+		
+	if level_ups.size() > 0:
+		await get_tree().create_timer(1.2).timeout
+		var names = []
+		for lup in level_ups:
+			names.append("%s (Nv. %d)" % [lup["name"], lup["level"]])
+		set_log("[LEVEL UP!] ¡%s subió de nivel! (+25 HP Max, +6 ATQ, +4 DEF, HP restaurado)" % ", ".join(names))
 		
 	await get_tree().create_timer(2.2).timeout
 	get_tree().change_scene_to_file("res://scenes/overworld.tscn")

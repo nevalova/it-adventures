@@ -46,6 +46,13 @@ extends Node2D
 @onready var carlos_sprite = $Carlos/Sprite2D
 @onready var mariana = $Mariana
 @onready var mariana_sprite = $Mariana/Sprite2D
+
+# NPCs Ociosos / Chistosos
+@onready var don_ramiro = $DonRamiro
+@onready var lic_brenda = $LicBrenda
+@onready var paco_godinez = $PacoGodinez
+@onready var becario_ti = $BecarioTI
+
 @onready var office_trigger = $OfficeTrigger
 @onready var enemy_printer = $EnemyPrinter
 @onready var enemy_printer_sprite = $EnemyPrinter/Sprite2D
@@ -97,13 +104,53 @@ var current_state: State = State.IDLE
 var anim_timer: float = 0.0
 var dialog_queue: Array = []
 var on_dialog_closed_callback: Callable
-var current_interactable: String = "" # "usuaria", "carlos", "mariana", "printer"
+var current_interactable: String = ""
+
+# Frases chistosas de oficina para NPCs ociosos
+var don_ramiro_quotes: Array = [
+	"Muchachos, ¿alguien sabe a qué hora traen los tacos de canasta? Ya son las 11:15 y mi cuerpo exige manteca con salsa verde.",
+	"Dicen que si dejas una computadora prendida más de 40 días, Windows cobra conciencia y se une al sindicato.",
+	"Yo por eso guardo todos mis archivos confidenciales en la Papelera de Reciclaje... nadie busca ahí, es el escondite perfecto.",
+	"En mis tiempos no había Wi-Fi, nos gritábamos las celdas de Excel de cubículo a cubículo.",
+	"¿Ustedes creen que si le pongo un post-it a la cámara web evito que el SAT me audite las facturas?"
+]
+
+var lic_brenda_quotes: Array = [
+	"¡Aviso parroquial! Queda terminantemente prohibido meter pescado con ajo al microondas del piso 3. Se los advierto por las buenas.",
+	"Mandé un correo con copia a Dirección General, Finanzas, RH y a la ONU para que quede constancia por escrito de que se acabaron los clips.",
+	"¡Saludos cordiales! ... Bueno, ni tan cordiales porque urge para ayer a primera hora.",
+	"Estamos organizando la dinámica de integración: 'Construyendo puentes con popotes y bombones'. La asistencia es obligatoria y sin goce de horas extras.",
+	"Si alguien vio una taza que dice 'La Mejor Jefa del Mundo', devuélvanla de inmediato o habrá consecuencias en el aguinaldo."
+]
+
+var paco_godinez_quotes: Array = [
+	"El secreto supremo de la oficina es caminar rápido por el pasillo con una carpeta amarilla y cara de estresado. Nadie se atreve a pedirte nada.",
+	"Llevo 3 horas fingiendo que leo un PDF de 80 páginas sobre políticas de seguridad cibernética. En realidad estoy viendo autos usados.",
+	"¿Tú crees que si desconecto el cable negro con franjas amarillas se cancela la junta de las 4 PM? Piénsalo bien...",
+	"El café de la empresa no despierta, solo acelera el pánico existencial de las 2 de la tarde.",
+	"Vengo llegando del baño... estuve 40 minutos esperando a que se me pasaran las ganas de trabajar."
+]
+
+var becario_ti_quotes: Array = [
+	"Oigan... ¿la pasta térmica va untada encima del procesador o se diluye en el agua del enfriamiento líquido? Es para una tarea...",
+	"Toñazo me dijo que si le doy una patada certera a la esquina inferior derecha del rack, se le quita la pantalla azul.",
+	"Alguien me pidió formatear un disquete de 3.5 pulgadas... ¿eso qué es? ¿un portavasos inteligente?",
+	"Llevo media hora buscando la tecla 'Cualquiera' porque la pantalla dice 'Presione cualquier tecla para continuar'.",
+	"Conecté un cable ethernet de un puerto a otro del mismo switch y salieron chispas... ¿eso es el Metaverso?"
+]
 
 func _ready():
 	var leader = GameManager.get_leader_data()
 	hud_hero_name.text = leader["name"]
 	hud_hero_role.text = leader["role"]
-	hud_stats.text = "HP: %d/%d  |  ATQ: %d" % [leader["hp"], leader["max_hp"], leader["atk"]]
+	hud_stats.text = "Nv. %d  |  HP: %d/%d  |  ATQ: %d  |  EXP: %d/%d" % [
+		leader.get("level", 1),
+		leader["hp"],
+		leader["max_hp"],
+		leader["atk"],
+		leader.get("exp", 0),
+		leader.get("exp_to_next", 60)
+	]
 	hud_hero_name.modulate = leader["color"]
 	
 	btn_switch.pressed.connect(func():
@@ -153,24 +200,33 @@ func _ready():
 	$Mariana/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("mariana"))
 	$Mariana/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "mariana": _clear_interactable())
 	
+	$DonRamiro/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("ramiro"))
+	$DonRamiro/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "ramiro": _clear_interactable())
+	
+	$LicBrenda/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("brenda"))
+	$LicBrenda/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "brenda": _clear_interactable())
+	
+	$PacoGodinez/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("paco"))
+	$PacoGodinez/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "paco": _clear_interactable())
+	
+	$BecarioTI/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("becario"))
+	$BecarioTI/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "becario": _clear_interactable())
+	
 	$EnemyPrinter/PrinterInteract.body_entered.connect(func(body): if body == player: _set_interactable("printer"))
 	$EnemyPrinter/PrinterInteract.body_exited.connect(func(body): if body == player and current_interactable == "printer": _clear_interactable())
 	
 	# Verificar estado de la partida
 	if not GameManager.intro_cutscene_done:
-		# Secuencia inicial: jugador quieto mirando a la derecha
 		player.global_position = Vector2(140, 200)
 		player.set_facing(Vector2.RIGHT)
 		player.can_move = false
 		
-		# Roberto empieza corriendo desde la derecha
 		roberto.global_position = Vector2(480, 200)
 		roberto.visible = true
 		current_state = State.ROBERTO_RUN_TO_PLAYER
 		touch_controls.visible = false
 		objective_label.text = obj_intro_text
 	else:
-		# Ya se hizo la intro
 		if GameManager.player_saved_position != Vector2.ZERO:
 			player.global_position = GameManager.player_saved_position
 		player.can_move = true
@@ -181,75 +237,68 @@ func _ready():
 			btn_demo_modal.visible = true
 			objective_label.text = obj_victory_text
 			
-			# Desactivar trigger de combate de la impresora y mostrarla apagada/neutralizada
-			enemy_printer.set_collision_layer_value(3, false) # Capa 3 apagada
+			enemy_printer.set_collision_layer_value(3, false)
 			enemy_printer_sprite.modulate = Color(0.55, 0.55, 0.55, 1.0)
 			enemy_printer_nametag.text = "[V] Neutralizada"
 			enemy_printer_nametag.modulate = Color(0.3, 0.9, 0.6, 1.0)
 			
-			# Si acabamos de ganar la batalla y aún no hemos mostrado el diálogo de victoria
 			if not GameManager.victory_dialogue_shown:
 				GameManager.victory_dialogue_shown = true
 				_start_victory_dialogue()
 		elif GameManager.office_cutscene_done:
-			# Roberto ya huyó de la escena
 			roberto.visible = false
 			objective_label.text = obj_battle_text
 		else:
-			# Roberto está esperando en la oficina
 			roberto.global_position = Vector2(700, 190)
-			roberto_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda
+			roberto_sprite.frame = 2 * 4 + 0
 			objective_label.text = obj_follow_text
 		current_state = State.FREE_EXPLORE
 
 func _process(delta):
 	anim_timer += delta
 	
-	# Animación de la Jefa de Finanzas
 	if usuaria.visible:
 		if GameManager.printer_defeated:
-			usuaria_sprite.frame = 8 * 4 + 0 # Aliviada y tranquila
+			usuaria_sprite.frame = 8 * 4 + 0
 		else:
 			var panic_col = int(anim_timer * 4.0) % 4
 			usuaria_sprite.frame = 10 * 4 + panic_col
 			
-	# Animación de Carlos y Mariana (trabajando en sus PCs)
 	var work_col = int(anim_timer * 2.0) % 4
 	carlos_sprite.frame = 0 * 4 + work_col
 	mariana_sprite.frame = 0 * 4 + work_col
+	paco_godinez.get_node("Sprite2D").frame = 0 * 4 + work_col
+	becario_ti.get_node("Sprite2D").frame = 0 * 4 + work_col
 	
 	match current_state:
 		State.ROBERTO_RUN_TO_PLAYER:
-			# Roberto corre hacia la izquierda hacia el jugador
 			var move_speed = roberto_run_in_speed
 			roberto.position.x -= move_speed * delta
 			var run_col = int(anim_timer * 8.0) % 4
-			roberto_sprite.frame = 2 * 4 + run_col # Fila 2 = Izquierda
+			roberto_sprite.frame = 2 * 4 + run_col
 			
 			if roberto.position.x <= 200.0:
 				roberto.position.x = 200.0
-				roberto_sprite.frame = 2 * 4 + 0 # Parado mirando al jugador
+				roberto_sprite.frame = 2 * 4 + 0
 				current_state = State.IDLE
 				_start_intro_dialog()
 				
 		State.ROBERTO_RUN_TO_OFFICE:
-			# Roberto sale corriendo a la oficina a la derecha
 			var move_speed = roberto_run_office_speed
 			roberto.position.x += move_speed * delta
 			var run_col = int(anim_timer * 9.0) % 4
-			roberto_sprite.frame = 6 * 4 + run_col # Fila 6 = Derecha
+			roberto_sprite.frame = 6 * 4 + run_col
 			
 			if roberto.position.x >= 700.0:
 				roberto.position.x = 700.0
-				roberto_sprite.frame = 2 * 4 + 0 # Espera mirando a la izquierda
+				roberto_sprite.frame = 2 * 4 + 0
 				current_state = State.FREE_EXPLORE
 				
 		State.ROBERTO_FLEE:
-			# Roberto sale corriendo huyendo de la oficina (hacia la izquierda y desaparece)
 			var move_speed = roberto_flee_speed
 			roberto.position.x -= move_speed * delta
 			var run_col = int(anim_timer * 10.0) % 4
-			roberto_sprite.frame = 2 * 4 + run_col # Fila 2 = Izquierda huyendo
+			roberto_sprite.frame = 2 * 4 + run_col
 			
 			if roberto.position.x <= 500.0:
 				roberto.visible = false
@@ -290,7 +339,6 @@ func _on_office_trigger_entered(body):
 		player.set_facing(Vector2.RIGHT)
 		touch_controls.visible = false
 		
-		# Secuencia de llegada a la oficina
 		dialog_queue = [
 			{
 				"speaker": "Roberto Huerta",
@@ -357,15 +405,16 @@ func _open_demo_modal():
 	var hero_name = leader["name"]
 	var hero_role = leader["role"]
 	var hero_title = leader["title"]
+	var hero_level = leader.get("level", 1)
 	
 	demo_subtitle.text = "¡Gracias %s, esto solo es un demo!" % hero_name
 	demo_body.text = ("Has neutralizado con éxito a la Impresora Maldita y salvado la nómina de Finanzas.\n\n" +
-		"Héroe de la Misión: %s [%s]\n" +
+		"Héroe de la Misión: %s [Nivel %d - %s]\n" +
 		"Especialidad: %s\n\n" +
-		"[!] Próximamente en la versión completa de IT Adventures:\n" +
-		" - Nuevos pisos y oficinas (Recursos Humanos, Marketing y Datacenter)\n" +
-		" - Nuevas amenazas: Infecciones por USB, Spoolers colapsados y el Gerente General\n" +
-		" - Habilidades en equipo y árbol de mejoras de TI") % [hero_name, hero_role, hero_title]
+		"[!] Novedades del Sistema de TI:\n" +
+		" - ¡Enemigos de soporte derrotados ganan EXP y subes de nivel!\n" +
+		" - Nuevos problemas físicos en el piso (Outlook, Teclados, Wi-Fi, CPUs)\n" +
+		" - Charla con Don Ramiro, Lic. Brenda, Paco Godínez y el Becario") % [hero_name, hero_level, hero_role, hero_title]
 		
 	demo_modal.visible = true
 	player.can_move = false
@@ -385,6 +434,14 @@ func _set_interactable(id: String):
 			interact_label.text = "[E] Hablar con Carlos (Facturación)"
 		"mariana":
 			interact_label.text = "[E] Hablar con Mariana (Contabilidad)"
+		"ramiro":
+			interact_label.text = "[E] Hablar con Don Ramiro"
+		"brenda":
+			interact_label.text = "[E] Hablar con Lic. Brenda (RH)"
+		"paco":
+			interact_label.text = "[E] Hablar con Paco Godínez"
+		"becario":
+			interact_label.text = "[E] Hablar con Becario de TI"
 		"printer":
 			interact_label.text = "[E] Inspeccionar Impresora"
 
@@ -430,6 +487,46 @@ func _trigger_current_interaction():
 					"portrait": "res://assets/characters/npc_oficinista_mujer.png",
 					"color": Color("#34d399"),
 					"text": (mariana_thanks % hero_name) if GameManager.printer_defeated else mariana_panic
+				}
+			]
+		"ramiro":
+			var q = don_ramiro_quotes[randi() % don_ramiro_quotes.size()]
+			dialog_queue = [
+				{
+					"speaker": "Don Ramiro (El Decano)",
+					"portrait": "res://assets/characters/npc_don_ramiro.png",
+					"color": Color("#fbbf24"),
+					"text": q
+				}
+			]
+		"brenda":
+			var q = lic_brenda_quotes[randi() % lic_brenda_quotes.size()]
+			dialog_queue = [
+				{
+					"speaker": "Lic. Brenda (RH)",
+					"portrait": "res://assets/characters/npc_lic_brenda.png",
+					"color": Color("#f472b6"),
+					"text": q
+				}
+			]
+		"paco":
+			var q = paco_godinez_quotes[randi() % paco_godinez_quotes.size()]
+			dialog_queue = [
+				{
+					"speaker": "Paco Godínez",
+					"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+					"color": Color("#facc15"),
+					"text": q
+				}
+			]
+		"becario":
+			var q = becario_ti_quotes[randi() % becario_ti_quotes.size()]
+			dialog_queue = [
+				{
+					"speaker": "Becario de TI",
+					"portrait": "res://assets/characters/novato_portrait.png",
+					"color": Color("#4ade80"),
+					"text": q
 				}
 			]
 		"printer":
@@ -481,15 +578,11 @@ func _unhandled_input(event):
 		return
 		
 	if dialog_box.visible:
-		if event.is_action_pressed("ui_accept") \
-		or (event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_E)) \
-		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) \
-		or (event is InputEventScreenTouch and event.pressed):
+		if event.is_action_pressed("ui_accept") 		or (event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_E)) 		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) 		or (event is InputEventScreenTouch and event.pressed):
 			get_viewport().set_input_as_handled()
 			_advance_dialog()
 	else:
 		if not current_interactable.is_empty():
-			if event.is_action_pressed("ui_accept") \
-			or (event is InputEventKey and event.pressed and (event.keycode == KEY_E or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER)):
+			if event.is_action_pressed("ui_accept") 			or (event is InputEventKey and event.pressed and (event.keycode == KEY_E or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER)):
 				get_viewport().set_input_as_handled()
-				_trigger_current_interaction()\n
+				_trigger_current_interaction()

@@ -12,6 +12,9 @@ var characters_data = {
 		"hp": 160,
 		"atk": 42,
 		"def": 18,
+		"level": 1,
+		"exp": 0,
+		"exp_to_next": 60,
 		"color": Color("#3498db"), # Azul
 		"special_mechanic": "one_turn_skip", # Ataca un turno si y otro no
 		"special_move_name": "Reinicio Forzado al Rack",
@@ -28,6 +31,9 @@ var characters_data = {
 		"hp": 125,
 		"atk": 25,
 		"def": 15,
+		"level": 1,
+		"exp": 0,
+		"exp_to_next": 60,
 		"color": Color("#2ecc71"), # Verde
 		"special_mechanic": "healer",
 		"special_move_name": "USB Booteable con Linux Milagroso",
@@ -44,6 +50,9 @@ var characters_data = {
 		"hp": 140,
 		"atk": 30,
 		"def": 22,
+		"level": 1,
+		"exp": 0,
+		"exp_to_next": 60,
 		"color": Color("#9b59b6"), # Morado
 		"special_mechanic": "shield_tank",
 		"special_move_name": "Ataque DDoS con la Cafetera",
@@ -60,6 +69,9 @@ var characters_data = {
 		"hp": 130,
 		"atk": 38,
 		"def": 18,
+		"level": 1,
+		"exp": 0,
+		"exp_to_next": 60,
 		"color": Color("#e67e22"), # Naranja
 		"special_mechanic": "critical_dev",
 		"special_move_name": "Mañana no vengo, voy a Chilpancingo",
@@ -76,6 +88,9 @@ var characters_data = {
 		"hp": 130,
 		"atk": 40,
 		"def": 16,
+		"level": 1,
+		"exp": 0,
+		"exp_to_next": 60,
 		"color": Color("#e74c3c"), # Rojo
 		"special_mechanic": "high_damage",
 		"special_move_name": "DROP DATABASE CON ROOT",
@@ -89,6 +104,8 @@ var selected_hero_id: String = "javier"
 var party: Array = []
 var player_saved_position: Vector2 = Vector2(140, 200)
 var current_enemy_data: Dictionary = {}
+var current_enemy_id: String = ""
+var defeated_enemies: Array = []
 var victorious_count: int = 0
 var intro_cutscene_done: bool = false
 var office_cutscene_done: bool = false
@@ -113,9 +130,43 @@ func reset_game():
 	office_cutscene_done = false
 	printer_defeated = false
 	victory_dialogue_shown = false
+	defeated_enemies.clear()
+	current_enemy_id = ""
 	player_saved_position = Vector2(140, 200)
 	victorious_count = 0
 	init_party(selected_hero_id)
+
+func add_exp_to_party(exp_amount: int) -> Array:
+	var level_ups = []
+	for member in party:
+		var current_exp = member.get("exp", 0) + exp_amount
+		var current_level = member.get("level", 1)
+		var exp_needed = member.get("exp_to_next", 60)
+		var did_level_up = false
+		
+		while current_exp >= exp_needed:
+			current_exp -= exp_needed
+			current_level += 1
+			exp_needed = int(exp_needed * 1.5)
+			member["max_hp"] += 25
+			member["hp"] = member["max_hp"] # Cura completa al subir de nivel
+			member["atk"] += 6
+			member["def"] += 4
+			did_level_up = true
+			
+		member["exp"] = current_exp
+		member["level"] = current_level
+		member["exp_to_next"] = exp_needed
+		
+		if did_level_up:
+			level_ups.append({
+				"name": member["name"],
+				"level": current_level,
+				"max_hp": member["max_hp"],
+				"atk": member["atk"],
+				"def": member["def"]
+			})
+	return level_ups
 
 func _ready():
 	# Party por defecto con los héroes principales
