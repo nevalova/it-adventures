@@ -66,4 +66,7 @@ func update_preview(char_id: String):
 
 func _on_confirm_selection():
 	GameManager.init_party(current_selected_id)
+	GameManager.intro_cutscene_done = false
+	GameManager.office_cutscene_done = false
+	GameManager.player_saved_position = Vector2(140, 200)
 	get_tree().change_scene_to_file("res://scenes/overworld.tscn")

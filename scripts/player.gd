@@ -3,10 +3,11 @@ extends CharacterBody2D
 @export var speed: float = 140.0
 @export var walk_anim_speed: float = 8.0
 
-var facing_direction: Vector2 = Vector2.DOWN
+var facing_direction: Vector2 = Vector2.RIGHT
 var is_moving: bool = false
 var anim_timer: float = 0.0
-var current_row: int = 0
+var current_row: int = 6 # Row 6 = Este (Derecha)
+var can_move: bool = true
 
 # Controles táctiles móviles
 var dpad_up: bool = false
@@ -26,9 +27,23 @@ func _ready():
 		sprite.hframes = 4
 		sprite.vframes = 12
 		sprite.scale = Vector2(0.24, 0.24)
-		sprite.frame = 0 # Fila 0, frame 0 = Mirando al frente hacia abajo
+		current_row = 6
+		sprite.frame = current_row * 4 + 0 # Mirando a la derecha
+		facing_direction = Vector2.RIGHT
+
+func set_facing(dir: Vector2):
+	facing_direction = dir
+	current_row = get_direction_row(dir)
+	sprite.frame = current_row * 4 + 0
 
 func _physics_process(delta):
+	if not can_move:
+		velocity = Vector2.ZERO
+		is_moving = false
+		anim_timer = 0.0
+		sprite.frame = current_row * 4 + 0
+		move_and_slide()
+		return
 	var input_vector = Vector2.ZERO
 	input_vector.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
 	input_vector.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")

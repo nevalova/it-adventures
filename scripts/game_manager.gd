@@ -87,9 +87,11 @@ var characters_data = {
 
 var selected_hero_id: String = "javier"
 var party: Array = []
-var player_saved_position: Vector2 = Vector2(320, 240)
+var player_saved_position: Vector2 = Vector2(140, 200)
 var current_enemy_data: Dictionary = {}
 var victorious_count: int = 0
+var intro_cutscene_done: bool = false
+var office_cutscene_done: bool = false
 
 func _ready():
 	# Party por defecto con los héroes principales

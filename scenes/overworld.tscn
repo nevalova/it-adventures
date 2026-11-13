@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://c28k4m9v3j7r"]
+[gd_scene load_steps=18 format=3 uid="uid://c28k4m9v3j7r"]
 
 [ext_resource type="Script" path="res://scripts/overworld.gd" id="1_overworld"]
 [ext_resource type="Texture2D" path="res://assets/floor_tile.png" id="2_floor"]
@@ -7,19 +7,55 @@
 [ext_resource type="Texture2D" path="res://assets/desk.png" id="5_desk"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="6_player"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="7_enemy"]
+[ext_resource type="Texture2D" path="res://assets/characters/roberto_huerta_spritesheet.png" id="8_roberto_spr"]
+[ext_resource type="Texture2D" path="res://assets/characters/usuaria_spritesheet.png" id="9_usuaria_spr"]
+[ext_resource type="Texture2D" path="res://assets/props/workstation_assembled.png" id="10_workstation"]
+[ext_resource type="Texture2D" path="res://assets/props/desk_light.png" id="11_desk_light"]
+[ext_resource type="Texture2D" path="res://assets/props/desk_office.png" id="12_desk_office"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
-size = Vector2(640, 20)
+size = Vector2(1280, 20)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_v"]
 size = Vector2(20, 360)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_divider"]
+size = Vector2(16, 110)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trigger"]
+size = Vector2(40, 260)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
+bg_color = Color(0.08, 0.1, 0.16, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.6, 0.95, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_objective"]
+bg_color = Color(0.12, 0.14, 0.22, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.95, 0.77, 0.25, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="Overworld" type="Node2D"]
 script = ExtResource("1_overworld")
 
 [node name="Floor" type="TextureRect" parent="."]
 texture_filter = 0
-offset_right = 640.0
+offset_right = 1280.0
 offset_bottom = 360.0
 texture = ExtResource("2_floor")
 stretch_mode = 1
@@ -30,17 +66,17 @@ collision_mask = 1
 
 [node name="WallTop" type="TextureRect" parent="Walls"]
 texture_filter = 0
-offset_right = 640.0
+offset_right = 1280.0
 offset_bottom = 24.0
 texture = ExtResource("3_wall")
 stretch_mode = 1
 
 [node name="CollTop" type="CollisionShape2D" parent="Walls"]
-position = Vector2(320, 10)
+position = Vector2(640, 10)
 shape = SubResource("RectangleShape2D_wall_h")
 
 [node name="CollBottom" type="CollisionShape2D" parent="Walls"]
-position = Vector2(320, 350)
+position = Vector2(640, 350)
 shape = SubResource("RectangleShape2D_wall_h")
 
 [node name="CollLeft" type="CollisionShape2D" parent="Walls"]
@@ -48,8 +84,46 @@ position = Vector2(10, 180)
 shape = SubResource("RectangleShape2D_wall_v")
 
 [node name="CollRight" type="CollisionShape2D" parent="Walls"]
-position = Vector2(630, 180)
+position = Vector2(1270, 180)
 shape = SubResource("RectangleShape2D_wall_v")
+
+[node name="WallDividerTop" type="TextureRect" parent="Walls"]
+texture_filter = 0
+offset_left = 572.0
+offset_top = 20.0
+offset_right = 588.0
+offset_bottom = 125.0
+texture = ExtResource("3_wall")
+stretch_mode = 1
+
+[node name="CollDividerTop" type="CollisionShape2D" parent="Walls"]
+position = Vector2(580, 70)
+shape = SubResource("RectangleShape2D_divider")
+
+[node name="WallDividerBottom" type="TextureRect" parent="Walls"]
+texture_filter = 0
+offset_left = 572.0
+offset_top = 235.0
+offset_right = 588.0
+offset_bottom = 345.0
+texture = ExtResource("3_wall")
+stretch_mode = 1
+
+[node name="CollDividerBottom" type="CollisionShape2D" parent="Walls"]
+position = Vector2(580, 290)
+shape = SubResource("RectangleShape2D_divider")
+
+[node name="SignLabel" type="Label" parent="."]
+offset_left = 520.0
+offset_top = 115.0
+offset_right = 640.0
+offset_bottom = 138.0
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 9
+text = "➡️ FINANZAS"
+horizontal_alignment = 1
 
 [node name="EnvironmentProps" type="Node2D" parent="."]
 
@@ -60,49 +134,123 @@ texture = ExtResource("4_rack")
 
 [node name="ServerRack2" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 0
-position = Vector2(90, 50)
+position = Vector2(100, 50)
 texture = ExtResource("4_rack")
 
 [node name="ServerRack3" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 0
-position = Vector2(120, 50)
+position = Vector2(140, 50)
 texture = ExtResource("4_rack")
 
-[node name="Desk1" type="Sprite2D" parent="EnvironmentProps"]
+[node name="ServerRack4" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 0
-position = Vector2(200, 150)
+position = Vector2(180, 50)
+texture = ExtResource("4_rack")
+
+[node name="ServerRack5" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 0
+position = Vector2(220, 50)
+texture = ExtResource("4_rack")
+
+[node name="DeskIT1" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 0
+position = Vector2(160, 140)
 texture = ExtResource("5_desk")
 
-[node name="Desk2" type="Sprite2D" parent="EnvironmentProps"]
+[node name="DeskIT2" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 0
-position = Vector2(400, 150)
+position = Vector2(340, 140)
 texture = ExtResource("5_desk")
 
-[node name="Desk3" type="Sprite2D" parent="EnvironmentProps"]
+[node name="DeskIT3" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 0
-position = Vector2(300, 260)
+position = Vector2(250, 260)
 texture = ExtResource("5_desk")
+
+[node name="WorkstationFinanzas" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 1
+position = Vector2(940, 160)
+scale = Vector2(0.26, 0.26)
+texture = ExtResource("10_workstation")
+
+[node name="DeskLight" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 1
+position = Vector2(780, 260)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("11_desk_light")
+
+[node name="DeskOffice" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 1
+position = Vector2(1020, 260)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("12_desk_office")
 
 [node name="Player" parent="." instance=ExtResource("6_player")]
-position = Vector2(320, 200)
+position = Vector2(140, 200)
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 640
+limit_right = 1280
 limit_bottom = 360
 
+[node name="RobertoHuerta" type="Node2D" parent="."]
+position = Vector2(480, 200)
+
+[node name="Sprite2D" type="Sprite2D" parent="RobertoHuerta"]
+texture_filter = 1
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("8_roberto_spr")
+hframes = 4
+vframes = 12
+frame = 8
+
+[node name="NameTag" type="Label" parent="RobertoHuerta"]
+offset_left = -40.0
+offset_top = -34.0
+offset_right = 40.0
+offset_bottom = -21.0
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Roberto Huerta"
+horizontal_alignment = 1
+
+[node name="Usuaria" type="Node2D" parent="."]
+position = Vector2(940, 130)
+
+[node name="Sprite2D" type="Sprite2D" parent="Usuaria"]
+texture_filter = 1
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("9_usuaria_spr")
+hframes = 4
+vframes = 12
+frame = 40
+
+[node name="NameTag" type="Label" parent="Usuaria"]
+offset_left = -50.0
+offset_top = -34.0
+offset_right = 50.0
+offset_bottom = -21.0
+theme_override_colors/font_color = Color(1, 0.6, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Usuaria Finanzas"
+horizontal_alignment = 1
+
+[node name="OfficeTrigger" type="Area2D" parent="."]
+position = Vector2(750, 190)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="OfficeTrigger"]
+shape = SubResource("RectangleShape2D_trigger")
+
 [node name="EnemyPrinter" parent="." instance=ExtResource("7_enemy")]
-position = Vector2(180, 220)
+position = Vector2(1120, 190)
 enemy_type = "printer"
-
-[node name="EnemyBug" parent="." instance=ExtResource("7_enemy")]
-position = Vector2(480, 100)
-enemy_type = "bug"
-
-[node name="EnemyBug2" parent="." instance=ExtResource("7_enemy")]
-position = Vector2(480, 250)
-enemy_type = "bug"
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -142,7 +290,7 @@ text = "JAVIER"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
 theme_override_font_sizes/font_size = 12
-text = "[Sysadmin Senior]"
+text = "[Soporte Técnico]"
 
 [node name="HeroStats" type="Label" parent="CanvasLayer/HUD/HeroInfo"]
 layout_mode = 2
@@ -155,8 +303,28 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 0.8)
 theme_override_font_sizes/font_size = 11
-text = "Usa D-Pad táctil o WASD para explorar"
+text = "Usa D-Pad o WASD para moverte"
 horizontal_alignment = 2
+
+[node name="ObjectiveBanner" type="PanelContainer" parent="CanvasLayer/HUD"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_top = 40.0
+offset_right = 220.0
+offset_bottom = 66.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_objective")
+
+[node name="Label" type="Label" parent="CanvasLayer/HUD/ObjectiveBanner"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_font_sizes/font_size = 11
+text = "⚠️ ¡Roberto Huerta viene corriendo a pedir ayuda!"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="TouchControls" type="Control" parent="CanvasLayer/HUD"]
 layout_mode = 1
@@ -257,3 +425,67 @@ layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 11
 text = "🔄 Cambiar IT Guy"
+
+[node name="DialogBox" type="PanelContainer" parent="CanvasLayer"]
+visible = false
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -280.0
+offset_top = -130.0
+offset_right = 280.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/DialogBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/DialogBox/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PortraitFrame" type="PanelContainer" parent="CanvasLayer/DialogBox/Margin/HBox"]
+custom_minimum_size = Vector2(74, 74)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Portrait" type="TextureRect" parent="CanvasLayer/DialogBox/Margin/HBox/PortraitFrame"]
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TextBox" type="VBoxContainer" parent="CanvasLayer/DialogBox/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Speaker" type="Label" parent="CanvasLayer/DialogBox/Margin/HBox/TextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 13
+text = "Roberto Huerta"
+
+[node name="Message" type="Label" parent="CanvasLayer/DialogBox/Margin/HBox/TextBox"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_font_sizes/font_size = 11
+text = "¡Ayuda con la impresora!"
+autowrap_mode = 3
+
+[node name="BtnContinue" type="Button" parent="CanvasLayer/DialogBox/Margin/HBox"]
+custom_minimum_size = Vector2(85, 36)
+layout_mode = 2
+size_flags_vertical = 8
+focus_mode = 0
+theme_override_font_sizes/font_size = 11
+text = "Continuar ▶"

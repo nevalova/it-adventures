@@ -42,8 +42,18 @@ func apply_spec():
 	name_tag.text = spec["name"]
 	if ResourceLoader.exists(spec["texture_path"]):
 		sprite.texture = load(spec["texture_path"])
+	if enemy_type == "printer":
+		sprite.scale = Vector2(0.2, 0.2)
+		name_tag.text = "⚠️ IMPRESORA MALDITA"
+		name_tag.modulate = Color(1.0, 0.3, 0.3)
 
 func _process(delta):
+	if enemy_type == "printer":
+		# La impresora vibra peligrosamente sobrecalentada
+		var shake = sin(Time.get_ticks_msec() * 0.04) * 1.8
+		sprite.position.x = shake
+		return
+		
 	change_timer -= delta
 	if change_timer <= 0:
 		pick_random_direction()

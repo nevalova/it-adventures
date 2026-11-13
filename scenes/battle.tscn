@@ -74,8 +74,8 @@ custom_minimum_size = Vector2(0, 130)
 layout_mode = 2
 
 [node name="EnemySprite" type="TextureRect" parent="MainBox/BattleArena/EnemySide/Center"]
-texture_filter = 0
-custom_minimum_size = Vector2(80, 80)
+texture_filter = 1
+custom_minimum_size = Vector2(110, 110)
 layout_mode = 2
 texture = ExtResource("2_enemy_spr")
 expand_mode = 1
