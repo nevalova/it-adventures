@@ -93,8 +93,8 @@ func create_battler_sprites():
 		spr.vframes = 12
 		spr.scale = Vector2(0.32, 0.32)
 		spr.position = Vector2(base_x + i * step_x, base_y + i * step_y)
-		# Row 6 (mirando a la izquierda hacia el enemigo)
-		spr.frame = 6 * 4 + 0
+		# Row 2 (mirando a la izquierda hacia el enemigo)
+		spr.frame = 2 * 4 + 0
 		hero_sprites_container.add_child(spr)
 		battler_sprites.append(spr)
 
@@ -189,7 +189,7 @@ func start_turn():
 			active_hero_status.modulate = Color(0.4, 1.0, 0.4)
 			btn_attack.disabled = false
 			btn_attack.text = "⚔ Atacar (Reinicio Forzado)"
-			if spr: spr.frame = 6 * 4 + 0 # Listo mirando al enemigo
+			if spr: spr.frame = 2 * 4 + 0 # Listo mirando al enemigo
 		else:
 			active_hero_status.text = "💤 Tomando Café & Memes (Turno No)"
 			active_hero_status.modulate = Color(1.0, 0.8, 0.2)
@@ -201,7 +201,7 @@ func start_turn():
 		active_hero_status.modulate = Color(1, 1, 1)
 		btn_attack.disabled = false
 		btn_attack.text = "⚔ Atacar"
-		if spr: spr.frame = 6 * 4 + 0
+		if spr: spr.frame = 2 * 4 + 0
 
 func reset_active_sprite_position():
 	var spr = get_active_sprite()
@@ -300,7 +300,7 @@ func play_attack_anim(spr: Sprite2D):
 	tween.tween_callback(func(): spr.frame = 9 * 4 + 2) # Frame con efecto cortante azul
 	tween.tween_interval(0.15)
 	tween.tween_property(spr, "position:x", original_x, 0.1)
-	tween.tween_callback(func(): spr.frame = 6 * 4 + 0)
+	tween.tween_callback(func(): spr.frame = 2 * 4 + 0)
 
 func deal_damage_to_enemy(damage: int, message: String):
 	enemy_current_hp -= damage

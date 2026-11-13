@@ -20,7 +20,7 @@ func _ready():
 		sprite.hframes = 4
 		sprite.vframes = 12
 		sprite.scale = Vector2(0.24, 0.24)
-		sprite.frame = 0
+		sprite.frame = 0 # Fila 0, frame 0 = Mirando al frente hacia abajo
 
 func _physics_process(delta):
 	var input_vector = Vector2.ZERO
@@ -52,7 +52,7 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		is_moving = false
 		anim_timer = 0.0
-		# Frame 0 de la dirección actual (Idle en esa postura)
+		# Frame 0 de la dirección actual
 		sprite.frame = current_row * 4 + 0
 
 	move_and_slide()
@@ -67,15 +67,24 @@ func get_direction_row(dir: Vector2) -> int:
 	if dir.y > 0.3: dy = 1
 	elif dir.y < -0.3: dy = -1
 	
+	# Mapeo visual exacto de las 8 direcciones del tileset (Rotación en sentido horario):
+	# Row 0: Sur (Abajo / Frente)
+	# Row 1: Sur-Oeste (Abajo-Izquierda)
+	# Row 2: Oeste (Izquierda)
+	# Row 3: Nor-Oeste (Arriba-Izquierda)
+	# Row 4: Norte (Arriba / Espalda)
+	# Row 5: Nor-Este (Arriba-Derecha)
+	# Row 6: Este (Derecha)
+	# Row 7: Sur-Este (Abajo-Derecha)
 	if dy > 0:
-		if dx > 0: return 1  # Abajo-Derecha
-		elif dx < 0: return 7 # Abajo-Izquierda
-		else: return 0       # Abajo
+		if dx < 0: return 1   # Abajo-Izquierda
+		elif dx > 0: return 7  # Abajo-Derecha
+		else: return 0        # Abajo (Frente)
 	elif dy < 0:
-		if dx > 0: return 3  # Arriba-Derecha
-		elif dx < 0: return 5 # Arriba-Izquierda
-		else: return 4       # Arriba
+		if dx < 0: return 3   # Arriba-Izquierda
+		elif dx > 0: return 5  # Arriba-Derecha
+		else: return 4        # Arriba (Espalda)
 	else:
-		if dx > 0: return 2   # Derecha
-		elif dx < 0: return 6  # Izquierda
+		if dx < 0: return 2   # Izquierda
+		elif dx > 0: return 6  # Derecha
 		else: return current_row
