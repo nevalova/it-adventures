@@ -476,7 +476,7 @@ func _trigger_current_interaction():
 			dialog_queue = [
 				{
 					"speaker": "Carlos (Facturación)",
-					"portrait": "res://assets/characters/npc_oficinista_hombre.png",
+					"portrait": "res://assets/characters/carlos_portrait.png",
 					"color": Color("#60a5fa"),
 					"text": (carlos_thanks % hero_name) if GameManager.printer_defeated else carlos_panic
 				}
@@ -485,7 +485,7 @@ func _trigger_current_interaction():
 			dialog_queue = [
 				{
 					"speaker": "Mariana (Contabilidad)",
-					"portrait": "res://assets/characters/npc_oficinista_mujer.png",
+					"portrait": "res://assets/characters/mariana_portrait.png",
 					"color": Color("#34d399"),
 					"text": (mariana_thanks % hero_name) if GameManager.printer_defeated else mariana_panic
 				}
@@ -495,7 +495,7 @@ func _trigger_current_interaction():
 			dialog_queue = [
 				{
 					"speaker": "Don Ramiro (El Decano)",
-					"portrait": "res://assets/characters/npc_don_ramiro.png",
+					"portrait": "res://assets/characters/don_ramiro_portrait.png",
 					"color": Color("#fbbf24"),
 					"text": q
 				}
@@ -505,7 +505,7 @@ func _trigger_current_interaction():
 			dialog_queue = [
 				{
 					"speaker": "Lic. Brenda (RH)",
-					"portrait": "res://assets/characters/npc_lic_brenda.png",
+					"portrait": "res://assets/characters/lic_brenda_portrait.png",
 					"color": Color("#f472b6"),
 					"text": q
 				}
@@ -515,7 +515,7 @@ func _trigger_current_interaction():
 			dialog_queue = [
 				{
 					"speaker": "Paco Godínez",
-					"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+					"portrait": "res://assets/characters/carlos_portrait.png",
 					"color": Color("#facc15"),
 					"text": q
 				}
@@ -525,7 +525,7 @@ func _trigger_current_interaction():
 			dialog_queue = [
 				{
 					"speaker": "Becario de TI",
-					"portrait": "res://assets/characters/novato_portrait.png",
+					"portrait": "res://assets/characters/becario_portrait.png",
 					"color": Color("#4ade80"),
 					"text": q
 				}
