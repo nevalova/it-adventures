@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://df7s3a9xk2p1"]
+[gd_scene load_steps=3 format=3 uid="uid://df7s3a9xk2p1"]
 
 [ext_resource type="Script" path="res://scripts/character_select.gd" id="1_select"]
+[ext_resource type="Texture2D" path="res://assets/characters/javier_portrait.png" id="2_port"]
 
 [node name="CharacterSelect" type="Control"]
 layout_mode = 3
@@ -25,13 +26,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 15.0
-offset_right = -20.0
-offset_bottom = -15.0
+offset_left = 16.0
+offset_top = 10.0
+offset_right = -16.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 6
 
 [node name="HeaderBox" type="VBoxContainer" parent="MainContainer"]
 layout_mode = 2
@@ -42,7 +43,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.85, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 24
 text = "CHOOSE YOUR IT GUY"
 horizontal_alignment = 1
 
@@ -56,12 +57,12 @@ horizontal_alignment = 1
 [node name="ContentBox" type="HBoxContainer" parent="MainContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 15
+theme_override_constants/separation = 12
 
 [node name="CardsContainer" type="VBoxContainer" parent="MainContainer/ContentBox"]
 custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 
 [node name="PreviewPanel" type="Panel" parent="MainContainer/ContentBox"]
 layout_mode = 2
@@ -74,65 +75,65 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer"]
+[node name="HBoxDetails" type="HBoxContainer" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 16
 
-[node name="AvatarContainer" type="CenterContainer" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/VBox"]
+[node name="PortraitBox" type="VBoxContainer" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails"]
+layout_mode = 2
+alignment = 1
+
+[node name="PortraitFrame" type="PanelContainer" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails/PortraitBox"]
 layout_mode = 2
 
-[node name="AvatarColor" type="ColorRect" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/VBox/AvatarContainer"]
-custom_minimum_size = Vector2(48, 48)
+[node name="PortraitRect" type="TextureRect" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails/PortraitBox/PortraitFrame"]
+texture_filter = 1
+custom_minimum_size = Vector2(140, 140)
 layout_mode = 2
-color = Color(0.203922, 0.596078, 0.858824, 1)
+texture = ExtResource("2_port")
+expand_mode = 1
+stretch_mode = 6
 
-[node name="AvatarSymbol" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/VBox/AvatarContainer"]
+[node name="VBoxInfo" type="VBoxContainer" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
-text = "[J]"
-horizontal_alignment = 1
-vertical_alignment = 1
+size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 4
 
-[node name="NameLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/VBox"]
+[node name="NameLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails/VBoxInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 0.4, 1)
 theme_override_font_sizes/font_size = 20
 text = "JAVIER"
-horizontal_alignment = 1
 
-[node name="RoleLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/VBox"]
+[node name="RoleLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails/VBoxInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 12
 text = "Sysadmin Senior - El Procrastinador de Servidores"
-horizontal_alignment = 1
 
-[node name="StatsLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/VBox"]
+[node name="StatsLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails/VBoxInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 1, 0.8, 1)
-theme_override_font_sizes/font_size = 13
-text = "HP: 160  |  ATQ: 42  |  DEF: 18"
-horizontal_alignment = 1
-
-[node name="DescLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/VBox"]
-layout_mode = 2
 theme_override_font_sizes/font_size = 12
+text = "HP: 160  |  ATQ: 42  |  DEF: 18"
+
+[node name="DescLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails/VBoxInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
 text = "Descripción del personaje..."
-horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="MechanicLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/VBox"]
+[node name="MechanicLabel" type="Label" parent="MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails/VBoxInfo"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 11
 text = "Habilidad Especial"
-horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="BottomBox" type="HBoxContainer" parent="MainContainer"]
@@ -140,6 +141,6 @@ layout_mode = 2
 alignment = 1
 
 [node name="SelectButton" type="Button" parent="MainContainer/BottomBox"]
-custom_minimum_size = Vector2(260, 36)
+custom_minimum_size = Vector2(260, 32)
 layout_mode = 2
 text = "▶ INICIAR AVENTURA CON ESTE HÉROE"

@@ -15,7 +15,9 @@ var characters_data = {
 		"color": Color("#3498db"), # Azul
 		"special_mechanic": "one_turn_skip", # Ataca un turno si y otro no
 		"special_move_name": "Reinicio Forzado al Rack",
-		"avatar_symbol": "[J]"
+		"avatar_symbol": "[J]",
+		"portrait_path": "res://assets/characters/javier_portrait.png",
+		"spritesheet_path": "res://assets/characters/javier_spritesheet.png"
 	},
 	"tonazo": {
 		"name": "Toñazo",
@@ -29,7 +31,9 @@ var characters_data = {
 		"color": Color("#2ecc71"), # Verde
 		"special_mechanic": "healer",
 		"special_move_name": "Parche con Cinta y Cable UTP",
-		"avatar_symbol": "[T]"
+		"avatar_symbol": "[T]",
+		"portrait_path": "res://assets/characters/tonazo_portrait.png",
+		"spritesheet_path": "res://assets/characters/tonazo_spritesheet.png"
 	},
 	"israel": {
 		"name": "Israel",
@@ -43,7 +47,9 @@ var characters_data = {
 		"color": Color("#e67e22"), # Naranja
 		"special_mechanic": "critical_dev",
 		"special_move_name": "Push a Producción en Viernes",
-		"avatar_symbol": "[I]"
+		"avatar_symbol": "[I]",
+		"portrait_path": "res://assets/characters/israel_portrait.png",
+		"spritesheet_path": "res://assets/characters/israel_spritesheet.png"
 	},
 	"juan_carlos": {
 		"name": "Juan Carlos",
@@ -57,7 +63,9 @@ var characters_data = {
 		"color": Color("#9b59b6"), # Morado
 		"special_mechanic": "shield_tank",
 		"special_move_name": "Ataque DDoS con la Cafetera",
-		"avatar_symbol": "[JC]"
+		"avatar_symbol": "[JC]",
+		"portrait_path": "res://assets/characters/juan_carlos_portrait.png",
+		"spritesheet_path": "res://assets/characters/juan_carlos_spritesheet.png"
 	},
 	"alejandro": {
 		"name": "Alejandro",
@@ -71,7 +79,9 @@ var characters_data = {
 		"color": Color("#e74c3c"), # Rojo
 		"special_mechanic": "high_damage",
 		"special_move_name": "DROP DATABASE CON ROOT",
-		"avatar_symbol": "[A]"
+		"avatar_symbol": "[A]",
+		"portrait_path": "res://assets/characters/alejandro_portrait.png",
+		"spritesheet_path": "res://assets/characters/alejandro_spritesheet.png"
 	}
 }
 
