@@ -11,7 +11,7 @@ extends Control
 @onready var mechanic_label = $MainContainer/ContentBox/PreviewPanel/MarginContainer/HBoxDetails/VBoxInfo/MechanicLabel
 @onready var select_button = $MainContainer/BottomBox/SelectButton
 
-var character_keys = ["javier", "tonazo", "israel", "juan_carlos", "alejandro"]
+var character_keys = ["javier", "tonazo", "juan_carlos", "alejandro", "israel"]
 var current_selected_id = "javier"
 
 func _ready():

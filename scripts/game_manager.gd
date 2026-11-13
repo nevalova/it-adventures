@@ -22,43 +22,27 @@ var characters_data = {
 	"tonazo": {
 		"name": "Toñazo",
 		"role": "Soporte Técnico Nivel 1",
-		"title": "Pregunta: '¿Ya lo reinició?'",
-		"description": "El salvador de usuarios despistados. Puede parchar cables y curar al equipo.",
+		"title": "El del Collar USB",
+		"description": "Lleva la memoria USB booteable en el cuello. Parchea cables y revive cualquier PC.",
 		"max_hp": 125,
 		"hp": 125,
-		"atk": 22,
-		"def": 14,
+		"atk": 25,
+		"def": 15,
 		"color": Color("#2ecc71"), # Verde
 		"special_mechanic": "healer",
-		"special_move_name": "Parche con Cinta y Cable UTP",
+		"special_move_name": "USB Booteable con Linux Milagroso",
 		"avatar_symbol": "[T]",
 		"portrait_path": "res://assets/characters/tonazo_portrait.png",
 		"spritesheet_path": "res://assets/characters/tonazo_spritesheet.png"
 	},
-	"israel": {
-		"name": "Israel",
-		"role": "Programador Fullstack",
-		"title": "Commit Directo a Main",
-		"description": "Consume litros de café. Lanza código espagueti con alto daño crítico.",
-		"max_hp": 115,
-		"hp": 115,
-		"atk": 36,
-		"def": 12,
-		"color": Color("#e67e22"), # Naranja
-		"special_mechanic": "critical_dev",
-		"special_move_name": "Push a Producción en Viernes",
-		"avatar_symbol": "[I]",
-		"portrait_path": "res://assets/characters/israel_portrait.png",
-		"spritesheet_path": "res://assets/characters/israel_spritesheet.png"
-	},
 	"juan_carlos": {
 		"name": "Juan Carlos",
 		"role": "Ciberseguridad & Redes",
-		"title": "El Firewall Viviente",
-		"description": "Excelente defensa, bloquea malware y satura al enemigo con DDoS.",
+		"title": "El Arquitecto de Redes",
+		"description": "Elegante y metódico. Bloquea malware, configura routers y satura al enemigo con DDoS.",
 		"max_hp": 135,
 		"hp": 135,
-		"atk": 26,
+		"atk": 28,
 		"def": 22,
 		"color": Color("#9b59b6"), # Morado
 		"special_mechanic": "shield_tank",
@@ -69,19 +53,35 @@ var characters_data = {
 	},
 	"alejandro": {
 		"name": "Alejandro",
-		"role": "DBA & Datos",
-		"title": "El Destructor de Tablas",
-		"description": "Maestro del SQL. Su comando prohibido puede destruir servidores enteros.",
-		"max_hp": 120,
-		"hp": 120,
-		"atk": 38,
-		"def": 13,
-		"color": Color("#e74c3c"), # Rojo
-		"special_mechanic": "high_damage",
-		"special_move_name": "DROP DATABASE CON ROOT",
+		"role": "Programador Fullstack",
+		"title": "Commit Directo a Main",
+		"description": "Consume litros de café y programa a toda velocidad. Lanza scripts con alto daño crítico.",
+		"max_hp": 115,
+		"hp": 115,
+		"atk": 36,
+		"def": 12,
+		"color": Color("#e67e22"), # Naranja
+		"special_mechanic": "critical_dev",
+		"special_move_name": "Push a Producción en Viernes",
 		"avatar_symbol": "[A]",
 		"portrait_path": "res://assets/characters/alejandro_portrait.png",
 		"spritesheet_path": "res://assets/characters/alejandro_spritesheet.png"
+	},
+	"israel": {
+		"name": "Israel",
+		"role": "DBA & Infraestructura",
+		"title": "El Guardián Veterano",
+		"description": "El sabio de la barba plateada. Maestro del SQL cuyo comando DROP DATABASE causa pánico.",
+		"max_hp": 130,
+		"hp": 130,
+		"atk": 40,
+		"def": 16,
+		"color": Color("#e74c3c"), # Rojo
+		"special_mechanic": "high_damage",
+		"special_move_name": "DROP DATABASE CON ROOT",
+		"avatar_symbol": "[I]",
+		"portrait_path": "res://assets/characters/israel_portrait.png",
+		"spritesheet_path": "res://assets/characters/israel_spritesheet.png"
 	}
 }
 
