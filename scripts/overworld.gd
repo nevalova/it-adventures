@@ -51,7 +51,6 @@ extends Node2D
 @onready var don_ramiro = $DonRamiro
 @onready var lic_brenda = $LicBrenda
 @onready var paco_godinez = $PacoGodinez
-@onready var becario_ti = $BecarioTI
 
 @onready var office_trigger = $OfficeTrigger
 @onready var enemy_printer = $EnemyPrinter
@@ -131,14 +130,6 @@ var paco_godinez_quotes: Array = [
 	"Vengo llegando del baño... estuve 40 minutos esperando a que se me pasaran las ganas de trabajar."
 ]
 
-var becario_ti_quotes: Array = [
-	"Oigan... ¿la pasta térmica va untada encima del procesador o se diluye en el agua del enfriamiento líquido? Es para una tarea...",
-	"Toñazo me dijo que si le doy una patada certera a la esquina inferior derecha del rack, se le quita la pantalla azul.",
-	"Alguien me pidió formatear un disquete de 3.5 pulgadas... ¿eso qué es? ¿un portavasos inteligente?",
-	"Llevo media hora buscando la tecla 'Cualquiera' porque la pantalla dice 'Presione cualquier tecla para continuar'.",
-	"Conecté un cable ethernet de un puerto a otro del mismo switch y salieron chispas... ¿eso es el Metaverso?"
-]
-
 func _ready():
 	$Player/Camera2D.make_current()
 	var leader = GameManager.get_leader_data()
@@ -210,9 +201,6 @@ func _ready():
 	$PacoGodinez/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("paco"))
 	$PacoGodinez/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "paco": _clear_interactable())
 	
-	$BecarioTI/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("becario"))
-	$BecarioTI/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "becario": _clear_interactable())
-	
 	$EnemyPrinter/PrinterInteract.body_entered.connect(func(body): if body == player: _set_interactable("printer"))
 	$EnemyPrinter/PrinterInteract.body_exited.connect(func(body): if body == player and current_interactable == "printer": _clear_interactable())
 	
@@ -269,7 +257,6 @@ func _process(delta):
 	carlos_sprite.frame = 0 * 4 + work_col
 	mariana_sprite.frame = 0 * 4 + work_col
 	paco_godinez.get_node("Sprite2D").frame = 0 * 4 + work_col
-	becario_ti.get_node("Sprite2D").frame = 0 * 4 + work_col
 	
 	match current_state:
 		State.ROBERTO_RUN_TO_PLAYER:
@@ -331,6 +318,33 @@ func _start_intro_dialog():
 		touch_controls.visible = true
 		objective_label.text = obj_follow_text
 	
+	_show_next_in_queue()
+
+func start_encounter_dialog(user_name: String, portrait_path: String, color: Color, problem_text: String, enemy_spec: Dictionary, enemy_id: String):
+	player.can_move = false
+	touch_controls.visible = false
+	
+	dialog_queue = [
+		{
+			"speaker": user_name,
+			"portrait": portrait_path,
+			"color": color,
+			"text": problem_text
+		},
+		{
+			"speaker": "ALERTA DE SISTEMAS",
+			"portrait": enemy_spec.get("texture_path", "res://assets/bug_enemy.png"),
+			"color": Color("#f87171"),
+			"text": "¡El problema se materializa como un '%s'! ¡Iniciando combate de Soporte Técnico!" % enemy_spec.get("name", "Problema")
+		}
+	]
+	
+	on_dialog_closed_callback = func():
+		GameManager.player_saved_position = player.global_position
+		GameManager.current_enemy_id = enemy_id
+		GameManager.current_enemy_data = enemy_spec
+		get_tree().change_scene_to_file("res://scenes/battle.tscn")
+		
 	_show_next_in_queue()
 
 func _on_office_trigger_entered(body):
@@ -415,7 +429,7 @@ func _open_demo_modal():
 		"[!] Novedades del Sistema de TI:\n" +
 		" - ¡Enemigos de soporte derrotados ganan EXP y subes de nivel!\n" +
 		" - Nuevos problemas físicos en el piso (Outlook, Teclados, Wi-Fi, CPUs)\n" +
-		" - Charla con Don Ramiro, Lic. Brenda, Paco Godínez y el Becario") % [hero_name, hero_level, hero_role, hero_title]
+		" - Charla con Don Ramiro, Lic. Brenda y Paco Godínez") % [hero_name, hero_level, hero_role, hero_title]
 		
 	demo_modal.visible = true
 	player.can_move = false
@@ -441,8 +455,6 @@ func _set_interactable(id: String):
 			interact_label.text = "[E] Hablar con Lic. Brenda (RH)"
 		"paco":
 			interact_label.text = "[E] Hablar con Paco Godínez"
-		"becario":
-			interact_label.text = "[E] Hablar con Becario de TI"
 		"printer":
 			interact_label.text = "[E] Inspeccionar Impresora"
 
@@ -517,16 +529,6 @@ func _trigger_current_interaction():
 					"speaker": "Paco Godínez",
 					"portrait": "res://assets/characters/carlos_portrait.png",
 					"color": Color("#facc15"),
-					"text": q
-				}
-			]
-		"becario":
-			var q = becario_ti_quotes[randi() % becario_ti_quotes.size()]
-			dialog_queue = [
-				{
-					"speaker": "Becario de TI",
-					"portrait": "res://assets/characters/becario_portrait.png",
-					"color": Color("#4ade80"),
 					"text": q
 				}
 			]

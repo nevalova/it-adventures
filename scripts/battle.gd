@@ -245,12 +245,17 @@ func reset_active_sprite_position():
 
 func advance_to_next_hero():
 	reset_active_sprite_position()
-	active_party_index += 1
-	if active_party_index >= battle_party.size():
-		active_party_index = 0
-		enemy_turn()
-	else:
+	var attempts = 0
+	while attempts < battle_party.size():
+		active_party_index = (active_party_index + 1) % battle_party.size()
+		attempts += 1
+		if battle_party[active_party_index]["hp"] > 0:
+			break
+			
+	if battle_party[active_party_index]["hp"] > 0:
 		start_turn()
+	else:
+		game_over()
 
 func _on_attack_pressed():
 	if not is_player_turn or is_battle_over:
@@ -465,8 +470,10 @@ func deal_damage_to_enemy(damage: int, message: String):
 func end_hero_action():
 	is_player_turn = false
 	reset_active_sprite_position()
-	await get_tree().create_timer(0.9).timeout
-	advance_to_next_hero()
+	await get_tree().create_timer(0.8).timeout
+	if is_battle_over:
+		return
+	enemy_turn()
 
 func enemy_turn():
 	if is_battle_over:
@@ -514,7 +521,7 @@ func enemy_turn():
 	if all_dead:
 		game_over()
 	else:
-		start_turn()
+		advance_to_next_hero()
 
 func enemy_defeated():
 	is_battle_over = true
