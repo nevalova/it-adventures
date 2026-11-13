@@ -92,6 +92,18 @@ var current_enemy_data: Dictionary = {}
 var victorious_count: int = 0
 var intro_cutscene_done: bool = false
 var office_cutscene_done: bool = false
+var printer_defeated: bool = false
+
+var battle_items = {
+	"cafe": {"name": "Café Espresso Doble", "heal": 45, "count": 4, "desc": "Cura 45 HP"},
+	"dona": {"name": "Dona Glaseada RH", "heal": 85, "count": 3, "desc": "Cura 85 HP"},
+	"monster": {"name": "Bebida Energética 500ml", "heal": 140, "count": 2, "desc": "Cura 140 HP"}
+}
+
+func reset_battle_items():
+	battle_items["cafe"]["count"] = 4
+	battle_items["dona"]["count"] = 3
+	battle_items["monster"]["count"] = 2
 
 func _ready():
 	# Party por defecto con los héroes principales
@@ -100,6 +112,8 @@ func _ready():
 func init_party(leader_id: String):
 	selected_hero_id = leader_id
 	party.clear()
+	reset_battle_items()
+	printer_defeated = false
 	# El líder va de primero
 	party.append(characters_data[leader_id].duplicate(true))
 	

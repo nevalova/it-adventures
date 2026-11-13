@@ -11,10 +11,17 @@ extends Control
 @onready var party_container = $MainBox/BattleArena/PartySide/PartyContainer
 @onready var log_label = $MainBox/LogPanel/Margin/LogLabel
 
+@onready var commands_box = $MainBox/CommandPanel/Margin/HBox/Commands
 @onready var btn_attack = $MainBox/CommandPanel/Margin/HBox/Commands/BtnAttack
 @onready var btn_skill = $MainBox/CommandPanel/Margin/HBox/Commands/BtnSkill
 @onready var btn_item = $MainBox/CommandPanel/Margin/HBox/Commands/BtnItem
 @onready var btn_flee = $MainBox/CommandPanel/Margin/HBox/Commands/BtnFlee
+
+@onready var items_menu = $MainBox/CommandPanel/Margin/HBox/ItemsMenu
+@onready var btn_item_cafe = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemCafe
+@onready var btn_item_dona = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemDona
+@onready var btn_item_monster = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemMonster
+@onready var btn_item_back = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemBack
 
 @onready var active_hero_portrait = $MainBox/CommandPanel/Margin/HBox/ActiveHeroBox/ActiveHeroPortrait
 @onready var active_hero_name = $MainBox/CommandPanel/Margin/HBox/ActiveHeroBox/VBox/HeroName
@@ -22,8 +29,8 @@ extends Control
 
 # Enemy Data
 var enemy = {}
-var enemy_max_hp: int = 100
-var enemy_current_hp: int = 100
+var enemy_max_hp: int = 420
+var enemy_current_hp: int = 420
 
 # Party State
 var battle_party: Array = []
@@ -31,6 +38,10 @@ var battler_sprites: Array = [] # Sprite2D nodes for each hero
 var active_party_index: int = 0
 var is_player_turn: bool = true
 var is_battle_over: bool = false
+
+# Alineación sin escalonado (Línea recta vertical)
+const PARTY_LINE_X: float = 90.0
+const PARTY_FORWARD_X: float = 72.0
 
 # Javier mechanic: ataca un turno si y otro no
 var javier_can_attack: bool = true
@@ -41,23 +52,35 @@ func _ready():
 	btn_skill.pressed.connect(_on_skill_pressed)
 	btn_item.pressed.connect(_on_item_pressed)
 	btn_flee.pressed.connect(_on_flee_pressed)
+	
+	btn_item_cafe.pressed.connect(func(): _use_item("cafe"))
+	btn_item_dona.pressed.connect(func(): _use_item("dona"))
+	btn_item_monster.pressed.connect(func(): _use_item("monster"))
+	btn_item_back.pressed.connect(_on_item_back_pressed)
 
 func setup_battle():
 	# Cargar enemigo
 	if GameManager.current_enemy_data.is_empty():
 		enemy = {
 			"name": "Impresora Maldita",
-			"hp": 90,
-			"max_hp": 90,
-			"atk": 18,
-			"def": 8,
+			"type": "printer",
+			"hp": 420,
+			"max_hp": 420,
+			"atk": 22,
+			"def": 12,
 			"texture_path": "res://assets/printer_enemy.png",
-			"attacks": ["Tóner en los ojos", "Atasco de Papel", "Error Desconocido"]
+			"attacks": [
+				"Atasco de Papel en Bandeja 2",
+				"Falta Tinta Magenta (Error Crítico)",
+				"Ráfaga de Tóner Hirviendo",
+				"Sobrecalentamiento del Rodillo Fusor",
+				"Error 0x80070057 de Windows"
+			]
 		}
 	else:
 		enemy = GameManager.current_enemy_data
 		
-	enemy_max_hp = enemy.get("max_hp", 90)
+	enemy_max_hp = enemy.get("max_hp", 420)
 	enemy_current_hp = enemy.get("hp", enemy_max_hp)
 	enemy_name_label.text = enemy.get("name", "Enemigo")
 	if ResourceLoader.exists(enemy.get("texture_path", "")):
@@ -69,7 +92,7 @@ func setup_battle():
 	create_battler_sprites()
 	render_party_ui()
 	
-	set_log("¡Un " + enemy.get("name", "problema") + " salvaje ha detenido los servidores!")
+	set_log("¡Un " + enemy.get("name", "problema") + " salvaje ha detenido las operaciones!")
 	start_turn()
 
 func create_battler_sprites():
@@ -77,11 +100,9 @@ func create_battler_sprites():
 		c.queue_free()
 	battler_sprites.clear()
 	
-	# Posiciones diagonales estilo Chrono Trigger / FF6
-	var base_x = 70.0
-	var base_y = 30.0
-	var step_x = 24.0
-	var step_y = 38.0
+	# Alineación en línea vertical recta (sin escalonado)
+	var start_y = 26.0
+	var step_y = 44.0
 	
 	for i in range(battle_party.size()):
 		var member = battle_party[i]
@@ -92,7 +113,7 @@ func create_battler_sprites():
 		spr.hframes = 4
 		spr.vframes = 12
 		spr.scale = Vector2(0.32, 0.32)
-		spr.position = Vector2(base_x + i * step_x, base_y + i * step_y)
+		spr.position = Vector2(PARTY_LINE_X, start_y + i * step_y)
 		# Row 2 (mirando a la izquierda hacia el enemigo)
 		spr.frame = 2 * 4 + 0
 		hero_sprites_container.add_child(spr)
@@ -170,16 +191,19 @@ func start_turn():
 		return
 		
 	is_player_turn = true
+	commands_box.visible = true
+	items_menu.visible = false
+	
 	active_hero_name.text = member["name"].to_upper()
 	active_hero_name.modulate = member["color"]
 	
 	if ResourceLoader.exists(member.get("portrait_path", "")):
 		active_hero_portrait.texture = load(member["portrait_path"])
 		
-	# Resaltar sprite activo (dar un paso al frente)
+	# Resaltar sprite activo (dar un paso al frente en línea recta)
 	var spr = get_active_sprite()
 	if spr:
-		spr.position.x -= 8.0
+		spr.position.x = PARTY_FORWARD_X
 		spr.modulate = Color(1.2, 1.2, 1.2)
 	
 	# REGLA CLAVE DE JAVIER:
@@ -206,9 +230,7 @@ func start_turn():
 func reset_active_sprite_position():
 	var spr = get_active_sprite()
 	if spr:
-		var base_x = 70.0
-		var step_x = 24.0
-		spr.position.x = base_x + active_party_index * step_x
+		spr.position.x = PARTY_LINE_X
 		spr.modulate = Color.WHITE
 
 func advance_to_next_hero():
@@ -231,8 +253,8 @@ func _on_attack_pressed():
 	if member["name"] == "Javier":
 		if not javier_can_attack:
 			javier_can_attack = true # el siguiente turno SÍ podrá
-			set_log("[CAFE] ¡Javier está procrastinando y tomando café! (Ataca un turno sí y otro no). Javier recarga energías para el próximo turno.")
-			member["hp"] = min(member["max_hp"], member["hp"] + 15)
+			set_log("[CAFE] ¡Javier está procrastinando y tomando café! Javier recarga energías para el próximo turno.")
+			member["hp"] = min(member["max_hp"], member["hp"] + 20)
 			render_party_ui()
 			end_hero_action()
 			return
@@ -257,7 +279,7 @@ func _on_skill_pressed():
 	
 	if member["name"] == "Javier":
 		if not javier_can_attack:
-			set_log("Javier bosteza: 'No puedo usar skills, estoy leyendo Reddit'.")
+			set_log("Javier bosteza: 'No puedo usar skills, estoy viendo memes'.")
 			javier_can_attack = true
 			end_hero_action()
 			return
@@ -272,14 +294,57 @@ func _on_skill_pressed():
 	play_attack_anim(spr)
 	deal_damage_to_enemy(dmg, "[*] ¡%s usó %s!" % [member["name"], skill_name])
 
+# --- MENÚ DE ITEMS DE CURACIÓN ---
 func _on_item_pressed():
 	if not is_player_turn or is_battle_over:
 		return
+	commands_box.visible = false
+	items_menu.visible = true
+	update_items_ui()
+
+func update_items_ui():
+	var cafe = GameManager.battle_items["cafe"]
+	var dona = GameManager.battle_items["dona"]
+	var monster = GameManager.battle_items["monster"]
+	
+	btn_item_cafe.text = "%s (+%d HP) x%d" % [cafe["name"], cafe["heal"], cafe["count"]]
+	btn_item_cafe.disabled = cafe["count"] <= 0
+	
+	btn_item_dona.text = "%s (+%d HP) x%d" % [dona["name"], dona["heal"], dona["count"]]
+	btn_item_dona.disabled = dona["count"] <= 0
+	
+	btn_item_monster.text = "%s (+%d HP) x%d" % [monster["name"], monster["heal"], monster["count"]]
+	btn_item_monster.disabled = monster["count"] <= 0
+
+func _on_item_back_pressed():
+	items_menu.visible = false
+	commands_box.visible = true
+
+func _use_item(item_key: String):
+	if not is_player_turn or is_battle_over:
+		return
+	var item = GameManager.battle_items[item_key]
+	if item["count"] <= 0:
+		set_log("[!] ¡Ya no quedan unidades de %s!" % item["name"])
+		return
+		
+	item["count"] -= 1
 	var member = get_active_member()
-	var heal = 35
-	member["hp"] = min(member["max_hp"], member["hp"] + heal)
+	var heal_amt = item["heal"]
+	member["hp"] = min(member["max_hp"], member["hp"] + heal_amt)
 	render_party_ui()
-	set_log("[CAFE] ¡%s tomó un espresso doble bien cargado! Recuperó %d HP." % [member["name"], heal])
+	
+	# Efecto visual verde de curación en el héroe activo
+	var spr = get_active_sprite()
+	if spr:
+		var tween = create_tween()
+		tween.tween_property(spr, "modulate", Color(0.3, 1.8, 0.4), 0.15)
+		tween.tween_property(spr, "modulate", Color.WHITE, 0.15)
+		
+	set_log("[+] ¡%s usó %s y recuperó %d HP! (Quedan: %d)" % [member["name"], item["name"], heal_amt, item["count"]])
+	
+	items_menu.visible = false
+	commands_box.visible = true
 	end_hero_action()
 
 func _on_flee_pressed():
@@ -324,7 +389,7 @@ func end_hero_action():
 	advance_to_next_hero()
 
 func enemy_turn():
-	if is_battle_over or enemy_current_hp <= 0:
+	if is_battle_over:
 		return
 		
 	var alive_heroes_indices = []
@@ -340,7 +405,7 @@ func enemy_turn():
 	var target = battle_party[target_index]
 	var attacks = enemy.get("attacks", ["Ataque genérico"])
 	var chosen_atk = attacks[randi() % attacks.size()]
-	var dmg = max(5, enemy.get("atk", 15) + randi_range(-2, 4) - int(target["def"] * 0.4))
+	var dmg = max(5, enemy.get("atk", 20) + randi_range(-2, 5) - int(target["def"] * 0.4))
 	
 	target["hp"] = max(0, target["hp"] - dmg)
 	
@@ -374,12 +439,16 @@ func enemy_turn():
 func enemy_defeated():
 	is_battle_over = true
 	GameManager.victorious_count += 1
-	set_log("[!] ¡VICTORIA! ¡El " + enemy.get("name") + " fue resuelto! El servidor vuelve a la normalidad.")
+	GameManager.printer_defeated = true
+	set_log("[!] ¡VICTORIA! ¡La Impresora Maldita fue neutralizada! ¡La nómina y la quincena están a salvo!")
 	
 	for i in range(min(GameManager.party.size(), battle_party.size())):
 		GameManager.party[i]["hp"] = battle_party[i]["hp"]
 		
-	await get_tree().create_timer(1.8).timeout
+	# Reposicionar al jugador a salvo lejos del trigger de la impresora para que no vuelva a empezar
+	GameManager.player_saved_position = Vector2(980, 200)
+		
+	await get_tree().create_timer(2.2).timeout
 	get_tree().change_scene_to_file("res://scenes/overworld.tscn")
 
 func game_over():

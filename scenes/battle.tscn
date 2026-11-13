@@ -199,7 +199,7 @@ custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 11
-text = "[CAFE] Tomar Café (Curar)"
+text = "[ITEM] Usar Item"
 
 [node name="BtnFlee" type="Button" parent="MainBox/CommandPanel/Margin/HBox/Commands"]
 custom_minimum_size = Vector2(0, 30)
@@ -207,3 +207,39 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 11
 text = "[HUIR] Huir al Comedor"
+
+[node name="ItemsMenu" type="GridContainer" parent="MainBox/CommandPanel/Margin/HBox"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 4
+columns = 2
+
+[node name="BtnItemCafe" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Café Espresso (+45 HP) x4"
+
+[node name="BtnItemDona" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Dona de RH (+85 HP) x3"
+
+[node name="BtnItemMonster" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Monster 500ml (+140 HP) x2"
+
+[node name="BtnItemBack" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "< Volver a Comandos"

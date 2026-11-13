@@ -13,12 +13,18 @@ var enemy_specs = {
 	"printer": {
 		"name": "Impresora Maldita",
 		"desc": "Tiene atasco de papel, no tiene tóner y huele a quemado.",
-		"hp": 90,
-		"max_hp": 90,
-		"atk": 20,
-		"def": 8,
+		"hp": 420,
+		"max_hp": 420,
+		"atk": 22,
+		"def": 12,
 		"texture_path": "res://assets/printer_enemy.png",
-		"attacks": ["Lanzar Tóner Ardiente", "Atasco de Papel Infinito", "Error 404 No Responde"]
+		"attacks": [
+			"Atasco de Papel en Bandeja 2",
+			"Falta Tinta Magenta (Error Crítico)",
+			"Ráfaga de Tóner Hirviendo",
+			"Sobrecalentamiento del Rodillo Fusor",
+			"Error 0x80070057 de Windows"
+		]
 	},
 	"bug": {
 		"name": "Bug de Producción",
@@ -67,6 +73,8 @@ func pick_random_direction():
 
 func _on_body_entered(body):
 	if body.name == "Player":
+		if enemy_type == "printer" and GameManager.printer_defeated:
+			return # Ya fue derrotada, no reanudar combate
 		var spec = enemy_specs.get(enemy_type, enemy_specs["printer"]).duplicate(true)
 		GameManager.current_enemy_data = spec
 		get_tree().change_scene_to_file("res://scenes/battle.tscn")

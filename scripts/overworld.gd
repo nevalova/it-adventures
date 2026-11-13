@@ -111,7 +111,12 @@ func _ready():
 		player.can_move = true
 		touch_controls.visible = true
 		
-		if GameManager.office_cutscene_done:
+		if GameManager.printer_defeated:
+			roberto.visible = false
+			enemy_printer.visible = false
+			enemy_printer.process_mode = Node.PROCESS_MODE_DISABLED
+			objective_label.text = "[!] ¡Victoria! Impresora neutralizada y quincena a salvo."
+		elif GameManager.office_cutscene_done:
 			# Roberto ya huyó de la escena
 			roberto.visible = false
 			objective_label.text = obj_battle_text
@@ -125,10 +130,13 @@ func _ready():
 func _process(delta):
 	anim_timer += delta
 	
-	# Animación de pánico leve de la Usuaria
+	# Animación de la Jefa de Finanzas
 	if usuaria.visible:
-		var panic_col = int(anim_timer * 4.0) % 4
-		usuaria_sprite.frame = 10 * 4 + panic_col
+		if GameManager.printer_defeated:
+			usuaria_sprite.frame = 8 * 4 + 0 # Aliviada y tranquila
+		else:
+			var panic_col = int(anim_timer * 4.0) % 4
+			usuaria_sprite.frame = 10 * 4 + panic_col
 	
 	match current_state:
 		State.ROBERTO_RUN_TO_PLAYER:
