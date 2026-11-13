@@ -8,6 +8,12 @@ var is_moving: bool = false
 var anim_timer: float = 0.0
 var current_row: int = 0
 
+# Controles táctiles móviles
+var dpad_up: bool = false
+var dpad_down: bool = false
+var dpad_left: bool = false
+var dpad_right: bool = false
+
 @onready var sprite = $Sprite2D
 @onready var name_tag = $NameTag
 
@@ -27,7 +33,7 @@ func _physics_process(delta):
 	input_vector.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
 	input_vector.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
 	
-	# Compatibilidad directa con WASD y flechas
+	# Compatibilidad con teclado (WASD y flechas)
 	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
 		input_vector.x = -1.0
 	elif Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
@@ -36,6 +42,17 @@ func _physics_process(delta):
 	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
 		input_vector.y = -1.0
 	elif Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
+		input_vector.y = 1.0
+
+	# Compatibilidad con controles táctiles móviles
+	if dpad_left:
+		input_vector.x = -1.0
+	elif dpad_right:
+		input_vector.x = 1.0
+		
+	if dpad_up:
+		input_vector.y = -1.0
+	elif dpad_down:
 		input_vector.y = 1.0
 
 	if input_vector.length() > 0:
@@ -52,7 +69,6 @@ func _physics_process(delta):
 		velocity = Vector2.ZERO
 		is_moving = false
 		anim_timer = 0.0
-		# Frame 0 de la dirección actual
 		sprite.frame = current_row * 4 + 0
 
 	move_and_slide()
@@ -67,7 +83,7 @@ func get_direction_row(dir: Vector2) -> int:
 	if dir.y > 0.3: dy = 1
 	elif dir.y < -0.3: dy = -1
 	
-	# Mapeo visual exacto de las 8 direcciones del tileset (Rotación en sentido horario):
+	# Mapeo visual de 8 direcciones del tileset (Rotación horaria):
 	# Row 0: Sur (Abajo / Frente)
 	# Row 1: Sur-Oeste (Abajo-Izquierda)
 	# Row 2: Oeste (Izquierda)
