@@ -93,6 +93,7 @@ var victorious_count: int = 0
 var intro_cutscene_done: bool = false
 var office_cutscene_done: bool = false
 var printer_defeated: bool = false
+var victory_dialogue_shown: bool = false
 
 var battle_items = {
 	"pepsi": {"name": "Lata de Pepsi", "count": 4, "desc": "Cura 20 HP (50 HP a Alejandro)"},
@@ -106,6 +107,15 @@ func reset_battle_items():
 	battle_items["cafe"]["count"] = 4
 	battle_items["predator"]["count"] = 3
 	battle_items["foto"]["count"] = 2
+
+func reset_game():
+	intro_cutscene_done = false
+	office_cutscene_done = false
+	printer_defeated = false
+	victory_dialogue_shown = false
+	player_saved_position = Vector2(140, 200)
+	victorious_count = 0
+	init_party(selected_hero_id)
 
 func _ready():
 	# Party por defecto con los héroes principales

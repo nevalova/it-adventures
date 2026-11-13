@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://c28k4m9v3j7r"]
+[gd_scene load_steps=23 format=3 uid="uid://c28k4m9v3j7r"]
 
 [ext_resource type="Script" path="res://scripts/overworld.gd" id="1_overworld"]
 [ext_resource type="Texture2D" path="res://assets/floor_tile.png" id="2_floor"]
@@ -12,6 +12,8 @@
 [ext_resource type="Texture2D" path="res://assets/props/workstation_assembled.png" id="10_workstation"]
 [ext_resource type="Texture2D" path="res://assets/props/desk_light.png" id="11_desk_light"]
 [ext_resource type="Texture2D" path="res://assets/props/desk_office.png" id="12_desk_office"]
+[ext_resource type="Texture2D" path="res://assets/props/workstation_executive.png" id="13_workstation_exec"]
+[ext_resource type="Texture2D" path="res://assets/props/printer.png" id="14_printer_prop"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
 size = Vector2(1280, 20)
@@ -24,6 +26,12 @@ size = Vector2(16, 110)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_trigger"]
 size = Vector2(40, 260)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_desk_col"]
+size = Vector2(40, 18)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_npc_interact"]
+radius = 32.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialog"]
 bg_color = Color(0.08, 0.1, 0.16, 0.94)
@@ -49,6 +57,19 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_demo_modal"]
+bg_color = Color(0.06, 0.08, 0.14, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.95, 0.8, 0.25, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_size = 8
 
 [node name="Overworld" type="Node2D"]
 script = ExtResource("1_overworld")
@@ -114,15 +135,27 @@ position = Vector2(580, 290)
 shape = SubResource("RectangleShape2D_divider")
 
 [node name="SignLabel" type="Label" parent="."]
-offset_left = 520.0
-offset_top = 115.0
-offset_right = 640.0
-offset_bottom = 138.0
+offset_left = 515.0
+offset_top = 112.0
+offset_right = 645.0
+offset_bottom = 135.0
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 9
 text = "-> FINANZAS"
+horizontal_alignment = 1
+
+[node name="OfficeBannerSign" type="Label" parent="."]
+offset_left = 720.0
+offset_top = 26.0
+offset_right = 1100.0
+offset_bottom = 44.0
+theme_override_colors/font_color = Color(0.85, 0.9, 1, 0.9)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 10
+text = "[ DEPARTAMENTO DE FINANZAS Y CONTABILIDAD ]"
 horizontal_alignment = 1
 
 [node name="EnvironmentProps" type="Node2D" parent="."]
@@ -167,23 +200,251 @@ texture_filter = 0
 position = Vector2(250, 260)
 texture = ExtResource("5_desk")
 
-[node name="WorkstationFinanzas" type="Sprite2D" parent="EnvironmentProps"]
+[node name="DeskIT4" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 0
+position = Vector2(360, 260)
+texture = ExtResource("5_desk")
+
+[node name="OfficeFurniture" type="Node2D" parent="."]
+
+[node name="DeskF1" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(680, 80)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF1"]
 texture_filter = 1
-position = Vector2(940, 162)
 scale = Vector2(0.12, 0.12)
 texture = ExtResource("10_workstation")
 
-[node name="DeskLight" type="Sprite2D" parent="EnvironmentProps"]
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF1"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF2" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(750, 80)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF2"]
 texture_filter = 1
-position = Vector2(820, 240)
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("13_workstation_exec")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF2"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF3_Carlos" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(860, 80)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF3_Carlos"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("10_workstation")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF3_Carlos"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF4" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(930, 80)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF4"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("13_workstation_exec")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF4"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF5" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1040, 80)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF5"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("10_workstation")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF5"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF6" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1110, 80)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF6"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("13_workstation_exec")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF6"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF7" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(680, 190)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF7"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("13_workstation_exec")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF7"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF8_Mariana" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(750, 190)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF8_Mariana"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("10_workstation")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF8_Mariana"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF9" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(860, 190)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF9"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("10_workstation")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF9"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF10_Jefa" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(970, 190)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF10_Jefa"]
+texture_filter = 1
 scale = Vector2(0.13, 0.13)
+texture = ExtResource("13_workstation_exec")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF10_Jefa"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF11" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(680, 290)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF11"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("10_workstation")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF11"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF12" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(750, 290)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF12"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("13_workstation_exec")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF12"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF13" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(860, 290)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF13"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("10_workstation")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF13"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF14" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(930, 290)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF14"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("13_workstation_exec")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF14"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF15" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1040, 290)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF15"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("10_workstation")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF15"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskF16" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1110, 290)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF16"]
+texture_filter = 1
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("13_workstation_exec")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF16"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="PrinterTable" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1140, 185)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/PrinterTable"]
+texture_filter = 1
+position = Vector2(0, 6)
+scale = Vector2(0.14, 0.14)
 texture = ExtResource("11_desk_light")
 
-[node name="DeskOffice" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 1
-position = Vector2(1010, 240)
-scale = Vector2(0.13, 0.13)
-texture = ExtResource("12_desk_office")
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/PrinterTable"]
+position = Vector2(0, 6)
+shape = SubResource("RectangleShape2D_desk_col")
 
 [node name="Player" parent="." instance=ExtResource("6_player")]
 position = Vector2(140, 200)
@@ -218,7 +479,7 @@ text = "Roberto Huerta"
 horizontal_alignment = 1
 
 [node name="Usuaria" type="Node2D" parent="."]
-position = Vector2(940, 140)
+position = Vector2(970, 155)
 
 [node name="Sprite2D" type="Sprite2D" parent="Usuaria"]
 texture_filter = 1
@@ -240,8 +501,77 @@ theme_override_font_sizes/font_size = 8
 text = "Jefa de Finanzas"
 horizontal_alignment = 1
 
+[node name="InteractArea" type="Area2D" parent="Usuaria"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Usuaria/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
+[node name="Carlos" type="Node2D" parent="."]
+position = Vector2(860, 55)
+
+[node name="Sprite2D" type="Sprite2D" parent="Carlos"]
+modulate = Color(0.85, 0.95, 1.2, 1)
+texture_filter = 1
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("8_roberto_spr")
+hframes = 4
+vframes = 12
+frame = 0
+
+[node name="NameTag" type="Label" parent="Carlos"]
+offset_left = -50.0
+offset_top = -34.0
+offset_right = 50.0
+offset_bottom = -21.0
+theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Carlos (Facturación)"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="Carlos"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Carlos/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
+[node name="Mariana" type="Node2D" parent="."]
+position = Vector2(750, 165)
+
+[node name="Sprite2D" type="Sprite2D" parent="Mariana"]
+modulate = Color(0.7, 1.15, 0.95, 1)
+texture_filter = 1
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("9_usuaria_spr")
+hframes = 4
+vframes = 12
+frame = 0
+
+[node name="NameTag" type="Label" parent="Mariana"]
+offset_left = -55.0
+offset_top = -34.0
+offset_right = 55.0
+offset_bottom = -21.0
+theme_override_colors/font_color = Color(0.6, 1, 0.8, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Mariana (Contabilidad)"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="Mariana"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Mariana/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
 [node name="OfficeTrigger" type="Area2D" parent="."]
-position = Vector2(750, 190)
+position = Vector2(640, 190)
 collision_layer = 0
 collision_mask = 1
 
@@ -249,8 +579,15 @@ collision_mask = 1
 shape = SubResource("RectangleShape2D_trigger")
 
 [node name="EnemyPrinter" parent="." instance=ExtResource("7_enemy")]
-position = Vector2(1120, 190)
+position = Vector2(1140, 175)
 enemy_type = "printer"
+
+[node name="PrinterInteract" type="Area2D" parent="EnemyPrinter"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="EnemyPrinter/PrinterInteract"]
+shape = SubResource("CircleShape2D_npc_interact")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -303,7 +640,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 0.8)
 theme_override_font_sizes/font_size = 11
-text = "Usa D-Pad o WASD para moverte"
+text = "D-Pad / WASD / E: Hablar"
 horizontal_alignment = 2
 
 [node name="ObjectiveBanner" type="PanelContainer" parent="CanvasLayer/HUD"]
@@ -323,6 +660,30 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_font_sizes/font_size = 11
 text = "[!] ¡Roberto Huerta viene corriendo a pedir ayuda!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InteractBanner" type="PanelContainer" parent="CanvasLayer/HUD"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -65.0
+offset_right = 160.0
+offset_bottom = -38.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_objective")
+
+[node name="Label" type="Label" parent="CanvasLayer/HUD/InteractBanner"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "[E] Hablar con Mariana"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -412,12 +773,21 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -140.0
-offset_top = -54.0
+offset_top = -100.0
 offset_right = -12.0
 offset_bottom = -12.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_constants/separation = 6
+
+[node name="BtnInteract" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
+visible = false
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.3, 1, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+text = "[E] Hablar"
 
 [node name="SwitchBtn" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
 custom_minimum_size = Vector2(120, 34)
@@ -425,6 +795,15 @@ layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 11
 text = "[*] Cambiar IT Guy"
+
+[node name="BtnDemoModal" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
+visible = false
+custom_minimum_size = Vector2(120, 30)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 10
+text = "[V] Ver Demo Info"
 
 [node name="DialogBox" type="PanelContainer" parent="CanvasLayer"]
 visible = false
@@ -489,3 +868,72 @@ size_flags_vertical = 8
 focus_mode = 0
 theme_override_font_sizes/font_size = 11
 text = "Continuar >"
+
+[node name="DemoCompleteModal" type="PanelContainer" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -140.0
+offset_right = 260.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_demo_modal")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/DemoCompleteModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/DemoCompleteModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="CanvasLayer/DemoCompleteModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 16
+text = "*** ¡MISIÓN CUMPLIDA! ***"
+horizontal_alignment = 1
+
+[node name="SubTitle" type="Label" parent="CanvasLayer/DemoCompleteModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 13
+text = "¡Gracias Javier, esto solo es un demo!"
+horizontal_alignment = 1
+
+[node name="BodyText" type="Label" parent="CanvasLayer/DemoCompleteModal/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 11
+text = "Has neutralizado a la Impresora Maldita y salvado la nómina de Finanzas.\n\n[!] Próximamente en la versión completa de IT Adventures:\n - Nuevos pisos y oficinas (RH, Marketing, Datacenter bajo cero)\n - Ataques combinados de soporte y más jefes finales\n - Más llamadas de usuarios en apuros"
+autowrap_mode = 3
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="CanvasLayer/DemoCompleteModal/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BtnRestartDemo" type="Button" parent="CanvasLayer/DemoCompleteModal/Margin/VBox/ButtonsHBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_font_sizes/font_size = 11
+text = "[<<] Jugar de Nuevo / Cambiar Héroe"
+
+[node name="BtnCloseModal" type="Button" parent="CanvasLayer/DemoCompleteModal/Margin/VBox/ButtonsHBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_override_font_sizes/font_size = 11
+text = "[>] Explorar la Oficina"
