@@ -1,5 +1,26 @@
 extends Node2D
 
+# --- Variables Exportadas Editables desde el Inspector de Godot ---
+@export_group("Diálogos - Roberto Huerta (Intro)")
+@export_multiline var roberto_intro_1: String = "¡%s, qué bueno que te encuentro! ¡Necesito ayuda urgente en la oficina de Finanzas!"
+@export_multiline var roberto_intro_2: String = "¡La impresora empezó a hacer ruidos raros, huele a quemado y tiene a la jefa al borde del colapso! ¡Sígueme, corre!"
+
+@export_group("Diálogos - Oficina de Finanzas")
+@export_multiline var roberto_office: String = "¡Aquí está el desastre! Bueno... ¡yo ya cumplí con avisar, te dejo con el experto! ¡Suerte!"
+@export_multiline var usuaria_office_1: String = "¡Ayuda, por favor! Mandé a imprimir la nómina quincenal y esta máquina del demonio se tragó todo el papel y empezó a disparar tóner hirviendo..."
+@export_multiline var usuaria_office_2: String = "¡Si no la neutralizas ahora mismo nos quedamos sin quincena y se incendia el departamento!"
+
+@export_group("Objetivos de Misión")
+@export var obj_intro_text: String = "⚠️ ¡Roberto Huerta viene corriendo a pedir ayuda!"
+@export var obj_follow_text: String = "Objetivo: Sigue a Roberto Huerta a la oficina de Finanzas ➡️"
+@export var obj_battle_text: String = "⚠️ ¡Acércate a la Impresora Maldita y neutralízala!"
+
+@export_group("Velocidades de Cinemática")
+@export var roberto_run_in_speed: float = 190.0
+@export var roberto_run_office_speed: float = 240.0
+@export var roberto_flee_speed: float = 260.0
+
+# --- Referencias de Nodos ---
 @onready var player = $Player
 @onready var roberto = $RobertoHuerta
 @onready var roberto_sprite = $RobertoHuerta/Sprite2D
@@ -82,7 +103,7 @@ func _ready():
 		roberto.visible = true
 		current_state = State.ROBERTO_RUN_TO_PLAYER
 		touch_controls.visible = false
-		objective_label.text = "⚠️ ¡Roberto Huerta viene corriendo a pedir ayuda!"
+		objective_label.text = obj_intro_text
 	else:
 		# Ya se hizo la intro
 		if GameManager.player_saved_position != Vector2.ZERO:
@@ -93,12 +114,12 @@ func _ready():
 		if GameManager.office_cutscene_done:
 			# Roberto ya huyó de la escena
 			roberto.visible = false
-			objective_label.text = "⚠️ ¡Acércate a la Impresora Maldita y neutralízala!"
+			objective_label.text = obj_battle_text
 		else:
 			# Roberto está esperando en la oficina
 			roberto.global_position = Vector2(880, 200)
 			roberto_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda
-			objective_label.text = "Sigue a Roberto Huerta a la oficina de Finanzas ➡️"
+			objective_label.text = obj_follow_text
 		current_state = State.FREE_EXPLORE
 
 func _process(delta):
@@ -112,7 +133,7 @@ func _process(delta):
 	match current_state:
 		State.ROBERTO_RUN_TO_PLAYER:
 			# Roberto corre hacia la izquierda hacia el jugador
-			var move_speed = 190.0
+			var move_speed = roberto_run_in_speed
 			roberto.position.x -= move_speed * delta
 			var run_col = int(anim_timer * 8.0) % 4
 			roberto_sprite.frame = 2 * 4 + run_col # Fila 2 = Izquierda
@@ -125,7 +146,7 @@ func _process(delta):
 				
 		State.ROBERTO_RUN_TO_OFFICE:
 			# Roberto sale corriendo a la oficina a la derecha
-			var move_speed = 240.0
+			var move_speed = roberto_run_office_speed
 			roberto.position.x += move_speed * delta
 			var run_col = int(anim_timer * 9.0) % 4
 			roberto_sprite.frame = 6 * 4 + run_col # Fila 6 = Derecha
@@ -137,7 +158,7 @@ func _process(delta):
 				
 		State.ROBERTO_FLEE:
 			# Roberto sale corriendo huyendo de la oficina (hacia la izquierda y desaparece)
-			var move_speed = 260.0
+			var move_speed = roberto_flee_speed
 			roberto.position.x -= move_speed * delta
 			var run_col = int(anim_timer * 10.0) % 4
 			roberto_sprite.frame = 2 * 4 + run_col # Fila 2 = Izquierda huyendo
@@ -155,13 +176,13 @@ func _start_intro_dialog():
 			"speaker": "Roberto Huerta",
 			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 			"color": Color("#f1c40f"),
-			"text": "¡%s, qué bueno que te encuentro! ¡Necesito ayuda urgente en la oficina de Finanzas!" % hero_name
+			"text": roberto_intro_1 % hero_name
 		},
 		{
 			"speaker": "Roberto Huerta",
 			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 			"color": Color("#f1c40f"),
-			"text": "¡La impresora empezó a hacer ruidos raros, huele a quemado y tiene a la jefa al borde del colapso! ¡Sígueme, corre!"
+			"text": roberto_intro_2
 		}
 	]
 	
@@ -170,7 +191,7 @@ func _start_intro_dialog():
 		current_state = State.ROBERTO_RUN_TO_OFFICE
 		player.can_move = true
 		touch_controls.visible = true
-		objective_label.text = "Objetivo: Sigue a Roberto Huerta a la oficina de Finanzas ➡️"
+		objective_label.text = obj_follow_text
 	
 	_show_next_in_queue()
 
@@ -187,19 +208,19 @@ func _on_office_trigger_entered(body):
 				"speaker": "Roberto Huerta",
 				"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 				"color": Color("#f1c40f"),
-				"text": "¡Aquí está el desastre! Bueno... ¡yo ya cumplí con avisar, te dejo con el experto! ¡Suerte!"
+				"text": roberto_office
 			},
 			{
 				"speaker": "Usuaria de Finanzas",
 				"portrait": "res://assets/characters/usuaria_portrait.png",
 				"color": Color("#fd79a8"),
-				"text": "¡Ayuda, por favor! Mandé a imprimir la nómina quincenal y esta máquina del demonio se tragó todo el papel y empezó a disparar tóner hirviendo..."
+				"text": usuaria_office_1
 			},
 			{
 				"speaker": "Usuaria de Finanzas",
 				"portrait": "res://assets/characters/usuaria_portrait.png",
 				"color": Color("#fd79a8"),
-				"text": "¡Si no la neutralizas ahora mismo nos quedamos sin quincena y se incendia el departamento!"
+				"text": usuaria_office_2
 			}
 		]
 		
@@ -207,7 +228,7 @@ func _on_office_trigger_entered(body):
 			current_state = State.ROBERTO_FLEE
 			player.can_move = true
 			touch_controls.visible = true
-			objective_label.text = "⚠️ ¡Acércate a la Impresora Maldita y neutralízala!"
+			objective_label.text = obj_battle_text
 		
 		_show_next_in_queue()
 

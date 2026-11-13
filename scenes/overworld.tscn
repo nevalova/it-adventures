@@ -169,20 +169,20 @@ texture = ExtResource("5_desk")
 
 [node name="WorkstationFinanzas" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 1
-position = Vector2(940, 160)
-scale = Vector2(0.26, 0.26)
+position = Vector2(940, 162)
+scale = Vector2(0.12, 0.12)
 texture = ExtResource("10_workstation")
 
 [node name="DeskLight" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 1
-position = Vector2(780, 260)
-scale = Vector2(0.25, 0.25)
+position = Vector2(820, 240)
+scale = Vector2(0.13, 0.13)
 texture = ExtResource("11_desk_light")
 
 [node name="DeskOffice" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 1
-position = Vector2(1020, 260)
-scale = Vector2(0.25, 0.25)
+position = Vector2(1010, 240)
+scale = Vector2(0.13, 0.13)
 texture = ExtResource("12_desk_office")
 
 [node name="Player" parent="." instance=ExtResource("6_player")]
@@ -218,7 +218,7 @@ text = "Roberto Huerta"
 horizontal_alignment = 1
 
 [node name="Usuaria" type="Node2D" parent="."]
-position = Vector2(940, 130)
+position = Vector2(940, 140)
 
 [node name="Sprite2D" type="Sprite2D" parent="Usuaria"]
 texture_filter = 1
