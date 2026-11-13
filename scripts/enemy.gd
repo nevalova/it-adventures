@@ -44,7 +44,7 @@ func apply_spec():
 		sprite.texture = load(spec["texture_path"])
 	if enemy_type == "printer":
 		sprite.scale = Vector2(0.2, 0.2)
-		name_tag.text = "⚠️ IMPRESORA MALDITA"
+		name_tag.text = "[!] IMPRESORA MALDITA"
 		name_tag.modulate = Color(1.0, 0.3, 0.3)
 
 func _process(delta):

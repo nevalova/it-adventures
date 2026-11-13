@@ -58,10 +58,10 @@ func update_preview(char_id: String):
 		portrait_rect.texture = load(data["portrait_path"])
 	
 	if char_id == "javier":
-		mechanic_label.text = "★ HABILIDAD ESPECIAL:\n'Ataca un turno sí y otro no' (Descansa en turnos pares viendo memes/café, ¡daño brutal en turnos impares!)"
+		mechanic_label.text = "* HABILIDAD ESPECIAL:\n'Ataca un turno sí y otro no' (Descansa en turnos pares viendo memes/café, ¡daño brutal en turnos impares!)"
 		mechanic_label.modulate = Color(1, 0.9, 0.2)
 	else:
-		mechanic_label.text = "★ HABILIDAD ESPECIAL:\n" + data["special_move_name"]
+		mechanic_label.text = "* HABILIDAD ESPECIAL:\n" + data["special_move_name"]
 		mechanic_label.modulate = Color(0.7, 0.9, 1.0)
 
 func _on_confirm_selection():

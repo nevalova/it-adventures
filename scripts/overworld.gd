@@ -11,9 +11,9 @@ extends Node2D
 @export_multiline var usuaria_office_2: String = "¡Si no la neutralizas ahora mismo nos quedamos sin quincena y se incendia el departamento!"
 
 @export_group("Objetivos de Misión")
-@export var obj_intro_text: String = "⚠️ ¡Roberto Huerta viene corriendo a pedir ayuda!"
-@export var obj_follow_text: String = "Objetivo: Sigue a Roberto Huerta a la oficina de Finanzas ➡️"
-@export var obj_battle_text: String = "⚠️ ¡Acércate a la Impresora Maldita y neutralízala!"
+@export var obj_intro_text: String = "[!] ¡Roberto Huerta viene corriendo a pedir ayuda!"
+@export var obj_follow_text: String = "Objetivo: Sigue a Roberto Huerta a la oficina de Finanzas ->"
+@export var obj_battle_text: String = "[!] ¡Acércate a la Impresora Maldita y neutralízala!"
 
 @export_group("Velocidades de Cinemática")
 @export var roberto_run_in_speed: float = 190.0

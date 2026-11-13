@@ -122,7 +122,7 @@ theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 9
-text = "➡️ FINANZAS"
+text = "-> FINANZAS"
 horizontal_alignment = 1
 
 [node name="EnvironmentProps" type="Node2D" parent="."]
@@ -322,7 +322,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_objective")
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
 theme_override_font_sizes/font_size = 11
-text = "⚠️ ¡Roberto Huerta viene corriendo a pedir ayuda!"
+text = "[!] ¡Roberto Huerta viene corriendo a pedir ayuda!"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -357,7 +357,7 @@ offset_bottom = 36.0
 grow_horizontal = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 16
-text = "▲"
+text = "^"
 
 [node name="BtnDown" type="Button" parent="CanvasLayer/HUD/TouchControls/DpadBox"]
 layout_mode = 1
@@ -373,7 +373,7 @@ grow_horizontal = 2
 grow_vertical = 0
 focus_mode = 0
 theme_override_font_sizes/font_size = 16
-text = "▼"
+text = "v"
 
 [node name="BtnLeft" type="Button" parent="CanvasLayer/HUD/TouchControls/DpadBox"]
 layout_mode = 1
@@ -386,7 +386,7 @@ offset_bottom = 18.0
 grow_vertical = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 16
-text = "◀"
+text = "<"
 
 [node name="BtnRight" type="Button" parent="CanvasLayer/HUD/TouchControls/DpadBox"]
 layout_mode = 1
@@ -402,7 +402,7 @@ grow_horizontal = 0
 grow_vertical = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 16
-text = "▶"
+text = ">"
 
 [node name="RightBox" type="VBoxContainer" parent="CanvasLayer/HUD/TouchControls"]
 layout_mode = 1
@@ -424,7 +424,7 @@ custom_minimum_size = Vector2(120, 34)
 layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 11
-text = "🔄 Cambiar IT Guy"
+text = "[*] Cambiar IT Guy"
 
 [node name="DialogBox" type="PanelContainer" parent="CanvasLayer"]
 visible = false
@@ -488,4 +488,4 @@ layout_mode = 2
 size_flags_vertical = 8
 focus_mode = 0
 theme_override_font_sizes/font_size = 11
-text = "Continuar ▶"
+text = "Continuar >"

@@ -188,19 +188,19 @@ func start_turn():
 			active_hero_status.text = "¡LISTO PARA ATACAR! (Turno Sí)"
 			active_hero_status.modulate = Color(0.4, 1.0, 0.4)
 			btn_attack.disabled = false
-			btn_attack.text = "⚔ Atacar (Reinicio Forzado)"
+			btn_attack.text = "[ATQ] Atacar (Reinicio Forzado)"
 			if spr: spr.frame = 2 * 4 + 0 # Listo mirando al enemigo
 		else:
-			active_hero_status.text = "💤 Tomando Café & Memes (Turno No)"
+			active_hero_status.text = "[Zz] Tomando Café & Memes (Turno No)"
 			active_hero_status.modulate = Color(1.0, 0.8, 0.2)
 			btn_attack.disabled = false
-			btn_attack.text = "☕ Procrastinar / Descansar"
+			btn_attack.text = "[CAFE] Procrastinar / Descansar"
 			if spr: spr.frame = 8 * 4 + 0 # Mirando al frente descansando
 	else:
 		active_hero_status.text = "Listo para actuar"
 		active_hero_status.modulate = Color(1, 1, 1)
 		btn_attack.disabled = false
-		btn_attack.text = "⚔ Atacar"
+		btn_attack.text = "[ATQ] Atacar"
 		if spr: spr.frame = 2 * 4 + 0
 
 func reset_active_sprite_position():
@@ -231,7 +231,7 @@ func _on_attack_pressed():
 	if member["name"] == "Javier":
 		if not javier_can_attack:
 			javier_can_attack = true # el siguiente turno SÍ podrá
-			set_log("☕ ¡Javier está procrastinando y tomando café! (Ataca un turno sí y otro no). Javier recarga energías para el próximo turno.")
+			set_log("[CAFE] ¡Javier está procrastinando y tomando café! (Ataca un turno sí y otro no). Javier recarga energías para el próximo turno.")
 			member["hp"] = min(member["max_hp"], member["hp"] + 15)
 			render_party_ui()
 			end_hero_action()
@@ -240,7 +240,7 @@ func _on_attack_pressed():
 			javier_can_attack = false # el siguiente turno descansará
 			var dmg = member["atk"] + randi_range(6, 14)
 			play_attack_anim(spr)
-			deal_damage_to_enemy(dmg, "⚡ ¡Javier le propinó un REINICIO FORZADO al enemigo!")
+			deal_damage_to_enemy(dmg, "[ESP] ¡Javier le propinó un REINICIO FORZADO al enemigo!")
 			return
 			
 	# Otros miembros
@@ -265,12 +265,12 @@ func _on_skill_pressed():
 			javier_can_attack = false
 			var dmg = int(member["atk"] * 1.6)
 			play_attack_anim(spr)
-			deal_damage_to_enemy(dmg, "💥 ¡Javier usó %s! ¡El rack tembló!" % skill_name)
+			deal_damage_to_enemy(dmg, "[BOM] ¡Javier usó %s! ¡El rack tembló!" % skill_name)
 			return
 			
 	var dmg = int(member["atk"] * 1.4)
 	play_attack_anim(spr)
-	deal_damage_to_enemy(dmg, "✨ ¡%s usó %s!" % [member["name"], skill_name])
+	deal_damage_to_enemy(dmg, "[*] ¡%s usó %s!" % [member["name"], skill_name])
 
 func _on_item_pressed():
 	if not is_player_turn or is_battle_over:
@@ -279,7 +279,7 @@ func _on_item_pressed():
 	var heal = 35
 	member["hp"] = min(member["max_hp"], member["hp"] + heal)
 	render_party_ui()
-	set_log("☕ ¡%s tomó un espresso doble bien cargado! Recuperó %d HP." % [member["name"], heal])
+	set_log("[CAFE] ¡%s tomó un espresso doble bien cargado! Recuperó %d HP." % [member["name"], heal])
 	end_hero_action()
 
 func _on_flee_pressed():
@@ -353,10 +353,10 @@ func enemy_turn():
 		if target["hp"] <= 0:
 			# Animación de desmayado (Row 11 frame 3)
 			spr.frame = 11 * 4 + 3
-			set_log("💀 ¡%s ha caído desmayado!" % target["name"])
+			set_log("[KO] ¡%s ha caído desmayado!" % target["name"])
 	
 	render_party_ui()
-	set_log("👹 ¡%s atacó a %s con '%s'! (%d de daño)" % [enemy.get("name", "Enemigo"), target["name"], chosen_atk, dmg])
+	set_log("[!] ¡%s atacó a %s con '%s'! (%d de daño)" % [enemy.get("name", "Enemigo"), target["name"], chosen_atk, dmg])
 	
 	var all_dead = true
 	for m in battle_party:
@@ -374,7 +374,7 @@ func enemy_turn():
 func enemy_defeated():
 	is_battle_over = true
 	GameManager.victorious_count += 1
-	set_log("🎉 ¡VICTORIA! ¡El " + enemy.get("name") + " fue resuelto! El servidor vuelve a la normalidad.")
+	set_log("[!] ¡VICTORIA! ¡El " + enemy.get("name") + " fue resuelto! El servidor vuelve a la normalidad.")
 	
 	for i in range(min(GameManager.party.size(), battle_party.size())):
 		GameManager.party[i]["hp"] = battle_party[i]["hp"]
@@ -384,7 +384,7 @@ func enemy_defeated():
 
 func game_over():
 	is_battle_over = true
-	set_log("☠ GAME OVER: Caída catastrófica de servidores. Todo IT fue despedido.")
+	set_log("[KO] GAME OVER: Caída catastrófica de servidores. Todo IT fue despedido.")
 	await get_tree().create_timer(2.0).timeout
 	get_tree().change_scene_to_file("res://scenes/character_select.tscn")
 

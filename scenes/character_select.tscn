@@ -143,4 +143,4 @@ alignment = 1
 [node name="SelectButton" type="Button" parent="MainContainer/BottomBox"]
 custom_minimum_size = Vector2(260, 32)
 layout_mode = 2
-text = "▶ INICIAR AVENTURA CON ESTE HÉROE"
+text = "> INICIAR AVENTURA CON ESTE HÉROE"
