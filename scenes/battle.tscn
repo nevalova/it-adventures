@@ -12,6 +12,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_battle")
 
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(320, 180)
+
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -26,22 +29,23 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 14.0
+offset_left = 12.0
 offset_top = 8.0
-offset_right = -14.0
+offset_right = -12.0
 offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 
 [node name="BattleArena" type="HBoxContainer" parent="MainBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 10
 
 [node name="EnemySide" type="VBoxContainer" parent="MainBox/BattleArena"]
-custom_minimum_size = Vector2(210, 0)
+custom_minimum_size = Vector2(170, 0)
 layout_mode = 2
+theme_override_constants/separation = 4
 alignment = 1
 
 [node name="EnemyPanel" type="PanelContainer" parent="MainBox/BattleArena/EnemySide"]
@@ -49,33 +53,34 @@ layout_mode = 2
 
 [node name="VBox" type="VBoxContainer" parent="MainBox/BattleArena/EnemySide/EnemyPanel"]
 layout_mode = 2
-theme_override_constants/separation = 3
+theme_override_constants/separation = 2
 
 [node name="EnemyName" type="Label" parent="MainBox/BattleArena/EnemySide/EnemyPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 11
 text = "IMPRESORA MALDITA"
 horizontal_alignment = 1
 
 [node name="EnemyHPBar" type="ProgressBar" parent="MainBox/BattleArena/EnemySide/EnemyPanel/VBox"]
-custom_minimum_size = Vector2(180, 14)
+custom_minimum_size = Vector2(150, 10)
 layout_mode = 2
 value = 100.0
+show_percentage = false
 
 [node name="EnemyHPText" type="Label" parent="MainBox/BattleArena/EnemySide/EnemyPanel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
-text = "90 / 90 HP"
+theme_override_font_sizes/font_size = 9
+text = "420 / 420 HP"
 horizontal_alignment = 1
 
 [node name="Center" type="CenterContainer" parent="MainBox/BattleArena/EnemySide"]
-custom_minimum_size = Vector2(0, 130)
+custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 
 [node name="EnemySprite" type="TextureRect" parent="MainBox/BattleArena/EnemySide/Center"]
 texture_filter = 1
-custom_minimum_size = Vector2(110, 110)
+custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 texture = ExtResource("2_enemy_spr")
 expand_mode = 1
@@ -88,62 +93,63 @@ size_flags_horizontal = 3
 [node name="HeroSpritesContainer" type="Node2D" parent="MainBox/BattleArena/BattlersArena"]
 
 [node name="PartySide" type="VBoxContainer" parent="MainBox/BattleArena"]
-custom_minimum_size = Vector2(200, 0)
+custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Title" type="Label" parent="MainBox/BattleArena/PartySide"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 11
-text = "EQUIPO DE IT:"
+theme_override_font_sizes/font_size = 10
+text = "SQUAD DE SOPORTE:"
 
 [node name="PartyContainer" type="VBoxContainer" parent="MainBox/BattleArena/PartySide"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 3
 
 [node name="LogPanel" type="PanelContainer" parent="MainBox"]
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 
 [node name="Margin" type="MarginContainer" parent="MainBox/LogPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 4
+theme_override_constants/margin_top = 3
 theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 4
+theme_override_constants/margin_bottom = 3
 
 [node name="LogLabel" type="Label" parent="MainBox/LogPanel/Margin"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.5, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "¡Inicia el combate por el control de la red!"
 autowrap_mode = 2
 
 [node name="CommandPanel" type="PanelContainer" parent="MainBox"]
-custom_minimum_size = Vector2(0, 82)
+custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 
 [node name="Margin" type="MarginContainer" parent="MainBox/CommandPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 6
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
 
 [node name="HBox" type="HBoxContainer" parent="MainBox/CommandPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
 [node name="ActiveHeroBox" type="HBoxContainer" parent="MainBox/CommandPanel/Margin/HBox"]
-custom_minimum_size = Vector2(190, 0)
+custom_minimum_size = Vector2(175, 0)
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="ActiveHeroPortrait" type="TextureRect" parent="MainBox/CommandPanel/Margin/HBox/ActiveHeroBox"]
 texture_filter = 1
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(42, 42)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
@@ -152,101 +158,102 @@ stretch_mode = 6
 [node name="VBox" type="VBoxContainer" parent="MainBox/CommandPanel/Margin/HBox/ActiveHeroBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 1
 alignment = 1
 
 [node name="TurnIndicator" type="Label" parent="MainBox/CommandPanel/Margin/HBox/ActiveHeroBox/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 8
 text = "TURNO ACTUAL:"
 
 [node name="HeroName" type="Label" parent="MainBox/CommandPanel/Margin/HBox/ActiveHeroBox/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "JAVIER"
 
 [node name="HeroStatus" type="Label" parent="MainBox/CommandPanel/Margin/HBox/ActiveHeroBox/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/font_size = 8
 text = "¡Listo para actuar!"
 autowrap_mode = 2
 
 [node name="Commands" type="GridContainer" parent="MainBox/CommandPanel/Margin/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 4
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 3
 columns = 2
 
 [node name="BtnAttack" type="Button" parent="MainBox/CommandPanel/Margin/HBox/Commands"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "[ATQ] Atacar"
 
 [node name="BtnSkill" type="Button" parent="MainBox/CommandPanel/Margin/HBox/Commands"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "[ESP] Habilidad IT"
 
 [node name="BtnItem" type="Button" parent="MainBox/CommandPanel/Margin/HBox/Commands"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "[ITEM] Usar Item"
 
 [node name="BtnFlee" type="Button" parent="MainBox/CommandPanel/Margin/HBox/Commands"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 text = "[HUIR] Huir al Comedor"
 
 [node name="ItemsMenu" type="GridContainer" parent="MainBox/CommandPanel/Margin/HBox"]
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 6
+theme_override_constants/h_separation = 4
 theme_override_constants/v_separation = 3
-columns = 2
+columns = 3
 
 [node name="BtnItemPepsi" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "Pepsi (+20/50 HP) x4"
+theme_override_font_sizes/font_size = 9
+text = "Pepsi (+20/50) x4"
 
 [node name="BtnItemCafe" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 9
 text = "Café (+50 HP) x4"
 
 [node name="BtnItemPredator" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "Predator (+50/100 HP) x3"
+theme_override_font_sizes/font_size = 9
+text = "Predator (+50/100) x3"
 
 [node name="BtnItemFoto" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "Foto Sra. Limpieza x2"
+theme_override_font_sizes/font_size = 9
+text = "Foto Limpieza x2"
 
 [node name="BtnItemBack" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
-custom_minimum_size = Vector2(0, 24)
+custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "< Volver a Comandos"
+theme_override_font_sizes/font_size = 9
+text = "< Volver"

@@ -41,14 +41,16 @@ var is_player_turn: bool = true
 var is_battle_over: bool = false
 
 # Alineación sin escalonado (Línea recta vertical)
-const PARTY_LINE_X: float = 90.0
-const PARTY_FORWARD_X: float = 72.0
+const PARTY_LINE_X: float = 125.0
+const PARTY_FORWARD_X: float = 85.0
 
 # Javier mechanic: ataca un turno si y otro no
 var javier_can_attack: bool = true
 var javier_first_attack: bool = true
 
 func _ready():
+	get_viewport().canvas_transform = Transform2D.IDENTITY
+	$Camera2D.make_current()
 	setup_battle()
 	btn_attack.pressed.connect(_on_attack_pressed)
 	btn_skill.pressed.connect(_on_skill_pressed)
@@ -107,8 +109,8 @@ func create_battler_sprites():
 	battler_sprites.clear()
 	
 	# Alineación en línea vertical recta (sin escalonado)
-	var start_y = 26.0
-	var step_y = 44.0
+	var start_y = 22.0
+	var step_y = 42.0
 	
 	for i in range(battle_party.size()):
 		var member = battle_party[i]
@@ -142,7 +144,7 @@ func render_party_ui():
 		
 		# Mini portrait
 		var port = TextureRect.new()
-		port.custom_minimum_size = Vector2(30, 30)
+		port.custom_minimum_size = Vector2(24, 24)
 		port.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		port.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		port.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -152,17 +154,19 @@ func render_party_ui():
 		
 		var vb = VBoxContainer.new()
 		vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		vb.add_theme_constant_override("separation", 1)
 		
 		var name_lbl = Label.new()
 		name_lbl.text = "%s [Nv. %d]" % [member["name"], member.get("level", 1)]
 		name_lbl.modulate = member["color"]
-		name_lbl.add_theme_font_size_override("font_size", 10)
+		name_lbl.add_theme_font_size_override("font_size", 9)
 		vb.add_child(name_lbl)
 		
 		var hp_bar = ProgressBar.new()
 		hp_bar.max_value = member["max_hp"]
 		hp_bar.value = max(0, member["hp"])
-		hp_bar.custom_minimum_size = Vector2(130, 10)
+		hp_bar.custom_minimum_size = Vector2(100, 7)
+		hp_bar.show_percentage = false
 		vb.add_child(hp_bar)
 		
 		var hp_txt = Label.new()

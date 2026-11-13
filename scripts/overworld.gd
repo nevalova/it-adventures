@@ -140,6 +140,7 @@ var becario_ti_quotes: Array = [
 ]
 
 func _ready():
+	$Player/Camera2D.make_current()
 	var leader = GameManager.get_leader_data()
 	hud_hero_name.text = leader["name"]
 	hud_hero_role.text = leader["role"]
