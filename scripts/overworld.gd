@@ -211,13 +211,13 @@ func _on_office_trigger_entered(body):
 				"text": roberto_office
 			},
 			{
-				"speaker": "Usuaria de Finanzas",
+				"speaker": "Jefa de Finanzas",
 				"portrait": "res://assets/characters/usuaria_portrait.png",
 				"color": Color("#fd79a8"),
 				"text": usuaria_office_1
 			},
 			{
-				"speaker": "Usuaria de Finanzas",
+				"speaker": "Jefa de Finanzas",
 				"portrait": "res://assets/characters/usuaria_portrait.png",
 				"color": Color("#fd79a8"),
 				"text": usuaria_office_2
