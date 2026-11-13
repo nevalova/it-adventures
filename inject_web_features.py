@@ -11,7 +11,17 @@ def inject_pwa_and_fullscreen():
     with open(html_path, "r", encoding="utf-8") as f:
         html = f.read()
 
-    # 1. PWA Meta Tags in <head>
+    # 1. Strip out coi-serviceworker completely (prevents infinite reload loop in iOS WebClips)
+    html = re.sub(r'<script\s+src=["\']coi-serviceworker\.min\.js["\']\s*></script>', '', html)
+    html = re.sub(r'<script>\s*if\s*\(\'serviceWorker\'\s+in\s+navigator\)\s*\{\s*window\.addEventListener.*?coi-serviceworker.*?\}\s*</script>', '', html, flags=re.DOTALL)
+
+    # 2. Fix GODOT_CONFIG: ensureCrossOriginIsolationHeaders must be FALSE (single-threaded build does not need COOP/COEP)
+    html = html.replace('"ensureCrossOriginIsolationHeaders":true', '"ensureCrossOriginIsolationHeaders":false')
+
+    # 3. Viewport with viewport-fit=cover for iPhone notch and full display
+    html = re.sub(r'<meta\s+name=["\']viewport["\'][^>]*>', '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">', html)
+
+    # 4. PWA and iOS WebClip Meta Tags in <head>
     pwa_head = """
 		<link rel="manifest" href="manifest.webmanifest">
 		<meta name="mobile-web-app-capable" content="yes">
@@ -19,24 +29,29 @@ def inject_pwa_and_fullscreen():
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 		<meta name="apple-mobile-web-app-title" content="IT Adventures">
 		<meta name="theme-color" content="#0f172a">
+		<link rel="apple-touch-icon" href="index.apple-touch-icon.png">
+
+		<!-- iOS WebClip cache-cleanup script -->
+		<script>
+		(function() {
+			try {
+				sessionStorage.removeItem("coiReloadedBySelf");
+				sessionStorage.removeItem("coiCoepHasFailed");
+				if ('serviceWorker' in navigator) {
+					navigator.serviceWorker.getRegistrations().then(function(regs) {
+						for (var i = 0; i < regs.length; i++) {
+							regs[i].unregister();
+						}
+					});
+				}
+			} catch(e) {}
+		})();
+		</script>
     """
     if 'manifest.webmanifest' not in html:
         html = html.replace('<head>', '<head>' + pwa_head)
 
-    # 2. Service Worker for PWA
-    sw_script = """
-		<script>
-		if ('serviceWorker' in navigator) {
-			window.addEventListener('load', function() {
-				navigator.serviceWorker.register('coi-serviceworker.min.js').catch(function(e) {});
-			});
-		}
-		</script>
-    """
-    if 'serviceWorker.register' not in html:
-        html = html.replace('</head>', sw_script + '\n\t</head>')
-
-    # 3. HTML Buttons and Modal Overlay before </body>
+    # 5. HTML Action Bar and Install Guide Modal before </body>
     overlay_html = """
 	<!-- Floating Web Action Bar for Fullscreen & Mobile Home Screen -->
 	<div id="web-action-bar" style="position:fixed; top:10px; right:12px; z-index:9000; display:flex; gap:8px; pointer-events:auto;">
@@ -61,7 +76,7 @@ def inject_pwa_and_fullscreen():
 				<b style="color:#38bdf8;">🍏 En iPhone / iPad (Safari):</b><br>
 				1. Toca el botón <b>Compartir</b> (el icono con una flecha hacia arriba ⬆️ en la barra del navegador).<br>
 				2. Desliza hacia abajo y elige <b>'Agregar a pantalla de inicio' (➕)</b>.<br>
-				3. ¡Listo! Se abrirá en pantalla completa como una app nativa.
+				3. ¡Listo! Se abrirá en pantalla completa horizontal sin barra de Safari.
 			</div>
 			<div style="background:rgba(30,41,59,0.8); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.5; border-left:3px solid #4ade80;">
 				<b style="color:#4ade80;">🤖 En Android (Chrome):</b><br>
@@ -77,6 +92,12 @@ def inject_pwa_and_fullscreen():
 	</div>
 
 	<script>
+	// Si ya está ejecutándose como WebClip instalado en iPhone o PWA en Android, ocultar botón de guardar
+	if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
+		var shareBtn = document.getElementById('web-btn-share');
+		if (shareBtn) shareBtn.style.display = 'none';
+	}
+
 	var deferredInstallPrompt = null;
 	window.addEventListener('beforeinstallprompt', function(e) {
 		e.preventDefault();
@@ -118,9 +139,6 @@ def inject_pwa_and_fullscreen():
 		if (deferredInstallPrompt) {
 			deferredInstallPrompt.prompt();
 			deferredInstallPrompt.userChoice.then(function(choice) {
-				if (choice.outcome === 'accepted') {
-					console.log('App install accepted');
-				}
 				deferredInstallPrompt = null;
 			});
 			return;
@@ -149,14 +167,12 @@ def inject_pwa_and_fullscreen():
 	}
 	</script>
     """
-
     if 'web-action-bar' not in html:
-        html = html.replace('</body>', overlay_html + '\n\t</body>')
+        html = html.replace('</body>', overlay_html + '\n</body>')
 
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(html)
-
-    print("Injected PWA and Fullscreen features into build/web/index.html successfully!")
+    print("Injected PWA and iOS compatibility into build/web/index.html successfully!")
 
 if __name__ == "__main__":
     inject_pwa_and_fullscreen()
