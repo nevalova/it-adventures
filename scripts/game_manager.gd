@@ -22,7 +22,7 @@ var characters_data = {
 	"tonazo": {
 		"name": "Toñazo",
 		"role": "Soporte Técnico",
-		"title": "El del Collar USB",
+		"title": "El de la USB Azul Milagrosa",
 		"description": "Lleva la memoria USB booteable en el cuello. Parchea cables y revive cualquier PC.",
 		"max_hp": 125,
 		"hp": 125,
