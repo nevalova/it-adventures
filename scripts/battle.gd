@@ -47,6 +47,7 @@ const PARTY_FORWARD_X: float = 85.0
 # Javier mechanic: ataca un turno si y otro no
 var javier_can_attack: bool = true
 var javier_first_attack: bool = true
+var boss_has_red_aura: bool = false
 
 func _ready():
 	get_viewport().canvas_transform = Transform2D.IDENTITY
@@ -93,6 +94,14 @@ func setup_battle():
 		enemy_sprite.texture = load(enemy.get("texture_path"))
 	enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	
+	boss_has_red_aura = false
+	if enemy.get("type") == "dragon_boss":
+		$Background.color = Color(0.03, 0.01, 0.05, 1.0)
+		enemy_sprite.custom_minimum_size = Vector2(130, 130)
+		enemy_name_label.text = "[JEFE] El Señor del Dragón"
+		enemy_name_label.modulate = Color(1.0, 0.25, 0.25)
+	
 	update_enemy_ui()
 	
 	# Cargar party desde GameManager
@@ -100,7 +109,10 @@ func setup_battle():
 	create_battler_sprites()
 	render_party_ui()
 	
-	set_log("¡Un " + enemy.get("name", "problema") + " salvaje ha detenido las operaciones!")
+	if enemy.get("type") == "dragon_boss":
+		set_log("¡SOMBRAS DEL PASADO! ¡El Señor del Dragón exige su dragón!")
+	else:
+		set_log("¡Un " + enemy.get("name", "problema") + " salvaje ha detenido las operaciones!")
 	start_turn()
 
 func create_battler_sprites():
@@ -492,7 +504,30 @@ func enemy_turn():
 	var target = battle_party[target_index]
 	var attacks = enemy.get("attacks", ["Ataque genérico"])
 	var chosen_atk = attacks[randi() % attacks.size()]
+	var is_dragon_boss = enemy.get("type") == "dragon_boss"
 	var dmg = max(5, enemy.get("atk", 20) + randi_range(-2, 5) - int(target["def"] * 0.4))
+	var log_msg = ""
+	
+	if is_dragon_boss:
+		if not boss_has_red_aura and (chosen_atk == "Emputarse por nada" or randf() < 0.4):
+			chosen_atk = "Emputarse por nada"
+			boss_has_red_aura = true
+			enemy["atk"] = enemy.get("atk", 25) + 12 # Boost de 5 niveles
+			dmg = max(12, enemy["atk"] + randi_range(2, 6) - int(target["def"] * 0.4))
+			
+			var aura_tween = create_tween().set_loops()
+			aura_tween.tween_property(enemy_sprite, "modulate", Color(3.5, 0.3, 0.3), 0.3)
+			aura_tween.tween_property(enemy_sprite, "modulate", Color(1.8, 0.6, 0.6), 0.3)
+			
+			log_msg = "¡¡EMPUTARSE POR NADA!! El Señor del Dragón estalla de ira sin motivo, activa un AURA ROJA (+5 niveles, +12 ATQ) y golpea a %s por %d de daño." % [target["name"], dmg]
+		elif chosen_atk == "La Cólera del Dragón":
+			dmg = int(dmg * 1.5)
+			log_msg = "¡¡LA CÓLERA DEL DRAGÓN!! ¡Un rugido draconiano hace temblar la sala! %s recibió %d de daño." % [target["name"], dmg]
+		else:
+			chosen_atk = "Acoso"
+			log_msg = "¡El Señor del Dragón lanzó 'Acoso'! Mensajes y llamadas pasivo-agresivas a deshoras. %s recibió %d de daño." % [target["name"], dmg]
+	else:
+		log_msg = "[!] ¡%s atacó a %s con '%s'! (%d de daño)" % [enemy.get("name", "Enemigo"), target["name"], chosen_atk, dmg]
 	
 	target["hp"] = max(0, target["hp"] - dmg)
 	
@@ -503,12 +538,11 @@ func enemy_turn():
 		tween.tween_property(spr, "modulate", Color.RED, 0.1)
 		tween.tween_property(spr, "modulate", Color.WHITE, 0.1)
 		if target["hp"] <= 0:
-			# Animación de desmayado (Row 11 frame 3)
 			spr.frame = 11 * 4 + 3
 			set_log("[KO] ¡%s ha caído desmayado!" % target["name"])
 	
 	render_party_ui()
-	set_log("[!] ¡%s atacó a %s con '%s'! (%d de daño)" % [enemy.get("name", "Enemigo"), target["name"], chosen_atk, dmg])
+	set_log(log_msg)
 	
 	var all_dead = true
 	for m in battle_party:
@@ -547,6 +581,10 @@ func enemy_defeated():
 		GameManager.printer_defeated = true
 		GameManager.player_saved_position = Vector2(980, 200)
 		set_log("[!] ¡VICTORIA TOTAL! ¡La Impresora Maldita fue neutralizada! (+%d EXP)" % exp_gained)
+	elif enemy_type_str == "dragon_boss":
+		GameManager.dragon_boss_defeated = true
+		GameManager.player_saved_position = Vector2(510, 180)
+		set_log("[VICTORIA LEGENDARIA] ¡Derrotaste al Señor del Dragón! ¡Rescataste el splitter, discos y el Magic Trackpad! (+%d EXP)" % exp_gained)
 	else:
 		set_log("[!] ¡Ticket resuelto! '%s' ha sido neutralizado. (+%d EXP)" % [enemy.get("name", "Enemigo"), exp_gained])
 		

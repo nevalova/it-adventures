@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://c28k4m9v3j7r"]
+[gd_scene load_steps=27 format=3 uid="uid://c28k4m9v3j7r"]
 
 [ext_resource type="Script" path="res://scripts/overworld.gd" id="1_overworld"]
 [ext_resource type="Texture2D" path="res://assets/floor_tile.png" id="2_floor"]
@@ -16,6 +16,7 @@
 [ext_resource type="Texture2D" path="res://assets/characters/npc_don_ramiro.png" id="14_ramiro_spr"]
 [ext_resource type="Texture2D" path="res://assets/characters/npc_lic_brenda.png" id="15_brenda_spr"]
 [ext_resource type="Texture2D" path="res://assets/characters/novato_spritesheet.png" id="16_novato_spr"]
+[ext_resource type="Texture2D" path="res://assets/characters/dragon_boss_spritesheet.png" id="17_dragon_spr"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
 size = Vector2(1280, 20)
@@ -703,7 +704,48 @@ collision_mask = 1
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EnemyPrinter/PrinterInteract"]
 shape = SubResource("CircleShape2D_npc_interact")
 
+[node name="DragonBoss" type="Node2D" parent="."]
+visible = false
+position = Vector2(460, 180)
+
+[node name="Sprite2D" type="Sprite2D" parent="DragonBoss"]
+texture_filter = 1
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("17_dragon_spr")
+hframes = 4
+vframes = 12
+frame = 0
+
+[node name="NameTag" type="Label" parent="DragonBoss"]
+offset_left = -60.0
+offset_top = -34.0
+offset_right = 60.0
+offset_bottom = -21.0
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "[!] Sombras del Pasado"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="DragonBoss"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DragonBoss/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="DarkOverlay" type="ColorRect" parent="CanvasLayer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.8)
 
 [node name="HUD" type="Control" parent="CanvasLayer"]
 layout_mode = 3

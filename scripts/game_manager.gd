@@ -111,6 +111,8 @@ var intro_cutscene_done: bool = false
 var office_cutscene_done: bool = false
 var printer_defeated: bool = false
 var victory_dialogue_shown: bool = false
+var dragon_boss_cutscene_done: bool = false
+var dragon_boss_defeated: bool = false
 
 var battle_items = {
 	"pepsi": {"name": "Lata de Pepsi", "count": 4, "desc": "Cura 20 HP (50 HP a Alejandro)"},
@@ -130,6 +132,8 @@ func reset_game():
 	office_cutscene_done = false
 	printer_defeated = false
 	victory_dialogue_shown = false
+	dragon_boss_cutscene_done = false
+	dragon_boss_defeated = false
 	defeated_enemies.clear()
 	current_enemy_id = ""
 	player_saved_position = Vector2(140, 200)

@@ -52,6 +52,11 @@ extends Node2D
 @onready var lic_brenda = $LicBrenda
 @onready var paco_godinez = $PacoGodinez
 
+# Boss Sombras del Pasado
+@onready var dragon_boss = $DragonBoss
+@onready var dragon_boss_sprite = $DragonBoss/Sprite2D
+@onready var dark_overlay = $CanvasLayer/DarkOverlay
+
 @onready var office_trigger = $OfficeTrigger
 @onready var enemy_printer = $EnemyPrinter
 @onready var enemy_printer_sprite = $EnemyPrinter/Sprite2D
@@ -96,7 +101,8 @@ enum State {
 	ROBERTO_RUN_TO_PLAYER,
 	ROBERTO_RUN_TO_OFFICE,
 	ROBERTO_FLEE,
-	FREE_EXPLORE
+	FREE_EXPLORE,
+	ROBERTO_LEAD_TO_BOSS
 }
 
 var current_state: State = State.IDLE
@@ -221,7 +227,16 @@ func _ready():
 		player.can_move = true
 		touch_controls.visible = true
 		
-		if GameManager.printer_defeated:
+		if GameManager.dragon_boss_defeated:
+			dragon_boss.visible = false
+			roberto.visible = false
+			btn_demo_modal.visible = true
+			objective_label.text = "[!] ¡Victoria Total! Has derrotado a las Sombras del Pasado."
+			enemy_printer.set_collision_layer_value(3, false)
+			enemy_printer_sprite.modulate = Color(0.55, 0.55, 0.55, 1.0)
+			enemy_printer_nametag.text = "[V] Neutralizada"
+			enemy_printer_nametag.modulate = Color(0.3, 0.9, 0.6, 1.0)
+		elif GameManager.printer_defeated:
 			roberto.visible = false
 			btn_demo_modal.visible = true
 			objective_label.text = obj_victory_text
@@ -234,6 +249,8 @@ func _ready():
 			if not GameManager.victory_dialogue_shown:
 				GameManager.victory_dialogue_shown = true
 				_start_victory_dialogue()
+			elif not GameManager.dragon_boss_cutscene_done:
+				_start_dragon_incident()
 		elif GameManager.office_cutscene_done:
 			roberto.visible = false
 			objective_label.text = obj_battle_text
@@ -291,6 +308,24 @@ func _process(delta):
 			if roberto.position.x <= 500.0:
 				roberto.visible = false
 				current_state = State.FREE_EXPLORE
+				
+		State.ROBERTO_LEAD_TO_BOSS:
+			var move_speed = 160.0
+			roberto.position.x -= move_speed * delta
+			var run_col = int(anim_timer * 8.0) % 4
+			roberto_sprite.frame = 1 * 4 + run_col # Caminando hacia la izquierda
+			
+			player.position.x = roberto.position.x + 42.0
+			player.position.y = roberto.position.y
+			player.set_facing(Vector2.LEFT)
+			
+			if roberto.position.x <= 510.0:
+				roberto.position.x = 510.0
+				roberto_sprite.frame = 1 * 4 + 0
+				player.position.x = 545.0
+				player.set_facing(Vector2.LEFT)
+				current_state = State.IDLE
+				_trigger_dragon_boss_confrontation()
 
 func _start_intro_dialog():
 	var leader = GameManager.get_leader_data()
@@ -401,18 +436,95 @@ func _start_victory_dialogue():
 			"portrait": "res://assets/characters/usuaria_portrait.png",
 			"color": Color("#fd79a8"),
 			"text": victory_jefa_2
-		},
-		{
-			"speaker": "SISTEMA - IT ADVENTURES",
-			"portrait": "res://assets/characters/usuaria_portrait.png",
-			"color": Color("#f1c40f"),
-			"text": victory_demo_text % hero_name.to_upper()
 		}
 	]
 	
 	on_dialog_closed_callback = func():
-		_open_demo_modal()
+		_start_dragon_incident()
 	
+	_show_next_in_queue()
+
+func _start_dragon_incident():
+	var leader = GameManager.get_leader_data()
+	var hero_name = leader["name"]
+	
+	roberto.global_position = player.global_position + Vector2(60, 0)
+	roberto.visible = true
+	roberto_sprite.frame = 1 * 4 + 0
+	player.can_move = false
+	touch_controls.visible = false
+	
+	dialog_queue = [
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#f1c40f"),
+			"text": "¡%s! ¡Oye, allá afuera en el pasillo principal está un señor muy alterado preguntando por su dragón!" % hero_name
+		},
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#f1c40f"),
+			"text": "¡Dice que si no sale Sistemas ahora mismo habrá consecuencias catastróficas! ¡Ven, te llevo con él, sígueme!"
+		}
+	]
+	
+	on_dialog_closed_callback = func():
+		current_state = State.ROBERTO_LEAD_TO_BOSS
+		objective_label.text = "[!] Sigue a Roberto Huerta hacia el pasillo principal ->"
+		
+	_show_next_in_queue()
+
+func _trigger_dragon_boss_confrontation():
+	dragon_boss.global_position = Vector2(430, 180)
+	dragon_boss.visible = true
+	dragon_boss_sprite.frame = 2 * 4 + 0 # Mirando a la derecha
+	
+	dark_overlay.visible = true
+	dark_overlay.modulate = Color(1, 1, 1, 0.0)
+	var tw = create_tween()
+	tw.tween_property(dark_overlay, "modulate:a", 0.75, 0.6)
+	
+	objective_label.text = "[!] SOMBRAS DEL PASADO: El Señor del Dragón"
+	
+	dialog_queue = [
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#f1c40f"),
+			"text": "¡Ahí está! Es él... ¡las Sombras del Pasado han regresado a la oficina!"
+		},
+		{
+			"speaker": "Sombras del Pasado",
+			"portrait": "res://assets/characters/dragon_boss_portrait.png",
+			"color": Color("#ef4444"),
+			"text": "¡Quiero de vuelta mi dragón! Si no lo regresan, nunca volverán a ver el splitter, los discos duros y por supuesto... ¡el Magic Trackpad! ¡JAJAJAJAJA!"
+		}
+	]
+	
+	on_dialog_closed_callback = func():
+		dark_overlay.visible = false
+		GameManager.dragon_boss_cutscene_done = true
+		GameManager.player_saved_position = player.global_position
+		GameManager.current_enemy_id = "dragon_boss_main"
+		GameManager.current_enemy_data = {
+			"name": "El Señor del Dragón",
+			"type": "dragon_boss",
+			"desc": "Sombras del pasado... Exige de vuelta su dragón o retendrá el splitter, discos duros y el trackpad.",
+			"hp": 650,
+			"max_hp": 650,
+			"atk": 25,
+			"def": 14,
+			"exp_reward": 350,
+			"texture_path": "res://assets/enemies/enemy_dragon_boss.png",
+			"attacks": [
+				"Acoso",
+				"La Cólera del Dragón",
+				"Emputarse por nada"
+			]
+		}
+		get_tree().change_scene_to_file("res://scenes/battle.tscn")
+		
 	_show_next_in_queue()
 
 func _open_demo_modal():
@@ -422,14 +534,23 @@ func _open_demo_modal():
 	var hero_title = leader["title"]
 	var hero_level = leader.get("level", 1)
 	
-	demo_subtitle.text = "¡Gracias %s, esto solo es un demo!" % hero_name
-	demo_body.text = ("Has neutralizado con éxito a la Impresora Maldita y salvado la nómina de Finanzas.\n\n" +
-		"Héroe de la Misión: %s [Nivel %d - %s]\n" +
-		"Especialidad: %s\n\n" +
-		"[!] Novedades del Sistema de TI:\n" +
-		" - ¡Enemigos de soporte derrotados ganan EXP y subes de nivel!\n" +
-		" - Nuevos problemas físicos en el piso (Outlook, Teclados, Wi-Fi, CPUs)\n" +
-		" - Charla con Don Ramiro, Lic. Brenda y Paco Godínez") % [hero_name, hero_level, hero_role, hero_title]
+	if GameManager.dragon_boss_defeated:
+		demo_title.text = "¡VICTORIA LEGENDARIA!"
+		demo_subtitle.text = "¡Felicidades %s! ¡Has derrotado al Señor del Dragón!" % hero_name
+		demo_body.text = ("Has vencido a la Impresora Maldita y derrotado a las Sombras del Pasado.\n\n" +
+			"¡El splitter, los discos duros y el Magic Trackpad han sido rescatados para Sistemas!\n\n" +
+			"Héroe Legendario: %s [Nivel %d - %s]\n" +
+			"Especialidad: %s\n\n" +
+			"[!] ¡Has completado todas las misiones de la Demo de IT Adventures!") % [hero_name, hero_level, hero_role, hero_title]
+	else:
+		demo_subtitle.text = "¡Gracias %s, esto solo es un demo!" % hero_name
+		demo_body.text = ("Has neutralizado con éxito a la Impresora Maldita y salvado la nómina de Finanzas.\n\n" +
+			"Héroe de la Misión: %s [Nivel %d - %s]\n" +
+			"Especialidad: %s\n\n" +
+			"[!] Novedades del Sistema de TI:\n" +
+			" - ¡Enemigos de soporte derrotados ganan EXP y subes de nivel!\n" +
+			" - Nuevos problemas físicos en el piso (Outlook, Teclados, Wi-Fi, CPUs)\n" +
+			" - Charla con Don Ramiro, Lic. Brenda y Paco Godínez") % [hero_name, hero_level, hero_role, hero_title]
 		
 	demo_modal.visible = true
 	player.can_move = false
