@@ -16,13 +16,6 @@ extends Node2D
 @export_multiline var victory_demo_text: String = "¡GRACIAS POR JUGAR, %s! ESTO SOLO ES UN DEMO.\nHas completado con éxito la primera misión de IT Adventures."
 @export_multiline var jefa_chat_post: String = "¡Gracias de nuevo, %s! Por fin podemos trabajar en paz en nuestros escritorios. ¡Te ganaste café gratis de por vida en Finanzas!"
 
-@export_group("Diálogos - Compañeros de Oficina")
-@export_multiline var carlos_panic: String = "¡Cuidado con esa máquina! ¡No te acerques sin reiniciar el spooler antes!"
-@export_multiline var carlos_thanks: String = "¡Qué alivio, %s! Ya estaba sudando frío pensando que me tocaría hacer las facturas a mano con máquina de escribir. ¡Excelente trabajo!"
-
-@export_multiline var mariana_panic: String = "¡Ay no! ¡Los balances contables del trimestre se van a perder si esa impresora explota!"
-@export_multiline var mariana_thanks: String = "¡Hola %s! Menos mal que llegaste a tiempo. Estábamos a minutos de una catástrofe fiscal. ¡Muchas gracias por rescatarnos!"
-
 @export_multiline var printer_neutralized_text: String = "La Impresora Maldita yace en silencio, desconectada y sin tóner. Un cartel pegado dice: 'FUERA DE SERVICIO - SALVADA POR SISTEMAS'."
 
 @export_group("Objetivos de Misión")
@@ -42,10 +35,6 @@ extends Node2D
 @onready var roberto_sprite = $RobertoHuerta/Sprite2D
 @onready var usuaria = $Usuaria
 @onready var usuaria_sprite = $Usuaria/Sprite2D
-@onready var carlos = $Carlos
-@onready var carlos_sprite = $Carlos/Sprite2D
-@onready var mariana = $Mariana
-@onready var mariana_sprite = $Mariana/Sprite2D
 
 # Boss Sombras del Pasado
 @onready var dragon_boss = $DragonBoss
@@ -162,12 +151,6 @@ func _ready():
 	$Usuaria/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("usuaria"))
 	$Usuaria/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "usuaria": _clear_interactable())
 	
-	$Carlos/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("carlos"))
-	$Carlos/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "carlos": _clear_interactable())
-	
-	$Mariana/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("mariana"))
-	$Mariana/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "mariana": _clear_interactable())
-	
 	$EnemyPrinter/PrinterInteract.body_entered.connect(func(body):
 		if body == player:
 			_set_interactable("printer")
@@ -236,10 +219,6 @@ func _process(delta):
 			var panic_col = int(anim_timer * 4.0) % 4
 			usuaria_sprite.frame = 10 * 4 + panic_col
 			
-	var work_col = int(anim_timer * 2.0) % 4
-	carlos_sprite.frame = 0 * 4 + work_col
-	mariana_sprite.frame = 0 * 4 + work_col
-	
 	match current_state:
 		State.ROBERTO_RUN_TO_PLAYER:
 			var move_speed = roberto_run_in_speed
@@ -531,10 +510,6 @@ func _set_interactable(id: String):
 	match id:
 		"usuaria":
 			interact_label.text = "[E] Hablar con Jefa de Finanzas"
-		"carlos":
-			interact_label.text = "[E] Hablar con Carlos (Facturación)"
-		"mariana":
-			interact_label.text = "[E] Hablar con Mariana (Contabilidad)"
 		"printer":
 			interact_label.text = "[E] Inspeccionar Impresora"
 
@@ -562,24 +537,6 @@ func _trigger_current_interaction():
 					"portrait": "res://assets/characters/usuaria_portrait.png",
 					"color": Color("#fd79a8"),
 					"text": (jefa_chat_post % hero_name) if GameManager.printer_defeated else usuaria_office_1
-				}
-			]
-		"carlos":
-			dialog_queue = [
-				{
-					"speaker": "Carlos (Facturación)",
-					"portrait": "res://assets/characters/carlos_portrait.png",
-					"color": Color("#60a5fa"),
-					"text": (carlos_thanks % hero_name) if GameManager.printer_defeated else carlos_panic
-				}
-			]
-		"mariana":
-			dialog_queue = [
-				{
-					"speaker": "Mariana (Contabilidad)",
-					"portrait": "res://assets/characters/mariana_portrait.png",
-					"color": Color("#34d399"),
-					"text": (mariana_thanks % hero_name) if GameManager.printer_defeated else mariana_panic
 				}
 			]
 		"printer":
