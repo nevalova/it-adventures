@@ -129,7 +129,8 @@ var battle_items = {
 	"pepsi": {"name": "Lata de Pepsi", "count": 4, "desc": "Cura 20 HP (50 HP a Alejandro)"},
 	"cafe": {"name": "Taza de Café", "count": 4, "desc": "Cura 50 HP (0 HP a Alex y Javier)"},
 	"predator": {"name": "Lata de Predator", "count": 3, "desc": "Cura 50 HP (100 HP a Toño)"},
-	"foto": {"name": "Foto de Sra. Limpieza", "count": 2, "desc": "Cura 0 a todos (100 HP a Juan Carlos)"}
+	"foto": {"name": "Foto de Sra. Limpieza", "count": 2, "desc": "Cura 0 a todos (100 HP a Juan Carlos)"},
+	"dia_libre": {"name": "Día Libre", "count": 2, "desc": "Revive a un compañero caído y restaura 70 HP."}
 }
 
 func reset_battle_items():
@@ -137,6 +138,7 @@ func reset_battle_items():
 	battle_items["cafe"]["count"] = 4
 	battle_items["predator"]["count"] = 3
 	battle_items["foto"]["count"] = 2
+	battle_items["dia_libre"]["count"] = 2
 
 func reset_game():
 	intro_cutscene_done = false

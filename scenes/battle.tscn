@@ -258,9 +258,60 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 9
 text = "Foto Limpieza x2"
 
+[node name="BtnItemDiaLibre" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "Dia Libre x2"
+
 [node name="BtnItemBack" type="Button" parent="MainBox/CommandPanel/Margin/HBox/ItemsMenu"]
 custom_minimum_size = Vector2(0, 27)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 9
 text = "< Volver"
+
+
+[node name="PartyTargetMenu" type="GridContainer" parent="MainBox/CommandPanel/Margin/HBox"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 3
+columns = 3
+
+[node name="BtnTargetH0" type="Button" parent="MainBox/CommandPanel/Margin/HBox/PartyTargetMenu"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "Heroe 1"
+
+[node name="BtnTargetH1" type="Button" parent="MainBox/CommandPanel/Margin/HBox/PartyTargetMenu"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "Heroe 2"
+
+[node name="BtnTargetH2" type="Button" parent="MainBox/CommandPanel/Margin/HBox/PartyTargetMenu"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "Heroe 3"
+
+[node name="BtnTargetH3" type="Button" parent="MainBox/CommandPanel/Margin/HBox/PartyTargetMenu"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "Heroe 4"
+
+[node name="BtnTargetCancel" type="Button" parent="MainBox/CommandPanel/Margin/HBox/PartyTargetMenu"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "< Cancelar"

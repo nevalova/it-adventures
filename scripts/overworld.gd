@@ -599,12 +599,13 @@ func _start_dragon_boss_battle():
 		"atk": 25,
 		"def": 14,
 		"exp_reward": 350,
-		"spritesheet_path": "res://assets/characters/dragon_boss_spritesheet.png",
-		"texture_path": "res://assets/characters/dragon_boss_spritesheet.png",
+		"spritesheet_path": "res://assets/characters/dragon_boss_battle_spritesheet.png",
+		"texture_path": "res://assets/characters/dragon_boss_battle_spritesheet.png",
 		"attacks": [
 			"Acoso",
 			"La Cólera del Dragón",
-			"Emputarse por nada"
+			"Emputarse por nada",
+			"DONDE ESTA MI DRAGON IMPRESO EN 3D"
 		]
 	}
 	get_tree().change_scene_to_file("res://scenes/battle.tscn")

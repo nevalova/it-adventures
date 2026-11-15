@@ -22,7 +22,15 @@ extends Control
 @onready var btn_item_cafe = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemCafe
 @onready var btn_item_predator = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemPredator
 @onready var btn_item_foto = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemFoto
+@onready var btn_item_dia_libre = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemDiaLibre
 @onready var btn_item_back = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemBack
+
+@onready var party_target_menu = $MainBox/CommandPanel/Margin/HBox/PartyTargetMenu
+@onready var btn_target_h0 = $MainBox/CommandPanel/Margin/HBox/PartyTargetMenu/BtnTargetH0
+@onready var btn_target_h1 = $MainBox/CommandPanel/Margin/HBox/PartyTargetMenu/BtnTargetH1
+@onready var btn_target_h2 = $MainBox/CommandPanel/Margin/HBox/PartyTargetMenu/BtnTargetH2
+@onready var btn_target_h3 = $MainBox/CommandPanel/Margin/HBox/PartyTargetMenu/BtnTargetH3
+@onready var btn_target_cancel = $MainBox/CommandPanel/Margin/HBox/PartyTargetMenu/BtnTargetCancel
 
 @onready var active_hero_portrait = $MainBox/CommandPanel/Margin/HBox/ActiveHeroBox/ActiveHeroPortrait
 @onready var active_hero_name = $MainBox/CommandPanel/Margin/HBox/ActiveHeroBox/VBox/HeroName
@@ -58,14 +66,19 @@ var minion_card_nodes: Array = []
 # Boss Spritesheet Animation State (16-bit Battler)
 var boss_atlas: AtlasTexture = null
 var boss_anim_timer: float = 0.0
-var boss_frame_row: int = 6 # Row 6: mirando a la derecha hacia los héroes
+var boss_frame_row: int = 4 # Row 4: postura de combate hacia la derecha
 var boss_frame_col: int = 0
+var boss_cell_size: int = 128
+var boss_is_special_anim: bool = false
 
 func _process(delta):
 	if boss_atlas != null and not is_battle_over:
-		# Pose de combate estática sin ciclo de caminata
-		boss_frame_col = 0
-		boss_atlas.region = Rect2(boss_frame_col * 170, boss_frame_row * 170, 170, 170)
+		if not boss_is_special_anim:
+			boss_anim_timer += delta
+			if boss_anim_timer >= 0.4:
+				boss_anim_timer = 0.0
+				boss_frame_col = 1 if boss_frame_col == 0 else 0
+			boss_atlas.region = Rect2(boss_frame_col * boss_cell_size, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 
 func _ready():
 	get_viewport().canvas_transform = Transform2D.IDENTITY
@@ -80,7 +93,14 @@ func _ready():
 	btn_item_cafe.pressed.connect(func(): _use_item("cafe"))
 	btn_item_predator.pressed.connect(func(): _use_item("predator"))
 	btn_item_foto.pressed.connect(func(): _use_item("foto"))
+	btn_item_dia_libre.pressed.connect(_on_dia_libre_pressed)
 	btn_item_back.pressed.connect(_on_item_back_pressed)
+	
+	btn_target_h0.pressed.connect(func(): _apply_dia_libre_to_target(0))
+	btn_target_h1.pressed.connect(func(): _apply_dia_libre_to_target(1))
+	btn_target_h2.pressed.connect(func(): _apply_dia_libre_to_target(2))
+	btn_target_h3.pressed.connect(func(): _apply_dia_libre_to_target(3))
+	btn_target_cancel.pressed.connect(_on_target_cancel_pressed)
 
 func setup_battle():
 	javier_first_attack = true
@@ -125,18 +145,20 @@ func setup_battle():
 		enemy_name_label.text = "[JEFE] El Señor del Dragón"
 		enemy_name_label.modulate = Color(1.0, 0.25, 0.25)
 		
-		var sheet_path = enemy.get("spritesheet_path", "res://assets/characters/dragon_boss_spritesheet.png")
+		var sheet_path = enemy.get("spritesheet_path", "res://assets/characters/dragon_boss_battle_spritesheet.png")
 		if ResourceLoader.exists(sheet_path):
 			boss_atlas = AtlasTexture.new()
 			boss_atlas.atlas = load(sheet_path)
-			# 4x12 -> 680x2040, cada celda 170x170
-			boss_frame_row = 6 # Row 6: mirando a la derecha hacia los héroes
+			# Spritesheet 8 columnas x 7 filas (1024x896), cada celda 128x128
+			boss_cell_size = 128
+			boss_frame_row = 4 # Row 4: postura de combate hacia los héroes
 			boss_frame_col = 0
-			boss_atlas.region = Rect2(0, 6 * 170, 170, 170)
+			boss_is_special_anim = false
+			boss_atlas.region = Rect2(0, 4 * 128, 128, 128)
 			enemy_sprite.texture = boss_atlas
 			enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			enemy_sprite.custom_minimum_size = Vector2(120, 120)
+			enemy_sprite.custom_minimum_size = Vector2(140, 140)
 	else:
 		if ResourceLoader.exists(enemy.get("texture_path", "")):
 			enemy_sprite.texture = load(enemy.get("texture_path"))
@@ -405,6 +427,83 @@ func update_items_ui():
 	
 	btn_item_foto.text = "Foto Sra. Limpieza x%d" % foto["count"]
 	btn_item_foto.disabled = foto["count"] <= 0
+	
+	var dia_libre = GameManager.battle_items.get("dia_libre", {"count": 2})
+	btn_item_dia_libre.text = "Día Libre (Revivir) x%d" % dia_libre["count"]
+	btn_item_dia_libre.disabled = dia_libre["count"] <= 0
+
+func _on_dia_libre_pressed():
+	if not is_player_turn or is_battle_over:
+		return
+	var item = GameManager.battle_items.get("dia_libre", {"count": 0})
+	if item["count"] <= 0:
+		set_log("[!] ¡Ya no te quedan solicitudes de Día Libre!")
+		return
+	items_menu.visible = false
+	open_party_target_menu()
+
+func open_party_target_menu():
+	party_target_menu.visible = true
+	var target_btns = [btn_target_h0, btn_target_h1, btn_target_h2, btn_target_h3]
+	for i in range(target_btns.size()):
+		var btn = target_btns[i]
+		if i < battle_party.size():
+			btn.visible = true
+			var mem = battle_party[i]
+			if mem["hp"] <= 0:
+				btn.text = "[KO] %s (CAÍDO)" % mem["name"]
+				btn.modulate = Color(1.0, 0.4, 0.4)
+			else:
+				btn.text = "%s (%d/%d HP)" % [mem["name"], mem["hp"], mem["max_hp"]]
+				btn.modulate = Color.WHITE
+		else:
+			btn.visible = false
+	set_log("[?] ¿A qué compañero deseas concederle el DÍA LIBRE para revivirlo o curarlo?")
+
+func _on_target_cancel_pressed():
+	party_target_menu.visible = false
+	items_menu.visible = true
+	set_log("Selecciona un ítem o pulsa Volver.")
+
+func _apply_dia_libre_to_target(target_idx: int):
+	if not is_player_turn or is_battle_over:
+		return
+	if target_idx >= battle_party.size():
+		return
+	var item = GameManager.battle_items["dia_libre"]
+	if item["count"] <= 0:
+		set_log("[!] ¡No quedan Días Libres!")
+		party_target_menu.visible = false
+		commands_box.visible = true
+		return
+		
+	item["count"] -= 1
+	party_target_menu.visible = false
+	commands_box.visible = true
+	
+	var mem = battle_party[target_idx]
+	var was_dead = mem["hp"] <= 0
+	if was_dead:
+		mem["hp"] = max(70, int(mem["max_hp"] * 0.5))
+		if target_idx < battler_sprites.size():
+			var spr = battler_sprites[target_idx]
+			spr.frame = 2 * 4 + 0 # Volver a ponerse de pie mirando al frente
+			var tween = create_tween()
+			tween.tween_property(spr, "modulate", Color(0.2, 2.2, 0.5), 0.25)
+			tween.tween_property(spr, "modulate", Color.WHITE, 0.25)
+		set_log("[¡REVIVIDO!] ¡RH concedió un DÍA LIBRE a %s! ¡Descansó del estrés, revivió y regresa al combate con %d HP!" % [mem["name"], mem["hp"]])
+	else:
+		var heal = 70
+		mem["hp"] = min(mem["max_hp"], mem["hp"] + heal)
+		if target_idx < battler_sprites.size():
+			var spr = battler_sprites[target_idx]
+			var tween = create_tween()
+			tween.tween_property(spr, "modulate", Color(0.2, 2.2, 0.5), 0.2)
+			tween.tween_property(spr, "modulate", Color.WHITE, 0.2)
+		set_log("[+] ¡%s se tomó su merecido DÍA LIBRE y recargó baterías (+%d HP)!" % [mem["name"], heal])
+		
+	render_party_ui()
+	end_hero_action()
 
 func _on_item_back_pressed():
 	items_menu.visible = false
@@ -719,11 +818,15 @@ func deal_damage_to_enemy(damage: int, message: String):
 	set_log("%s (%d de daño)." % [message, damage])
 	
 	# Efecto visual y cambio de pose al recibir daño
-	if boss_atlas != null and enemy_current_hp > 0:
-		boss_frame_row = 10 # Postura de impacto / retroceso
-		get_tree().create_timer(0.3).timeout.connect(func():
-			if boss_atlas != null and not is_battle_over:
-				boss_frame_row = 6
+	if boss_atlas != null and enemy_current_hp > 0 and not boss_is_special_anim:
+		boss_frame_row = 5 # Postura de impacto / dolor
+		boss_frame_col = 0
+		boss_atlas.region = Rect2(0, 5 * boss_cell_size, boss_cell_size, boss_cell_size)
+		get_tree().create_timer(0.35).timeout.connect(func():
+			if boss_atlas != null and not is_battle_over and not boss_is_special_anim:
+				boss_frame_row = 4
+				boss_frame_col = 0
+				boss_atlas.region = Rect2(0, 4 * boss_cell_size, boss_cell_size, boss_cell_size)
 		)
 		
 	var tween = create_tween()
@@ -752,6 +855,47 @@ func end_hero_action():
 		return
 	enemy_turn()
 
+func play_dragon_special_anim(target_name: String) -> void:
+	boss_is_special_anim = true
+	boss_frame_row = 4
+	
+	# Frame 4: Carga energía cian en la mano
+	boss_frame_col = 4
+	boss_atlas.region = Rect2(4 * boss_cell_size, 4 * boss_cell_size, boss_cell_size, boss_cell_size)
+	var tween_charge = create_tween()
+	tween_charge.tween_property(enemy_sprite, "modulate", Color(0.2, 2.5, 3.5), 0.25)
+	set_log("[¡ALERTA MÁXIMA!] ¡El Señor del Dragón acumula una inmensa energía mística cian en sus manos...!")
+	await get_tree().create_timer(0.35).timeout
+	
+	# Frame 5: Proyecta la cabeza del dragón
+	boss_frame_col = 5
+	boss_atlas.region = Rect2(5 * boss_cell_size, 4 * boss_cell_size, boss_cell_size, boss_cell_size)
+	set_log("¡El Señor del Dragón ruge a todo pulmón: '¡¿DÓNDE ESTÁ MI DRAGÓN IMPRESO EN 3D?!'!")
+	await get_tree().create_timer(0.35).timeout
+	
+	# Frame 6: ¡EL DRAGÓN CIAN COMPLETO SURCA LA SALA HACIA LOS HÉROES!
+	boss_frame_col = 6
+	boss_atlas.region = Rect2(6 * boss_cell_size, 4 * boss_cell_size, boss_cell_size, boss_cell_size)
+	var cam = $Camera2D
+	var orig_cam_offset = cam.offset
+	var tween_shake = create_tween()
+	for s in range(5):
+		tween_shake.tween_property(cam, "offset", Vector2(randf_range(-7, 7), randf_range(-7, 7)), 0.05)
+	tween_shake.tween_property(cam, "offset", orig_cam_offset, 0.05)
+	await get_tree().create_timer(0.5).timeout
+	
+	# Frame 7: Recoil y disipación de energía
+	boss_frame_col = 7
+	boss_atlas.region = Rect2(7 * boss_cell_size, 4 * boss_cell_size, boss_cell_size, boss_cell_size)
+	enemy_sprite.modulate = Color.WHITE if not boss_has_red_aura else Color(2.5, 0.4, 0.4)
+	await get_tree().create_timer(0.3).timeout
+	
+	# Restaurar postura normal
+	boss_frame_row = 4
+	boss_frame_col = 0
+	boss_atlas.region = Rect2(0, 4 * boss_cell_size, boss_cell_size, boss_cell_size)
+	boss_is_special_anim = false
+
 func enemy_turn():
 	if is_battle_over:
 		return
@@ -774,23 +918,24 @@ func enemy_turn():
 	var log_msg = ""
 	
 	if is_dragon_boss:
-		if boss_atlas != null:
-			boss_frame_row = 9 # Row 9: postura de ataque especial / energía
-			get_tree().create_timer(0.9).timeout.connect(func():
-				if boss_atlas != null and not is_battle_over:
-					boss_frame_row = 6
-			)
-			
-		if not boss_has_red_aura and (chosen_atk == "Emputarse por nada" or randf() < 0.4):
+		if not boss_has_red_aura and randf() < 0.25:
 			chosen_atk = "Emputarse por nada"
+		elif randf() < 0.45 or chosen_atk == "DONDE ESTA MI DRAGON IMPRESO EN 3D":
+			chosen_atk = "DONDE ESTA MI DRAGON IMPRESO EN 3D"
+		else:
+			chosen_atk = "La Cólera del Dragón"
+
+		if chosen_atk == "DONDE ESTA MI DRAGON IMPRESO EN 3D":
+			dmg = 150 # Baja 150 de vida como pidió el usuario
+			await play_dragon_special_anim(target["name"])
+			log_msg = "¡¡DONDE ESTA MI DRAGON IMPRESO EN 3D!! ¡El Señor del Dragón desató toda su furia acumulada invocando al dragón espectral e infligió 150 de daño directo a %s!" % target["name"]
+		elif chosen_atk == "Emputarse por nada":
 			boss_has_red_aura = true
 			enemy["atk"] = enemy.get("atk", 25) + 12 # Boost de 5 niveles
-			dmg = max(12, enemy["atk"] + randi_range(2, 6) - int(target["def"] * 0.4))
-			
+			dmg = max(14, enemy["atk"] + randi_range(2, 6) - int(target["def"] * 0.4))
 			var aura_tween = create_tween().set_loops()
 			aura_tween.tween_property(enemy_sprite, "modulate", Color(3.5, 0.3, 0.3), 0.3)
 			aura_tween.tween_property(enemy_sprite, "modulate", Color(1.8, 0.6, 0.6), 0.3)
-			
 			log_msg = "¡¡EMPUTARSE POR NADA!! El Señor del Dragón estalla de ira sin motivo, activa un AURA ROJA (+5 niveles, +12 ATQ) y golpea a %s por %d de daño." % [target["name"], dmg]
 		elif chosen_atk == "La Cólera del Dragón":
 			dmg = int(dmg * 1.5)
@@ -852,8 +997,10 @@ func enemy_defeated():
 	GameManager.victorious_count += 1
 	
 	if boss_atlas != null:
-		boss_frame_row = 11 # Row 11: tumbado / desmayado en el piso
-		boss_atlas.region = Rect2(3 * 170, 11 * 170, 170, 170)
+		boss_is_special_anim = true
+		boss_frame_row = 5 # Row 5: Col 7 = KO tumbado en el piso
+		boss_frame_col = 7
+		boss_atlas.region = Rect2(7 * boss_cell_size, 5 * boss_cell_size, boss_cell_size, boss_cell_size)
 	
 	if GameManager.current_enemy_id != "" and not GameManager.defeated_enemies.has(GameManager.current_enemy_id):
 		GameManager.defeated_enemies.append(GameManager.current_enemy_id)
