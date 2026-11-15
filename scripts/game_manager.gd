@@ -20,7 +20,9 @@ var characters_data = {
 		"special_move_name": "Reinicio Forzado al Rack",
 		"avatar_symbol": "[J]",
 		"portrait_path": "res://assets/characters/javier_portrait.png",
-		"spritesheet_path": "res://assets/characters/javier_spritesheet.png"
+		"spritesheet_path": "res://assets/characters/javier_spritesheet.png",
+		"overworld_scale": Vector2(0.24, 0.24),
+		"battle_scale": Vector2(0.32, 0.32)
 	},
 	"tonazo": {
 		"name": "Toñazo",
@@ -39,7 +41,9 @@ var characters_data = {
 		"special_move_name": "USB Booteable con Linux Milagroso",
 		"avatar_symbol": "[T]",
 		"portrait_path": "res://assets/characters/tonazo_portrait.png",
-		"spritesheet_path": "res://assets/characters/tonazo_spritesheet.png"
+		"spritesheet_path": "res://assets/characters/tonazo_spritesheet.png",
+		"overworld_scale": Vector2(0.24, 0.24),
+		"battle_scale": Vector2(0.32, 0.32)
 	},
 	"juan_carlos": {
 		"name": "Juan Carlos",
@@ -58,7 +62,9 @@ var characters_data = {
 		"special_move_name": "Ataque DDoS con la Cafetera",
 		"avatar_symbol": "[JC]",
 		"portrait_path": "res://assets/characters/juan_carlos_portrait.png",
-		"spritesheet_path": "res://assets/characters/juan_carlos_spritesheet.png"
+		"spritesheet_path": "res://assets/characters/juan_carlos_spritesheet.png",
+		"overworld_scale": Vector2(0.28, 0.28),
+		"battle_scale": Vector2(0.365, 0.365)
 	},
 	"alejandro": {
 		"name": "Alejandro",
@@ -77,7 +83,9 @@ var characters_data = {
 		"special_move_name": "Mañana no vengo, voy a Chilpancingo",
 		"avatar_symbol": "[A]",
 		"portrait_path": "res://assets/characters/alejandro_portrait.png",
-		"spritesheet_path": "res://assets/characters/alejandro_spritesheet.png"
+		"spritesheet_path": "res://assets/characters/alejandro_spritesheet.png",
+		"overworld_scale": Vector2(0.24, 0.24),
+		"battle_scale": Vector2(0.32, 0.32)
 	},
 	"israel": {
 		"name": "Israel",
@@ -96,7 +104,9 @@ var characters_data = {
 		"special_move_name": "DROP DATABASE CON ROOT",
 		"avatar_symbol": "[I]",
 		"portrait_path": "res://assets/characters/israel_portrait.png",
-		"spritesheet_path": "res://assets/characters/israel_spritesheet.png"
+		"spritesheet_path": "res://assets/characters/israel_spritesheet.png",
+		"overworld_scale": Vector2(0.23, 0.23),
+		"battle_scale": Vector2(0.31, 0.31)
 	}
 }
 

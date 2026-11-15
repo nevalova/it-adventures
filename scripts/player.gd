@@ -27,7 +27,14 @@ func _ready():
 		sprite.texture = load(leader["spritesheet_path"])
 		sprite.hframes = 4
 		sprite.vframes = 12
-		sprite.scale = Vector2(0.24, 0.24)
+		var ow_scale = leader.get("overworld_scale", Vector2(0.24, 0.24))
+		sprite.scale = ow_scale
+		if ow_scale.y > 0.25:
+			sprite.position = Vector2(0, -11)
+			name_tag.position.y = -36.0
+		else:
+			sprite.position = Vector2(0, -10)
+			name_tag.position.y = -34.0
 		current_row = 6
 		sprite.frame = current_row * 4 + 0 # Mirando a la derecha
 		facing_direction = Vector2.RIGHT

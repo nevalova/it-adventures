@@ -173,7 +173,7 @@ func create_battler_sprites():
 			spr.texture = load(member["spritesheet_path"])
 		spr.hframes = 4
 		spr.vframes = 12
-		spr.scale = Vector2(0.32, 0.32)
+		spr.scale = member.get("battle_scale", Vector2(0.32, 0.32))
 		spr.position = Vector2(PARTY_LINE_X, start_y + i * step_y)
 		# Row 2 (mirando a la izquierda hacia el enemigo)
 		spr.frame = 2 * 4 + 0
