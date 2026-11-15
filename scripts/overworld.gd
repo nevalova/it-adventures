@@ -253,20 +253,20 @@ func _process(delta):
 				current_state = State.FREE_EXPLORE
 				
 		State.ROBERTO_LEAD_TO_BOSS:
-			var move_speed = 160.0
+			var move_speed = 150.0
 			roberto.position.x -= move_speed * delta
 			var run_col = int(anim_timer * 8.0) % 4
-			roberto_sprite.frame = 2 * 4 + run_col # Caminando hacia la izquierda
+			roberto_sprite.frame = 2 * 4 + run_col # Roberto caminando hacia la izquierda
 			
 			player.position.x = roberto.position.x + 42.0
 			player.position.y = roberto.position.y
-			player.set_facing(Vector2.LEFT)
+			player.play_walk_anim(Vector2.LEFT, run_col) # El jugador anima su caminata al compás
 			
 			if roberto.position.x <= 510.0:
 				roberto.position.x = 510.0
 				roberto_sprite.frame = 2 * 4 + 0 # Parado mirando a la izquierda
 				player.position.x = 545.0
-				player.set_facing(Vector2.LEFT)
+				player.set_facing(Vector2.LEFT) # Detiene caminata y queda mirando a la izquierda
 				current_state = State.IDLE
 				_trigger_dragon_boss_confrontation()
 
