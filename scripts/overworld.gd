@@ -47,11 +47,6 @@ extends Node2D
 @onready var mariana = $Mariana
 @onready var mariana_sprite = $Mariana/Sprite2D
 
-# NPCs Ociosos / Chistosos
-@onready var don_ramiro = $DonRamiro
-@onready var lic_brenda = $LicBrenda
-@onready var paco_godinez = $PacoGodinez
-
 # Boss Sombras del Pasado
 @onready var dragon_boss = $DragonBoss
 @onready var dragon_boss_sprite = $DragonBoss/Sprite2D
@@ -110,31 +105,6 @@ var anim_timer: float = 0.0
 var dialog_queue: Array = []
 var on_dialog_closed_callback: Callable
 var current_interactable: String = ""
-
-# Frases chistosas de oficina para NPCs ociosos
-var don_ramiro_quotes: Array = [
-	"Muchachos, ¿alguien sabe a qué hora traen los tacos de canasta? Ya son las 11:15 y mi cuerpo exige manteca con salsa verde.",
-	"Dicen que si dejas una computadora prendida más de 40 días, Windows cobra conciencia y se une al sindicato.",
-	"Yo por eso guardo todos mis archivos confidenciales en la Papelera de Reciclaje... nadie busca ahí, es el escondite perfecto.",
-	"En mis tiempos no había Wi-Fi, nos gritábamos las celdas de Excel de cubículo a cubículo.",
-	"¿Ustedes creen que si le pongo un post-it a la cámara web evito que el SAT me audite las facturas?"
-]
-
-var lic_brenda_quotes: Array = [
-	"¡Aviso parroquial! Queda terminantemente prohibido meter pescado con ajo al microondas del piso 3. Se los advierto por las buenas.",
-	"Mandé un correo con copia a Dirección General, Finanzas, RH y a la ONU para que quede constancia por escrito de que se acabaron los clips.",
-	"¡Saludos cordiales! ... Bueno, ni tan cordiales porque urge para ayer a primera hora.",
-	"Estamos organizando la dinámica de integración: 'Construyendo puentes con popotes y bombones'. La asistencia es obligatoria y sin goce de horas extras.",
-	"Si alguien vio una taza que dice 'La Mejor Jefa del Mundo', devuélvanla de inmediato o habrá consecuencias en el aguinaldo."
-]
-
-var paco_godinez_quotes: Array = [
-	"El secreto supremo de la oficina es caminar rápido por el pasillo con una carpeta amarilla y cara de estresado. Nadie se atreve a pedirte nada.",
-	"Llevo 3 horas fingiendo que leo un PDF de 80 páginas sobre políticas de seguridad cibernética. En realidad estoy viendo autos usados.",
-	"¿Tú crees que si desconecto el cable negro con franjas amarillas se cancela la junta de las 4 PM? Piénsalo bien...",
-	"El café de la empresa no despierta, solo acelera el pánico existencial de las 2 de la tarde.",
-	"Vengo llegando del baño... estuve 40 minutos esperando a que se me pasaran las ganas de trabajar."
-]
 
 func _ready():
 	$Player/Camera2D.make_current()
@@ -197,15 +167,6 @@ func _ready():
 	
 	$Mariana/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("mariana"))
 	$Mariana/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "mariana": _clear_interactable())
-	
-	$DonRamiro/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("ramiro"))
-	$DonRamiro/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "ramiro": _clear_interactable())
-	
-	$LicBrenda/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("brenda"))
-	$LicBrenda/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "brenda": _clear_interactable())
-	
-	$PacoGodinez/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("paco"))
-	$PacoGodinez/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "paco": _clear_interactable())
 	
 	$EnemyPrinter/PrinterInteract.body_entered.connect(func(body): if body == player: _set_interactable("printer"))
 	$EnemyPrinter/PrinterInteract.body_exited.connect(func(body): if body == player and current_interactable == "printer": _clear_interactable())
@@ -273,18 +234,17 @@ func _process(delta):
 	var work_col = int(anim_timer * 2.0) % 4
 	carlos_sprite.frame = 0 * 4 + work_col
 	mariana_sprite.frame = 0 * 4 + work_col
-	paco_godinez.get_node("Sprite2D").frame = 0 * 4 + work_col
 	
 	match current_state:
 		State.ROBERTO_RUN_TO_PLAYER:
 			var move_speed = roberto_run_in_speed
 			roberto.position.x -= move_speed * delta
 			var run_col = int(anim_timer * 8.0) % 4
-			roberto_sprite.frame = 2 * 4 + run_col
+			roberto_sprite.frame = 2 * 4 + run_col # Caminando hacia la izquierda
 			
 			if roberto.position.x <= 200.0:
 				roberto.position.x = 200.0
-				roberto_sprite.frame = 2 * 4 + 0
+				roberto_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda hacia el jugador
 				current_state = State.IDLE
 				_start_intro_dialog()
 				
@@ -292,18 +252,18 @@ func _process(delta):
 			var move_speed = roberto_run_office_speed
 			roberto.position.x += move_speed * delta
 			var run_col = int(anim_timer * 9.0) % 4
-			roberto_sprite.frame = 6 * 4 + run_col
+			roberto_sprite.frame = 6 * 4 + run_col # Caminando hacia la derecha
 			
 			if roberto.position.x >= 700.0:
 				roberto.position.x = 700.0
-				roberto_sprite.frame = 2 * 4 + 0
+				roberto_sprite.frame = 2 * 4 + 0 # Mirando hacia la izquierda esperando al jugador
 				current_state = State.FREE_EXPLORE
 				
 		State.ROBERTO_FLEE:
 			var move_speed = roberto_flee_speed
 			roberto.position.x -= move_speed * delta
 			var run_col = int(anim_timer * 10.0) % 4
-			roberto_sprite.frame = 2 * 4 + run_col
+			roberto_sprite.frame = 2 * 4 + run_col # Huyendo hacia la izquierda
 			
 			if roberto.position.x <= 500.0:
 				roberto.visible = false
@@ -313,7 +273,7 @@ func _process(delta):
 			var move_speed = 160.0
 			roberto.position.x -= move_speed * delta
 			var run_col = int(anim_timer * 8.0) % 4
-			roberto_sprite.frame = 1 * 4 + run_col # Caminando hacia la izquierda
+			roberto_sprite.frame = 2 * 4 + run_col # Caminando hacia la izquierda
 			
 			player.position.x = roberto.position.x + 42.0
 			player.position.y = roberto.position.y
@@ -321,7 +281,7 @@ func _process(delta):
 			
 			if roberto.position.x <= 510.0:
 				roberto.position.x = 510.0
-				roberto_sprite.frame = 1 * 4 + 0
+				roberto_sprite.frame = 2 * 4 + 0 # Parado mirando a la izquierda
 				player.position.x = 545.0
 				player.set_facing(Vector2.LEFT)
 				current_state = State.IDLE
@@ -478,7 +438,7 @@ func _start_dragon_incident():
 func _trigger_dragon_boss_confrontation():
 	dragon_boss.global_position = Vector2(430, 180)
 	dragon_boss.visible = true
-	dragon_boss_sprite.frame = 2 * 4 + 0 # Mirando a la derecha
+	dragon_boss_sprite.frame = 6 * 4 + 0 # Mirando a la derecha hacia Roberto y el jugador
 	
 	dark_overlay.visible = true
 	dark_overlay.modulate = Color(1, 1, 1, 0.0)
@@ -548,9 +508,9 @@ func _open_demo_modal():
 			"Héroe de la Misión: %s [Nivel %d - %s]\n" +
 			"Especialidad: %s\n\n" +
 			"[!] Novedades del Sistema de TI:\n" +
-			" - ¡Enemigos de soporte derrotados ganan EXP y subes de nivel!\n" +
-			" - Nuevos problemas físicos en el piso (Outlook, Teclados, Wi-Fi, CPUs)\n" +
-			" - Charla con Don Ramiro, Lic. Brenda y Paco Godínez") % [hero_name, hero_level, hero_role, hero_title]
+			" - ¡Batalla contra el Señor del Dragón en el pasillo principal!\n" +
+			" - Sistema de turnos 1v1 dinámico y botiquín de oficina\n" +
+			" - Habla con el equipo de Finanzas para más misiones") % [hero_name, hero_level, hero_role, hero_title]
 		
 	demo_modal.visible = true
 	player.can_move = false
@@ -570,12 +530,6 @@ func _set_interactable(id: String):
 			interact_label.text = "[E] Hablar con Carlos (Facturación)"
 		"mariana":
 			interact_label.text = "[E] Hablar con Mariana (Contabilidad)"
-		"ramiro":
-			interact_label.text = "[E] Hablar con Don Ramiro"
-		"brenda":
-			interact_label.text = "[E] Hablar con Lic. Brenda (RH)"
-		"paco":
-			interact_label.text = "[E] Hablar con Paco Godínez"
 		"printer":
 			interact_label.text = "[E] Inspeccionar Impresora"
 
@@ -621,36 +575,6 @@ func _trigger_current_interaction():
 					"portrait": "res://assets/characters/mariana_portrait.png",
 					"color": Color("#34d399"),
 					"text": (mariana_thanks % hero_name) if GameManager.printer_defeated else mariana_panic
-				}
-			]
-		"ramiro":
-			var q = don_ramiro_quotes[randi() % don_ramiro_quotes.size()]
-			dialog_queue = [
-				{
-					"speaker": "Don Ramiro (El Decano)",
-					"portrait": "res://assets/characters/don_ramiro_portrait.png",
-					"color": Color("#fbbf24"),
-					"text": q
-				}
-			]
-		"brenda":
-			var q = lic_brenda_quotes[randi() % lic_brenda_quotes.size()]
-			dialog_queue = [
-				{
-					"speaker": "Lic. Brenda (RH)",
-					"portrait": "res://assets/characters/lic_brenda_portrait.png",
-					"color": Color("#f472b6"),
-					"text": q
-				}
-			]
-		"paco":
-			var q = paco_godinez_quotes[randi() % paco_godinez_quotes.size()]
-			dialog_queue = [
-				{
-					"speaker": "Paco Godínez",
-					"portrait": "res://assets/characters/carlos_portrait.png",
-					"color": Color("#facc15"),
-					"text": q
 				}
 			]
 		"printer":
