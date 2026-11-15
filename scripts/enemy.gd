@@ -32,7 +32,7 @@ var enemy_specs = {
 		]
 	},
 	"outlook": {
-		"user_name": "Sofía (Compras)",
+		"user_name": "Mario (Compras)",
 		"user_color": Color("#f59e0b"),
 		"user_spritesheet": "res://assets/characters/npc_pelirroja_spritesheet.png",
 		"user_portrait": "res://assets/characters/npc_pelirroja_portrait.png",
@@ -76,7 +76,7 @@ var enemy_specs = {
 		]
 	},
 	"teclado": {
-		"user_name": "Carlos (Facturación)",
+		"user_name": "Doña Brenda (Facturación)",
 		"user_color": Color("#34d399"),
 		"user_spritesheet": "res://assets/characters/npc_ejecutivo_spritesheet.png",
 		"user_portrait": "res://assets/characters/npc_ejecutivo_portrait.png",
@@ -98,7 +98,7 @@ var enemy_specs = {
 		]
 	},
 	"cpu": {
-		"user_name": "Don Ramiro (Archivo)",
+		"user_name": "Laura (Archivo)",
 		"user_color": Color("#f87171"),
 		"user_spritesheet": "res://assets/characters/npc_veterano_spritesheet.png",
 		"user_portrait": "res://assets/characters/npc_veterano_portrait.png",
@@ -180,8 +180,13 @@ func apply_spec():
 		sprite.vframes = 1
 		sprite.frame = 0
 		sprite.scale = Vector2(0.2, 0.2)
-		name_tag.text = "[!] IMPRESORA MALDITA"
-		name_tag.modulate = Color(1.0, 0.3, 0.3)
+		if GameManager.printer_defeated:
+			sprite.position = Vector2.ZERO
+			name_tag.text = "[V] Neutralizada"
+			name_tag.modulate = Color(0.3, 0.9, 0.6)
+		else:
+			name_tag.text = "[!] IMPRESORA MALDITA"
+			name_tag.modulate = Color(1.0, 0.3, 0.3)
 	else:
 		if ResourceLoader.exists(spec.get("user_spritesheet", "")):
 			sprite.texture = load(spec["user_spritesheet"])
@@ -207,6 +212,9 @@ func apply_spec():
 
 func _process(delta):
 	if enemy_type == "printer":
+		if GameManager.printer_defeated:
+			sprite.position = Vector2.ZERO
+			return
 		var shake = sin(Time.get_ticks_msec() * 0.04) * 1.8
 		sprite.position.x = shake
 		return

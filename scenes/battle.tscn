@@ -86,6 +86,13 @@ texture = ExtResource("2_enemy_spr")
 expand_mode = 1
 stretch_mode = 5
 
+[node name="MinionsContainer" type="HBoxContainer" parent="MainBox/BattleArena/EnemySide"]
+visible = false
+custom_minimum_size = Vector2(170, 75)
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
 [node name="BattlersArena" type="Control" parent="MainBox/BattleArena"]
 layout_mode = 2
 size_flags_horizontal = 3

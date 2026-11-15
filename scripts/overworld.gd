@@ -204,6 +204,7 @@ func _ready():
 			btn_demo_modal.visible = true
 			objective_label.text = "[!] ¡Victoria Legendaria! Habla con Roberto para revisar el reporte final."
 			enemy_printer.set_collision_layer_value(3, false)
+			enemy_printer_sprite.position = Vector2.ZERO
 			enemy_printer_sprite.modulate = Color(0.55, 0.55, 0.55, 1.0)
 			enemy_printer_nametag.text = "[V] Neutralizada"
 			enemy_printer_nametag.modulate = Color(0.3, 0.9, 0.6, 1.0)
@@ -213,6 +214,7 @@ func _ready():
 			objective_label.text = obj_victory_text
 			
 			enemy_printer.set_collision_layer_value(3, false)
+			enemy_printer_sprite.position = Vector2.ZERO
 			enemy_printer_sprite.modulate = Color(0.55, 0.55, 0.55, 1.0)
 			enemy_printer_nametag.text = "[V] Neutralizada"
 			enemy_printer_nametag.modulate = Color(0.3, 0.9, 0.6, 1.0)

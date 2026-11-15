@@ -632,25 +632,25 @@ collision_mask = 1
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EnemyPrinter/PrinterInteract"]
 shape = SubResource("CircleShape2D_printer_interact")
 
-[node name="NPCSofia" parent="." instance=ExtResource("7_enemy")]
+[node name="NPCMario" parent="." instance=ExtResource("7_enemy")]
 position = Vector2(800, 140)
 enemy_type = "outlook"
-enemy_id = "npc_sofia_outlook"
+enemy_id = "npc_mario_outlook"
 
-[node name="NPCCarlos" parent="." instance=ExtResource("7_enemy")]
+[node name="NPCDonaBrenda" parent="." instance=ExtResource("7_enemy")]
 position = Vector2(940, 140)
 enemy_type = "teclado"
-enemy_id = "npc_carlos_teclado"
+enemy_id = "npc_dona_brenda_teclado"
 
 [node name="NPCLicColorSerio" parent="." instance=ExtResource("7_enemy")]
 position = Vector2(880, 245)
 enemy_type = "wifi_phone"
 enemy_id = "npc_lic_color_serio"
 
-[node name="NPCRamiro" parent="." instance=ExtResource("7_enemy")]
+[node name="NPCLaura" parent="." instance=ExtResource("7_enemy")]
 position = Vector2(1400, 140)
 enemy_type = "cpu"
-enemy_id = "npc_ramiro_cpu"
+enemy_id = "npc_laura_cpu"
 
 [node name="NPCDiego" parent="." instance=ExtResource("7_enemy")]
 position = Vector2(1560, 245)

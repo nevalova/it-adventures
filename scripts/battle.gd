@@ -49,6 +49,12 @@ var javier_can_attack: bool = true
 var javier_first_attack: bool = true
 var boss_has_red_aura: bool = false
 
+# Printer Minions State (4 CMYK Toners)
+var printer_minions_spawned: bool = false
+var selected_minion_index: int = 0
+var printer_minions: Array = []
+var minion_card_nodes: Array = []
+
 # Boss Spritesheet Animation State (16-bit Battler)
 var boss_atlas: AtlasTexture = null
 var boss_anim_timer: float = 0.0
@@ -78,6 +84,15 @@ func _ready():
 
 func setup_battle():
 	javier_first_attack = true
+	printer_minions_spawned = false
+	selected_minion_index = 0
+	printer_minions.clear()
+	minion_card_nodes.clear()
+	if has_node("MainBox/BattleArena/EnemySide/MinionsContainer"):
+		var mc = $MainBox/BattleArena/EnemySide/MinionsContainer
+		mc.visible = false
+		for c in mc.get_children():
+			c.queue_free()
 	# Cargar enemigo
 	if GameManager.current_enemy_data.is_empty():
 		enemy = {
@@ -355,6 +370,12 @@ func _on_skill_pressed():
 			deal_damage_to_enemy(dmg, atk_msg)
 			return
 			
+	if member["name"] == "Juan Carlos" and has_alive_minions():
+		var aoe_dmg = int(member["atk"] * 1.3)
+		play_attack_anim(spr)
+		deal_aoe_damage_to_minions(aoe_dmg, "[BOM] ¡Juan Carlos sobrecargó la red con DDoS! ¡Impactó a todos los cartuchos de tóner!")
+		return
+		
 	var dmg = int(member["atk"] * 1.4)
 	play_attack_anim(spr)
 	deal_damage_to_enemy(dmg, "[*] ¡%s usó %s!" % [member["name"], skill_name])
@@ -490,7 +511,209 @@ func play_attack_anim(spr: Sprite2D):
 	tween.tween_property(spr, "position:x", original_x, 0.1)
 	tween.tween_callback(func(): spr.frame = 2 * 4 + 0)
 
+func has_alive_minions() -> bool:
+	if not printer_minions_spawned:
+		return false
+	for m in printer_minions:
+		if m.get("alive", false):
+			return true
+	return false
+
+func select_next_alive_minion():
+	for i in range(printer_minions.size()):
+		if printer_minions[i].get("alive", false):
+			selected_minion_index = i
+			update_minions_ui()
+			return
+
+func spawn_printer_minions():
+	printer_minions_spawned = true
+	printer_minions = [
+		{
+			"id": "toner_k",
+			"name": "Tóner K (Negro)",
+			"short": "Negro",
+			"hp": 35,
+			"max_hp": 35,
+			"atk": 8,
+			"def": 3,
+			"color": Color("#94a3b8"),
+			"texture_path": "res://assets/enemies/minion_toner_k.png",
+			"atk_name": "Polvo de Tóner Negro",
+			"alive": true
+		},
+		{
+			"id": "toner_c",
+			"name": "Tóner C (Cyan)",
+			"short": "Cyan",
+			"hp": 28,
+			"max_hp": 28,
+			"atk": 7,
+			"def": 2,
+			"color": Color("#38bdf8"),
+			"texture_path": "res://assets/enemies/minion_toner_c.png",
+			"atk_name": "Chorro de Tinta Cyan",
+			"alive": true
+		},
+		{
+			"id": "toner_m",
+			"name": "Tóner M (Magenta)",
+			"short": "Magenta",
+			"hp": 28,
+			"max_hp": 28,
+			"atk": 7,
+			"def": 2,
+			"color": Color("#f43f5e"),
+			"texture_path": "res://assets/enemies/minion_toner_m.png",
+			"atk_name": "Tinta Magenta Hirviente",
+			"alive": true
+		},
+		{
+			"id": "toner_y",
+			"name": "Tóner Y (Amarillo)",
+			"short": "Amarillo",
+			"hp": 28,
+			"max_hp": 28,
+			"atk": 7,
+			"def": 2,
+			"color": Color("#facc15"),
+			"texture_path": "res://assets/enemies/minion_toner_y.png",
+			"atk_name": "Pigmento Amarillo a Presión",
+			"alive": true
+		}
+	]
+	selected_minion_index = 0
+	render_minions_ui()
+	set_log("[!] ¡ALERTA CRÍTICA! ¡La Impresora Maldita eyecta 4 Cartuchos de Tóner CMYK para defenderse!")
+
+func render_minions_ui():
+	if not has_node("MainBox/BattleArena/EnemySide/MinionsContainer"):
+		return
+	var container = $MainBox/BattleArena/EnemySide/MinionsContainer
+	container.visible = true
+	for c in container.get_children():
+		c.queue_free()
+	minion_card_nodes.clear()
+	
+	for i in range(printer_minions.size()):
+		var m = printer_minions[i]
+		var btn = Button.new()
+		btn.custom_minimum_size = Vector2(38, 70)
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.flat = true
+		
+		var vbox = VBoxContainer.new()
+		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		
+		var tag = Label.new()
+		tag.text = ("▶ " if i == selected_minion_index else "") + m["short"]
+		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tag.add_theme_font_size_override("font_size", 7)
+		tag.add_theme_color_override("font_color", Color.YELLOW if i == selected_minion_index else m["color"])
+		vbox.add_child(tag)
+		
+		var img = TextureRect.new()
+		img.custom_minimum_size = Vector2(22, 44)
+		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		if ResourceLoader.exists(m["texture_path"]):
+			img.texture = load(m["texture_path"])
+		vbox.add_child(img)
+		
+		var hp_bar = ProgressBar.new()
+		hp_bar.custom_minimum_size = Vector2(34, 4)
+		hp_bar.max_value = m["max_hp"]
+		hp_bar.value = m["hp"]
+		hp_bar.show_percentage = false
+		vbox.add_child(hp_bar)
+		
+		var hp_txt = Label.new()
+		hp_txt.text = "%d HP" % m["hp"]
+		hp_txt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hp_txt.add_theme_font_size_override("font_size", 7)
+		vbox.add_child(hp_txt)
+		
+		btn.add_child(vbox)
+		var minion_idx = i
+		btn.pressed.connect(func():
+			if printer_minions[minion_idx]["alive"]:
+				selected_minion_index = minion_idx
+				update_minions_ui()
+		)
+		container.add_child(btn)
+		minion_card_nodes.append({
+			"btn": btn,
+			"tag": tag,
+			"img": img,
+			"hp_bar": hp_bar,
+			"hp_txt": hp_txt
+		})
+
+func update_minions_ui():
+	for i in range(printer_minions.size()):
+		var m = printer_minions[i]
+		if i < minion_card_nodes.size():
+			var card = minion_card_nodes[i]
+			card["hp_bar"].value = m["hp"]
+			card["hp_txt"].text = "%d HP" % m["hp"]
+			if not m["alive"]:
+				card["btn"].modulate = Color(0.4, 0.4, 0.4, 0.3)
+				card["tag"].text = "[X]"
+				card["tag"].add_theme_color_override("font_color", Color.GRAY)
+			else:
+				card["btn"].modulate = Color.WHITE
+				card["tag"].text = ("▶ " if i == selected_minion_index else "") + m["short"]
+				card["tag"].add_theme_color_override("font_color", Color.YELLOW if i == selected_minion_index else m["color"])
+
+func deal_aoe_damage_to_minions(damage: int, message: String):
+	set_log("%s (%d de daño en área)." % [message, damage])
+	for i in range(printer_minions.size()):
+		var m = printer_minions[i]
+		if m["alive"]:
+			m["hp"] = max(0, m["hp"] - damage)
+			if i < minion_card_nodes.size():
+				var spr_node = minion_card_nodes[i]["img"]
+				var tw = create_tween()
+				tw.tween_property(spr_node, "modulate", Color.CYAN, 0.1)
+				tw.tween_property(spr_node, "modulate", Color.WHITE, 0.1)
+			if m["hp"] <= 0:
+				m["alive"] = false
+				set_log("¡El %s explotó por sobrecarga!" % m["name"])
+	update_minions_ui()
+	if not has_alive_minions():
+		set_log("[!] ¡TODOS LOS CARTUCHOS NEUTRALIZADOS! ¡La Impresora Maldita quedó vulnerable!")
+	else:
+		select_next_alive_minion()
+	end_hero_action()
+
 func deal_damage_to_enemy(damage: int, message: String):
+	# Si hay minions vivos protegiendo a la impresora:
+	if has_alive_minions():
+		var m = printer_minions[selected_minion_index]
+		m["hp"] = max(0, m["hp"] - damage)
+		update_minions_ui()
+		set_log("%s -> Impactó a %s (%d de daño)." % [message, m["name"], damage])
+		
+		if selected_minion_index < minion_card_nodes.size():
+			var spr_node = minion_card_nodes[selected_minion_index]["img"]
+			var tw = create_tween()
+			tw.tween_property(spr_node, "modulate", Color.RED, 0.1)
+			tw.tween_property(spr_node, "modulate", Color.WHITE, 0.1)
+			
+		if m["hp"] <= 0:
+			m["alive"] = false
+			update_minions_ui()
+			set_log("¡El %s explotó y se quedó sin tinta!" % m["name"])
+			if not has_alive_minions():
+				set_log("[!] ¡TODOS LOS CARTUCHOS NEUTRALIZADOS! ¡La Impresora Maldita quedó vulnerable!")
+			else:
+				select_next_alive_minion()
+		end_hero_action()
+		return
+
+	# Daño normal al enemigo principal
 	enemy_current_hp -= damage
 	update_enemy_ui()
 	set_log("%s (%d de daño)." % [message, damage])
@@ -507,6 +730,15 @@ func deal_damage_to_enemy(damage: int, message: String):
 	tween.tween_property(enemy_sprite, "modulate", Color(3.0, 0.2, 0.2), 0.1)
 	tween.tween_property(enemy_sprite, "modulate", Color.WHITE if not boss_has_red_aura else Color(2.5, 0.4, 0.4), 0.1)
 	
+	# Chequeo de minions de la impresora al bajar del 10% (<= 45 HP de 420):
+	if enemy.get("type") == "printer" and enemy_current_hp <= 45 and not printer_minions_spawned:
+		if enemy_current_hp <= 0:
+			enemy_current_hp = 18 # No muere antes de sacar sus minions
+		update_enemy_ui()
+		spawn_printer_minions()
+		end_hero_action()
+		return
+		
 	if enemy_current_hp <= 0:
 		enemy_defeated()
 	else:
@@ -570,6 +802,24 @@ func enemy_turn():
 		log_msg = "[!] ¡%s atacó a %s con '%s'! (%d de daño)" % [enemy.get("name", "Enemigo"), target["name"], chosen_atk, dmg]
 	
 	target["hp"] = max(0, target["hp"] - dmg)
+	
+	# Ataques coordinados de los cartuchos de tóner
+	if printer_minions_spawned and has_alive_minions():
+		var extra_logs = []
+		for m in printer_minions:
+			if m["alive"] and not is_battle_over:
+				var m_alive = []
+				for h_i in range(battle_party.size()):
+					if battle_party[h_i]["hp"] > 0:
+						m_alive.append(h_i)
+				if not m_alive.is_empty():
+					var m_tgt_idx = m_alive[randi() % m_alive.size()]
+					var m_tgt = battle_party[m_tgt_idx]
+					var m_dmg = max(2, m["atk"] + randi_range(-1, 2) - int(m_tgt["def"] * 0.3))
+					m_tgt["hp"] = max(0, m_tgt["hp"] - m_dmg)
+					extra_logs.append("¡%s disparó %s! (%d daño a %s)" % [m["name"], m["atk_name"], m_dmg, m_tgt["name"]])
+		if not extra_logs.is_empty():
+			log_msg += "\n" + "\n".join(extra_logs)
 	
 	# Efecto visual de golpe en el héroe objetivo
 	if target_index < battler_sprites.size():
