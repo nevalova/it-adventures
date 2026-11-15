@@ -112,6 +112,7 @@ var office_cutscene_done: bool = false
 var printer_defeated: bool = false
 var victory_dialogue_shown: bool = false
 var dragon_boss_cutscene_done: bool = false
+var dragon_boss_fled: bool = false
 var dragon_boss_defeated: bool = false
 
 var battle_items = {
@@ -133,6 +134,7 @@ func reset_game():
 	printer_defeated = false
 	victory_dialogue_shown = false
 	dragon_boss_cutscene_done = false
+	dragon_boss_fled = false
 	dragon_boss_defeated = false
 	defeated_enemies.clear()
 	current_enemy_id = ""

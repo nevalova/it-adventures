@@ -627,7 +627,7 @@ func enemy_defeated():
 		set_log("[!] ¡VICTORIA TOTAL! ¡La Impresora Maldita fue neutralizada! (+%d EXP)" % exp_gained)
 	elif enemy_type_str == "dragon_boss":
 		GameManager.dragon_boss_defeated = true
-		GameManager.player_saved_position = Vector2(510, 180)
+		GameManager.player_saved_position = Vector2(1180, 180)
 		set_log("[VICTORIA LEGENDARIA] ¡Derrotaste al Señor del Dragón! ¡Rescataste el splitter, discos y el Magic Trackpad! (+%d EXP)" % exp_gained)
 	else:
 		set_log("[!] ¡Ticket resuelto! '%s' ha sido neutralizado. (+%d EXP)" % [enemy.get("name", "Enemigo"), exp_gained])

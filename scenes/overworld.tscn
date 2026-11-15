@@ -457,6 +457,13 @@ theme_override_font_sizes/font_size = 8
 text = "Roberto Huerta"
 horizontal_alignment = 1
 
+[node name="InteractArea" type="Area2D" parent="RobertoHuerta"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RobertoHuerta/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
 [node name="Usuaria" type="Node2D" parent="."]
 position = Vector2(970, 155)
 
@@ -506,6 +513,31 @@ collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="EnemyPrinter/PrinterInteract"]
 shape = SubResource("CircleShape2D_printer_interact")
+
+[node name="NPCSofia" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(780, 135)
+enemy_type = "outlook"
+enemy_id = "npc_sofia_outlook"
+
+[node name="NPCCarlos" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(900, 135)
+enemy_type = "teclado"
+enemy_id = "npc_carlos_teclado"
+
+[node name="NPCRamiro" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(1020, 135)
+enemy_type = "cpu"
+enemy_id = "npc_ramiro_cpu"
+
+[node name="NPCBrenda" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(780, 245)
+enemy_type = "wifi_phone"
+enemy_id = "npc_brenda_wifi"
+
+[node name="NPCDiego" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(1000, 245)
+enemy_type = "usuario_red"
+enemy_id = "npc_diego_cable"
 
 [node name="DragonBoss" type="Node2D" parent="."]
 visible = false

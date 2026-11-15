@@ -87,7 +87,9 @@ enum State {
 	ROBERTO_RUN_TO_OFFICE,
 	ROBERTO_FLEE,
 	FREE_EXPLORE,
-	ROBERTO_LEAD_TO_BOSS
+	ROBERTO_LEAD_TO_BOSS,
+	ROBERTO_RUN_TO_TELL_ABOUT_BOSS,
+	DRAGON_BOSS_FLEE_TO_BACK
 }
 
 var current_state: State = State.IDLE
@@ -158,6 +160,25 @@ func _ready():
 	)
 	$EnemyPrinter/PrinterInteract.body_exited.connect(func(body): if body == player and current_interactable == "printer": _clear_interactable())
 	
+	$DragonBoss/InteractArea.body_entered.connect(func(body):
+		if body == player and GameManager.dragon_boss_fled and not GameManager.dragon_boss_defeated:
+			_set_interactable("dragon_boss")
+	)
+	$DragonBoss/InteractArea.body_exited.connect(func(body):
+		if body == player and current_interactable == "dragon_boss":
+			_clear_interactable()
+	)
+	
+	if $RobertoHuerta.has_node("InteractArea"):
+		$RobertoHuerta/InteractArea.body_entered.connect(func(body):
+			if body == player and GameManager.dragon_boss_defeated:
+				_set_interactable("roberto")
+		)
+		$RobertoHuerta/InteractArea.body_exited.connect(func(body):
+			if body == player and current_interactable == "roberto":
+				_clear_interactable()
+		)
+	
 	# Verificar estado de la partida
 	if not GameManager.intro_cutscene_done:
 		player.global_position = Vector2(140, 200)
@@ -177,9 +198,11 @@ func _ready():
 		
 		if GameManager.dragon_boss_defeated:
 			dragon_boss.visible = false
-			roberto.visible = false
+			roberto.visible = true
+			roberto.position = Vector2(1150, 180)
+			roberto_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda hacia el jugador
 			btn_demo_modal.visible = true
-			objective_label.text = "[!] ¡Victoria Total! Has derrotado a las Sombras del Pasado."
+			objective_label.text = "[!] ¡Victoria Legendaria! Habla con Roberto para revisar el reporte final."
 			enemy_printer.set_collision_layer_value(3, false)
 			enemy_printer_sprite.modulate = Color(0.55, 0.55, 0.55, 1.0)
 			enemy_printer_nametag.text = "[V] Neutralizada"
@@ -199,6 +222,11 @@ func _ready():
 				_start_victory_dialogue()
 			elif not GameManager.dragon_boss_cutscene_done:
 				_start_dragon_incident()
+			elif GameManager.dragon_boss_fled:
+				dragon_boss.visible = true
+				dragon_boss.position = Vector2(1220, 180)
+				dragon_boss_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda esperando al jugador
+				objective_label.text = "[!] ¡Avanza por la oficina y enfrenta a Sombras del Pasado al fondo (derecha)!"
 		elif GameManager.office_cutscene_done:
 			roberto.visible = false
 			objective_label.text = obj_battle_text
@@ -269,6 +297,31 @@ func _process(delta):
 				player.set_facing(Vector2.LEFT) # Detiene caminata y queda mirando a la izquierda
 				current_state = State.IDLE
 				_trigger_dragon_boss_confrontation()
+				
+		State.ROBERTO_RUN_TO_TELL_ABOUT_BOSS:
+			var move_speed = roberto_run_in_speed
+			roberto.position.x += move_speed * delta
+			var run_col = int(anim_timer * 8.0) % 4
+			roberto_sprite.frame = 6 * 4 + run_col # Corriendo hacia la derecha hacia el jugador
+			
+			if roberto.position.x >= player.position.x - 50.0:
+				roberto.position.x = player.position.x - 50.0
+				roberto_sprite.frame = 6 * 4 + 0 # Parado mirando a la derecha al jugador
+				player.set_facing(Vector2.LEFT)
+				current_state = State.IDLE
+				_show_roberto_dragon_dialog()
+				
+		State.DRAGON_BOSS_FLEE_TO_BACK:
+			var move_speed = 300.0
+			dragon_boss.position.x += move_speed * delta
+			var run_col = int(anim_timer * 9.0) % 4
+			dragon_boss_sprite.frame = 6 * 4 + run_col # Corriendo hacia la derecha al fondo
+			
+			if dragon_boss.position.x >= 1220.0:
+				dragon_boss.position.x = 1220.0
+				dragon_boss_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda
+				current_state = State.IDLE
+				_show_roberto_boss_fled_dialog()
 
 func _start_intro_dialog():
 	var leader = GameManager.get_leader_data()
@@ -308,12 +361,6 @@ func start_encounter_dialog(user_name: String, portrait_path: String, color: Col
 			"portrait": portrait_path,
 			"color": color,
 			"text": problem_text
-		},
-		{
-			"speaker": "ALERTA DE SISTEMAS",
-			"portrait": enemy_spec.get("texture_path", "res://assets/bug_enemy.png"),
-			"color": Color("#f87171"),
-			"text": "¡El problema se materializa como un '%s'! ¡Iniciando combate de Soporte Técnico!" % enemy_spec.get("name", "Problema")
 		}
 	]
 	
@@ -322,6 +369,25 @@ func start_encounter_dialog(user_name: String, portrait_path: String, color: Col
 		GameManager.current_enemy_id = enemy_id
 		GameManager.current_enemy_data = enemy_spec
 		get_tree().change_scene_to_file("res://scenes/battle.tscn")
+		
+	_show_next_in_queue()
+
+func show_solved_dialog(user_name: String, portrait_path: String, color: Color, thank_text: String):
+	player.can_move = false
+	touch_controls.visible = false
+	
+	dialog_queue = [
+		{
+			"speaker": user_name,
+			"portrait": portrait_path,
+			"color": color,
+			"text": thank_text
+		}
+	]
+	
+	on_dialog_closed_callback = func():
+		player.can_move = true
+		touch_controls.visible = true
 		
 	_show_next_in_queue()
 
@@ -388,14 +454,17 @@ func _start_victory_dialogue():
 	_show_next_in_queue()
 
 func _start_dragon_incident():
-	var leader = GameManager.get_leader_data()
-	var hero_name = leader["name"]
-	
-	roberto.global_position = player.global_position + Vector2(60, 0)
-	roberto.visible = true
-	roberto_sprite.frame = 1 * 4 + 0
 	player.can_move = false
 	touch_controls.visible = false
+	# Roberto llega caminando desde la entrada de la oficina hacia el jugador
+	roberto.position = Vector2(650, player.position.y)
+	roberto.visible = true
+	roberto_sprite.frame = 6 * 4 + 0 # Mirando a la derecha hacia el jugador
+	current_state = State.ROBERTO_RUN_TO_TELL_ABOUT_BOSS
+
+func _show_roberto_dragon_dialog():
+	var leader = GameManager.get_leader_data()
+	var hero_name = leader["name"]
 	
 	dialog_queue = [
 		{
@@ -464,30 +533,79 @@ func _start_episode_title_sequence():
 	var tw = create_tween()
 	tw.tween_property(episode_card, "modulate:a", 1.0, 0.8)
 	tw.tween_interval(1.8)
+	tw.tween_property(episode_card, "modulate:a", 0.0, 0.5)
+	tw.tween_property(dark_overlay, "modulate:a", 0.0, 0.5)
 	tw.tween_callback(func():
+		episode_card.visible = false
 		dark_overlay.visible = false
-		GameManager.dragon_boss_cutscene_done = true
-		GameManager.player_saved_position = player.global_position
-		GameManager.current_enemy_id = "dragon_boss_main"
-		GameManager.current_enemy_data = {
-			"name": "Sombras del Pasado",
-			"type": "dragon_boss",
-			"desc": "Sombras del pasado... Exige de vuelta su dragón o retendrá el splitter, discos duros y el trackpad.",
-			"hp": 650,
-			"max_hp": 650,
-			"atk": 25,
-			"def": 14,
-			"exp_reward": 350,
-			"spritesheet_path": "res://assets/characters/dragon_boss_spritesheet.png",
-			"texture_path": "res://assets/characters/dragon_boss_spritesheet.png",
-			"attacks": [
-				"Acoso",
-				"La Cólera del Dragón",
-				"Emputarse por nada"
-			]
-		}
-		get_tree().change_scene_to_file("res://scenes/battle.tscn")
+		_start_boss_escape_sequence()
 	)
+
+func _start_boss_escape_sequence():
+	dialog_queue = [
+		{
+			"speaker": "???",
+			"portrait": "res://assets/characters/dragon_boss_portrait.png",
+			"color": Color("#ef4444"),
+			"text": "¡Si tienen el valor de intentar recuperarlos, vengan a buscarme al fondo de la oficina! ¡JAJAJAJAJA!"
+		}
+	]
+	
+	on_dialog_closed_callback = func():
+		current_state = State.DRAGON_BOSS_FLEE_TO_BACK
+		
+	_show_next_in_queue()
+
+func _show_roberto_boss_fled_dialog():
+	GameManager.dragon_boss_cutscene_done = true
+	GameManager.dragon_boss_fled = true
+	var leader = GameManager.get_leader_data()
+	var hero_name = leader["name"]
+	
+	dialog_queue = [
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#f1c40f"),
+			"text": "¡Se fue corriendo al fondo de la oficina, detrás de la impresora! ¡Debemos detenerlo y recuperar el equipo de Sistemas!"
+		},
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#f1c40f"),
+			"text": "¡Avanza por los pasillos, %s! Pero mantente alerta: varios compañeros de las áreas tienen problemas técnicos graves y van a pedir tu apoyo en el camino." % hero_name
+		}
+	]
+	
+	on_dialog_closed_callback = func():
+		player.can_move = true
+		touch_controls.visible = true
+		current_state = State.FREE_EXPLORE
+		objective_label.text = "[!] ¡Avanza por la oficina y enfrenta a Sombras del Pasado al fondo (derecha)!"
+		
+	_show_next_in_queue()
+
+func _start_dragon_boss_battle():
+	GameManager.player_saved_position = player.global_position
+	GameManager.current_enemy_id = "dragon_boss_main"
+	GameManager.current_enemy_data = {
+		"name": "Sombras del Pasado",
+		"type": "dragon_boss",
+		"desc": "Sombras del pasado... Exige de vuelta su dragón o retendrá el splitter, discos duros y el trackpad.",
+		"hp": 650,
+		"max_hp": 650,
+		"atk": 25,
+		"def": 14,
+		"exp_reward": 350,
+		"spritesheet_path": "res://assets/characters/dragon_boss_spritesheet.png",
+		"texture_path": "res://assets/characters/dragon_boss_spritesheet.png",
+		"attacks": [
+			"Acoso",
+			"La Cólera del Dragón",
+			"Emputarse por nada"
+		]
+	}
+	get_tree().change_scene_to_file("res://scenes/battle.tscn")
 
 func _open_demo_modal():
 	var leader = GameManager.get_leader_data()
@@ -528,6 +646,10 @@ func _set_interactable(id: String):
 	match id:
 		"usuaria":
 			interact_label.text = "[E] Hablar con Jefa de Finanzas"
+		"roberto":
+			interact_label.text = "[E] Hablar con Roberto Huerta"
+		"dragon_boss":
+			interact_label.text = "[E] ¡Pelear con Sombras del Pasado!"
 		"printer":
 			if GameManager.printer_defeated:
 				interact_label.text = "[E] Inspeccionar Impresora (Reparada)"
@@ -551,6 +673,10 @@ func _trigger_current_interaction():
 	var hero_name = leader["name"]
 	
 	match current_interactable:
+		"dragon_boss":
+			_start_dragon_boss_battle()
+		"roberto":
+			_open_demo_modal()
 		"usuaria":
 			dialog_queue = [
 				{
