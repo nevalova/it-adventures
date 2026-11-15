@@ -154,8 +154,6 @@ func _ready():
 	$EnemyPrinter/PrinterInteract.body_entered.connect(func(body):
 		if body == player:
 			_set_interactable("printer")
-			if not GameManager.printer_defeated:
-				_trigger_current_interaction()
 	)
 	$EnemyPrinter/PrinterInteract.body_exited.connect(func(body): if body == player and current_interactable == "printer": _clear_interactable())
 	
@@ -511,7 +509,10 @@ func _set_interactable(id: String):
 		"usuaria":
 			interact_label.text = "[E] Hablar con Jefa de Finanzas"
 		"printer":
-			interact_label.text = "[E] Inspeccionar Impresora"
+			if GameManager.printer_defeated:
+				interact_label.text = "[E] Inspeccionar Impresora (Reparada)"
+			else:
+				interact_label.text = "[E] ¡Combatir Impresora Maldita!"
 
 func _clear_interactable():
 	current_interactable = ""
@@ -539,6 +540,10 @@ func _trigger_current_interaction():
 					"text": (jefa_chat_post % hero_name) if GameManager.printer_defeated else usuaria_office_1
 				}
 			]
+			on_dialog_closed_callback = func():
+				player.can_move = true
+			player.can_move = false
+			_show_next_in_queue()
 		"printer":
 			if GameManager.printer_defeated:
 				dialog_queue = [
@@ -551,24 +556,10 @@ func _trigger_current_interaction():
 				]
 				on_dialog_closed_callback = func():
 					player.can_move = true
+				player.can_move = false
+				_show_next_in_queue()
 			else:
-				dialog_queue = [
-					{
-						"speaker": "Impresora Maldita",
-						"portrait": "res://assets/props/printer.png",
-						"color": Color("#f87171"),
-						"text": "¡CHZZZT! ¡GRRRR! ¡La máquina escupe humo negro y tóner hirviendo! ¡Error 0x80070057!"
-					}
-				]
-				on_dialog_closed_callback = func():
-					_start_printer_battle()
-			
-	if current_interactable != "printer":
-		on_dialog_closed_callback = func():
-			player.can_move = true
-		
-	player.can_move = false
-	_show_next_in_queue()
+				_start_printer_battle()
 
 func _start_printer_battle():
 	GameManager.player_saved_position = player.global_position
