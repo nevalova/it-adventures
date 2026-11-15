@@ -199,7 +199,7 @@ func _ready():
 		if GameManager.dragon_boss_defeated:
 			dragon_boss.visible = false
 			roberto.visible = true
-			roberto.position = Vector2(1150, 180)
+			roberto.position = Vector2(1820, 180)
 			roberto_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda hacia el jugador
 			btn_demo_modal.visible = true
 			objective_label.text = "[!] ¡Victoria Legendaria! Habla con Roberto para revisar el reporte final."
@@ -224,9 +224,9 @@ func _ready():
 				_start_dragon_incident()
 			elif GameManager.dragon_boss_fled:
 				dragon_boss.visible = true
-				dragon_boss.position = Vector2(1220, 180)
+				dragon_boss.position = Vector2(1880, 180)
 				dragon_boss_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda esperando al jugador
-				objective_label.text = "[!] ¡Avanza por la oficina y enfrenta a Sombras del Pasado al fondo (derecha)!"
+				objective_label.text = "[!] ¡Avanza por la nueva oficina y enfrenta a El Señor del Dragón al fondo!"
 		elif GameManager.office_cutscene_done:
 			roberto.visible = false
 			objective_label.text = obj_battle_text
@@ -312,13 +312,13 @@ func _process(delta):
 				_show_roberto_dragon_dialog()
 				
 		State.DRAGON_BOSS_FLEE_TO_BACK:
-			var move_speed = 300.0
+			var move_speed = 400.0
 			dragon_boss.position.x += move_speed * delta
 			var run_col = int(anim_timer * 9.0) % 4
 			dragon_boss_sprite.frame = 6 * 4 + run_col # Corriendo hacia la derecha al fondo
 			
-			if dragon_boss.position.x >= 1220.0:
-				dragon_boss.position.x = 1220.0
+			if dragon_boss.position.x >= 1880.0:
+				dragon_boss.position.x = 1880.0
 				dragon_boss_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda
 				current_state = State.IDLE
 				_show_roberto_boss_fled_dialog()
@@ -506,10 +506,10 @@ func _trigger_dragon_boss_confrontation():
 			"speaker": "Roberto Huerta",
 			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 			"color": Color("#f1c40f"),
-			"text": "¡Ahí está! Es él... ¡las Sombras del Pasado han regresado a la oficina!"
+			"text": "¡Ahí está! Es él... ¡El Señor del Dragón ha venido a la oficina!"
 		},
 		{
-			"speaker": "???",
+			"speaker": "El Señor del Dragón",
 			"portrait": "res://assets/characters/dragon_boss_portrait.png",
 			"color": Color("#ef4444"),
 			"text": "¡Quiero de vuelta mi dragón! Si no lo regresan, nunca volverán a ver el splitter, los discos duros y por supuesto... ¡el Magic Trackpad! ¡JAJAJAJAJA!"
@@ -544,10 +544,10 @@ func _start_episode_title_sequence():
 func _start_boss_escape_sequence():
 	dialog_queue = [
 		{
-			"speaker": "???",
+			"speaker": "El Señor del Dragón",
 			"portrait": "res://assets/characters/dragon_boss_portrait.png",
 			"color": Color("#ef4444"),
-			"text": "¡Si tienen el valor de intentar recuperarlos, vengan a buscarme al fondo de la oficina! ¡JAJAJAJAJA!"
+			"text": "¡Si tienen el valor de intentar recuperarlos, vengan a buscarme al fondo de la oficina, detrás de la impresora! ¡JAJAJAJAJA!"
 		}
 	]
 	
@@ -567,7 +567,7 @@ func _show_roberto_boss_fled_dialog():
 			"speaker": "Roberto Huerta",
 			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 			"color": Color("#f1c40f"),
-			"text": "¡Se fue corriendo al fondo de la oficina, detrás de la impresora! ¡Debemos detenerlo y recuperar el equipo de Sistemas!"
+			"text": "¡El Señor del Dragón escapó al fondo de la nueva área de oficinas, detrás de la impresora! ¡Debemos detenerlo y recuperar el equipo!"
 		},
 		{
 			"speaker": "Roberto Huerta",
@@ -581,7 +581,7 @@ func _show_roberto_boss_fled_dialog():
 		player.can_move = true
 		touch_controls.visible = true
 		current_state = State.FREE_EXPLORE
-		objective_label.text = "[!] ¡Avanza por la oficina y enfrenta a Sombras del Pasado al fondo (derecha)!"
+		objective_label.text = "[!] ¡Avanza por la nueva oficina y enfrenta a El Señor del Dragón al fondo!"
 		
 	_show_next_in_queue()
 
@@ -589,9 +589,9 @@ func _start_dragon_boss_battle():
 	GameManager.player_saved_position = player.global_position
 	GameManager.current_enemy_id = "dragon_boss_main"
 	GameManager.current_enemy_data = {
-		"name": "Sombras del Pasado",
+		"name": "El Señor del Dragón",
 		"type": "dragon_boss",
-		"desc": "Sombras del pasado... Exige de vuelta su dragón o retendrá el splitter, discos duros y el trackpad.",
+		"desc": "El Señor del Dragón... Exige de vuelta a su dragón o retendrá el splitter, discos duros y el trackpad.",
 		"hp": 650,
 		"max_hp": 650,
 		"atk": 25,
@@ -649,7 +649,7 @@ func _set_interactable(id: String):
 		"roberto":
 			interact_label.text = "[E] Hablar con Roberto Huerta"
 		"dragon_boss":
-			interact_label.text = "[E] ¡Pelear con Sombras del Pasado!"
+			interact_label.text = "[E] ¡Pelear con El Señor del Dragón!"
 		"printer":
 			if GameManager.printer_defeated:
 				interact_label.text = "[E] Inspeccionar Impresora (Reparada)"

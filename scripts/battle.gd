@@ -57,8 +57,8 @@ var boss_frame_col: int = 0
 
 func _process(delta):
 	if boss_atlas != null and not is_battle_over:
-		boss_anim_timer += delta
-		boss_frame_col = int(boss_anim_timer * 4.0) % 4
+		# Pose de combate estática sin ciclo de caminata
+		boss_frame_col = 0
 		boss_atlas.region = Rect2(boss_frame_col * 170, boss_frame_row * 170, 170, 170)
 
 func _ready():
@@ -107,7 +107,7 @@ func setup_battle():
 	
 	if enemy.get("type") == "dragon_boss" or enemy.has("spritesheet_path"):
 		$Background.color = Color(0.03, 0.01, 0.05, 1.0)
-		enemy_name_label.text = "[JEFE] Sombras del Pasado"
+		enemy_name_label.text = "[JEFE] El Señor del Dragón"
 		enemy_name_label.modulate = Color(1.0, 0.25, 0.25)
 		
 		var sheet_path = enemy.get("spritesheet_path", "res://assets/characters/dragon_boss_spritesheet.png")
@@ -627,8 +627,8 @@ func enemy_defeated():
 		set_log("[!] ¡VICTORIA TOTAL! ¡La Impresora Maldita fue neutralizada! (+%d EXP)" % exp_gained)
 	elif enemy_type_str == "dragon_boss":
 		GameManager.dragon_boss_defeated = true
-		GameManager.player_saved_position = Vector2(1180, 180)
-		set_log("[VICTORIA LEGENDARIA] ¡Derrotaste al Señor del Dragón! ¡Rescataste el splitter, discos y el Magic Trackpad! (+%d EXP)" % exp_gained)
+		GameManager.player_saved_position = Vector2(1820, 180)
+		set_log("[VICTORIA LEGENDARIA] ¡Derrotaste a El Señor del Dragón! ¡Rescataste el splitter, discos y el Magic Trackpad! (+%d EXP)" % exp_gained)
 	else:
 		set_log("[!] ¡Ticket resuelto! '%s' ha sido neutralizado. (+%d EXP)" % [enemy.get("name", "Enemigo"), exp_gained])
 		

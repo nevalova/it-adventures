@@ -36,21 +36,21 @@ var enemy_specs = {
 		"user_color": Color("#f59e0b"),
 		"user_spritesheet": "res://assets/characters/npc_pelirroja_spritesheet.png",
 		"user_portrait": "res://assets/characters/npc_pelirroja_portrait.png",
-		"problem_dialog": "¡Ayuda, tengo un problema con mi Outlook! Lleva 3 horas sincronizando y no puedo enviar las cotizaciones del mes.",
-		"name": "Outlook Congelado",
-		"type": "outlook",
-		"desc": "No recibe correos. Lleva 3 horas sincronizando y la barra no avanza.",
-		"hp": 85,
-		"max_hp": 85,
-		"atk": 18,
+		"problem_dialog": "¡Ayuda, tengo un problema con el procesador! La máquina huele a tostada y se congela cada que abro las cotizaciones.",
+		"name": "Microprocesador Hirviendo",
+		"type": "chip_cpu",
+		"desc": "El procesador alcanzó 105°C por falta de pasta térmica y polvo acumulado.",
+		"hp": 90,
+		"max_hp": 90,
+		"atk": 19,
 		"def": 8,
-		"exp_reward": 45,
-		"texture_path": "res://assets/enemies/enemy_outlook.png",
+		"exp_reward": 50,
+		"texture_path": "res://assets/enemies/enemy_chip_cpu.png",
 		"attacks": [
-			"Sincronizando 1 de 48,000 Correos",
-			"Archivo PST Corrupto de 35 GB",
-			"Ventana (No Responde)",
-			"Spam Masivo con Tarjetas de Cumpleaños"
+			"Thermal Throttling a 105°C",
+			"Pasta Térmica Cristalizada",
+			"Ventilador Bloqueado con Pelusa",
+			"Kernel Panic por Temperatura"
 		]
 	},
 	"usuario_red": {
@@ -59,20 +59,20 @@ var enemy_specs = {
 		"user_spritesheet": "res://assets/characters/npc_coleta_spritesheet.png",
 		"user_portrait": "res://assets/characters/npc_coleta_portrait.png",
 		"problem_dialog": "¡Ayuda, tengo un problema con mi conexión de red! Se me cayó el internet por completo tras un jalón con la silla.",
-		"name": "Usuario Desconectado",
-		"type": "usuario_red",
-		"desc": "Arrancó el cable ethernet con la silla con ruedas y jura que 'el internet se cayó solo'.",
+		"name": "Cable Ethernet Roto",
+		"type": "cable_roto",
+		"desc": "Arrancó el cable ethernet con la silla con ruedas y dejó los hilos de cobre al aire.",
 		"hp": 95,
 		"max_hp": 95,
 		"atk": 20,
 		"def": 10,
 		"exp_reward": 50,
-		"texture_path": "res://assets/enemies/enemy_usuario_red.png",
+		"texture_path": "res://assets/enemies/enemy_cable_roto.png",
 		"attacks": [
-			"Arrancar Cable de Red con la Silla",
+			"Arrancar Cable con la Silla",
 			"Pisar el Patchcord",
-			"Exigir que le conecten el celular al Wi-Fi",
-			"Conflicto de IP 192.168.1.1"
+			"Pares de Cobre Expuestos",
+			"Cero Conectividad"
 		]
 	},
 	"teclado": {
@@ -80,21 +80,21 @@ var enemy_specs = {
 		"user_color": Color("#34d399"),
 		"user_spritesheet": "res://assets/characters/npc_ejecutivo_spritesheet.png",
 		"user_portrait": "res://assets/characters/npc_ejecutivo_portrait.png",
-		"problem_dialog": "¡Ayuda, tengo un problema con mi teclado! Ya le pegué contra el escritorio y sigue sin prender el foquito ni escribir.",
-		"name": "Teclado Sin Batería",
-		"type": "teclado",
-		"desc": "El usuario lo azota contra la mesa porque no escribe la contraseña.",
-		"hp": 75,
-		"max_hp": 75,
-		"atk": 16,
-		"def": 7,
-		"exp_reward": 40,
-		"texture_path": "res://assets/enemies/enemy_teclado.png",
+		"problem_dialog": "¡Ayuda, tengo un problema con el Wi-Fi! Se desconectó toda la oficina y no puedo timbrar las facturas del cierre.",
+		"name": "Señal Wi-Fi Caída",
+		"type": "nowifi",
+		"desc": "La señal inalámbrica colapsó dejando a Facturación completamente desconectada.",
+		"hp": 85,
+		"max_hp": 85,
+		"atk": 17,
+		"def": 8,
+		"exp_reward": 45,
+		"texture_path": "res://assets/enemies/enemy_nowifi.png",
 		"attacks": [
-			"Pila AA Sulfatada desde 2019",
-			"Letra 'E' Atascada con Migajas de Pan",
-			"Golpe Frustrado a la Barra Espaciadora",
-			"Desconexión Bluetooth Fantasma"
+			"Sin Acceso a Internet",
+			"Conflicto de Puerta de Enlace",
+			"Router Sobrecalentado",
+			"SSID Oculto Inaccesible"
 		]
 	},
 	"cpu": {
@@ -102,43 +102,65 @@ var enemy_specs = {
 		"user_color": Color("#f87171"),
 		"user_spritesheet": "res://assets/characters/npc_veterano_spritesheet.png",
 		"user_portrait": "res://assets/characters/npc_veterano_portrait.png",
-		"problem_dialog": "¡Ayuda, tengo un problema con mi CPU! Llegué hoy y solo veo la pantalla negra, ¡mi máquina desapareció!",
-		"name": "CPU Desaparecido",
-		"type": "cpu",
-		"desc": "El usuario jura que se lo robaron. Estaba debajo de tres cajas de archivo muerto.",
+		"problem_dialog": "¡Ayuda, tengo un problema con mi CPU! Llegué hoy y solo veo la pantalla negra, ¡mi máquina no prende!",
+		"name": "Gabinete PC Inerte",
+		"type": "cpu_tower",
+		"desc": "El gabinete no da señal de vida tras aplastarse debajo de tres cajas de archivo muerto.",
 		"hp": 110,
 		"max_hp": 110,
 		"atk": 22,
 		"def": 14,
 		"exp_reward": 60,
-		"texture_path": "res://assets/enemies/enemy_cpu.png",
+		"texture_path": "res://assets/enemies/enemy_cpu_tower.png",
 		"attacks": [
-			"Confundir el Monitor con el CPU",
-			"Apagar con el Botón Directo a la Pared",
+			"Botón de Encendido Atorado",
 			"Polvo Acumulado de una Década",
-			"Desconectar Cable de Poder con el Zapato"
+			"Desconectar Cable de Poder con el Zapato",
+			"Corto en Fuente Genérica"
 		]
 	},
 	"wifi_phone": {
-		"user_name": "Lic. Brenda (RH)",
+		"user_name": "Lic. de color serio (RH)",
 		"user_color": Color("#c084fc"),
 		"user_spritesheet": "res://assets/characters/npc_curly_spritesheet.png",
 		"user_portrait": "res://assets/characters/npc_curly_portrait.png",
 		"problem_dialog": "¡Ayuda, tengo un problema con mi celular! ¿Me lo conectan a la red de la empresa para ver mis mensajes?",
 		"name": "Smartphone sin Wi-Fi",
-		"type": "wifi_phone",
-		"desc": "Exige que le configuren el celular personal para ver videos en el baño.",
+		"type": "smartphone",
+		"desc": "Exige que le configuren el celular personal para ver videos en el trabajo.",
 		"hp": 80,
 		"max_hp": 80,
 		"atk": 17,
 		"def": 9,
 		"exp_reward": 45,
-		"texture_path": "res://assets/enemies/enemy_wifi_phone.png",
+		"texture_path": "res://assets/enemies/enemy_smartphone.png",
 		"attacks": [
 			"Notificaciones de 50 Grupos de Chismes",
 			"Olvido de Contraseña WPA2",
 			"Descargar Serie en 4K en Red Corporativa",
 			"Batería en 2% Pidiendo Cargador Tipo C"
+		]
+	},
+	"bsod": {
+		"user_name": "Ing. Fernando (Tech Lead)",
+		"user_color": Color("#818cf8"),
+		"user_spritesheet": "res://assets/characters/npc_techlead_spritesheet.png",
+		"user_portrait": "res://assets/characters/npc_techlead_portrait.png",
+		"problem_dialog": "¡Ayuda, tengo un problema crítico! Justo al compilar el release me saltó una pantalla azul de la muerte.",
+		"name": "Pantalla Azul (BSOD)",
+		"type": "bsod",
+		"desc": "Falla de kernel catastrófica que reinicia la estación en bucle.",
+		"hp": 115,
+		"max_hp": 115,
+		"atk": 23,
+		"def": 12,
+		"exp_reward": 65,
+		"texture_path": "res://assets/enemies/enemy_bsod.png",
+		"attacks": [
+			"CRITICAL_PROCESS_DIED",
+			"Kernel Security Check Failure",
+			"Dump de Memoria al 100%",
+			"Reinicio Infinito en Bucle"
 		]
 	}
 }
@@ -165,7 +187,13 @@ func apply_spec():
 			sprite.texture = load(spec["user_spritesheet"])
 		sprite.hframes = 4
 		sprite.vframes = 12
-		sprite.scale = Vector2(0.24, 0.24)
+		var tex = sprite.texture
+		if tex and tex.get_height() < 1500:
+			sprite.scale = Vector2(0.51, 0.51)
+			name_tag.position.y = -28.0
+		else:
+			sprite.scale = Vector2(0.24, 0.24)
+			name_tag.position.y = -24.0
 		
 		if enemy_id != "" and GameManager.defeated_enemies.has(enemy_id):
 			name_tag.text = "[V] " + spec.get("user_name", "Usuario")

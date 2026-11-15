@@ -13,7 +13,7 @@
 [ext_resource type="Texture2D" path="res://assets/characters/dragon_boss_spritesheet.png" id="17_dragon_spr"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
-size = Vector2(1280, 20)
+size = Vector2(2048, 20)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_v"]
 size = Vector2(20, 360)
@@ -76,7 +76,7 @@ script = ExtResource("1_overworld")
 
 [node name="Floor" type="TextureRect" parent="."]
 texture_filter = 0
-offset_right = 1280.0
+offset_right = 2048.0
 offset_bottom = 360.0
 texture = ExtResource("2_floor")
 stretch_mode = 1
@@ -87,17 +87,17 @@ collision_mask = 1
 
 [node name="WallTop" type="TextureRect" parent="Walls"]
 texture_filter = 0
-offset_right = 1280.0
+offset_right = 2048.0
 offset_bottom = 24.0
 texture = ExtResource("3_wall")
 stretch_mode = 1
 
 [node name="CollTop" type="CollisionShape2D" parent="Walls"]
-position = Vector2(640, 10)
+position = Vector2(1024, 10)
 shape = SubResource("RectangleShape2D_wall_h")
 
 [node name="CollBottom" type="CollisionShape2D" parent="Walls"]
-position = Vector2(640, 350)
+position = Vector2(1024, 350)
 shape = SubResource("RectangleShape2D_wall_h")
 
 [node name="CollLeft" type="CollisionShape2D" parent="Walls"]
@@ -105,8 +105,16 @@ position = Vector2(10, 180)
 shape = SubResource("RectangleShape2D_wall_v")
 
 [node name="CollRight" type="CollisionShape2D" parent="Walls"]
-position = Vector2(1270, 180)
+position = Vector2(2038, 180)
 shape = SubResource("RectangleShape2D_wall_v")
+
+[node name="WallRightVisual" type="TextureRect" parent="Walls"]
+texture_filter = 0
+offset_left = 2032.0
+offset_right = 2048.0
+offset_bottom = 360.0
+texture = ExtResource("3_wall")
+stretch_mode = 1
 
 [node name="WallDividerTop" type="TextureRect" parent="Walls"]
 texture_filter = 0
@@ -132,6 +140,32 @@ stretch_mode = 1
 
 [node name="CollDividerBottom" type="CollisionShape2D" parent="Walls"]
 position = Vector2(580, 290)
+shape = SubResource("RectangleShape2D_divider")
+
+[node name="WallDivider2Top" type="TextureRect" parent="Walls"]
+texture_filter = 0
+offset_left = 1240.0
+offset_top = 20.0
+offset_right = 1256.0
+offset_bottom = 125.0
+texture = ExtResource("3_wall")
+stretch_mode = 1
+
+[node name="CollDivider2Top" type="CollisionShape2D" parent="Walls"]
+position = Vector2(1248, 70)
+shape = SubResource("RectangleShape2D_divider")
+
+[node name="WallDivider2Bottom" type="TextureRect" parent="Walls"]
+texture_filter = 0
+offset_left = 1240.0
+offset_top = 235.0
+offset_right = 1256.0
+offset_bottom = 345.0
+texture = ExtResource("3_wall")
+stretch_mode = 1
+
+[node name="CollDivider2Bottom" type="CollisionShape2D" parent="Walls"]
+position = Vector2(1248, 290)
 shape = SubResource("RectangleShape2D_divider")
 
 [node name="SignLabel" type="Label" parent="."]
@@ -425,13 +459,97 @@ texture = ExtResource("11_desk_light")
 position = Vector2(0, 6)
 shape = SubResource("RectangleShape2D_desk_col")
 
+[node name="DeskEast1" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1360, 100)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskEast1"]
+texture_filter = 1
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskEast1"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskEast2" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1480, 100)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskEast2"]
+texture_filter = 1
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskEast2"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskEast3" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1660, 100)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskEast3"]
+texture_filter = 1
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskEast3"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskEast4" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1360, 290)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskEast4"]
+texture_filter = 1
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskEast4"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskEast5" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1520, 290)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskEast5"]
+texture_filter = 1
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskEast5"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="DeskEast6" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(1680, 290)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskEast6"]
+texture_filter = 1
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskEast6"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
 [node name="Player" parent="." instance=ExtResource("6_player")]
 position = Vector2(140, 200)
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 1280
+limit_right = 2048
 limit_bottom = 360
 
 [node name="RobertoHuerta" type="Node2D" parent="."]
@@ -515,29 +633,34 @@ collision_mask = 1
 shape = SubResource("CircleShape2D_printer_interact")
 
 [node name="NPCSofia" parent="." instance=ExtResource("7_enemy")]
-position = Vector2(780, 135)
+position = Vector2(800, 140)
 enemy_type = "outlook"
 enemy_id = "npc_sofia_outlook"
 
 [node name="NPCCarlos" parent="." instance=ExtResource("7_enemy")]
-position = Vector2(900, 135)
+position = Vector2(940, 140)
 enemy_type = "teclado"
 enemy_id = "npc_carlos_teclado"
 
+[node name="NPCLicColorSerio" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(880, 245)
+enemy_type = "wifi_phone"
+enemy_id = "npc_lic_color_serio"
+
 [node name="NPCRamiro" parent="." instance=ExtResource("7_enemy")]
-position = Vector2(1020, 135)
+position = Vector2(1400, 140)
 enemy_type = "cpu"
 enemy_id = "npc_ramiro_cpu"
 
-[node name="NPCBrenda" parent="." instance=ExtResource("7_enemy")]
-position = Vector2(780, 245)
-enemy_type = "wifi_phone"
-enemy_id = "npc_brenda_wifi"
-
 [node name="NPCDiego" parent="." instance=ExtResource("7_enemy")]
-position = Vector2(1000, 245)
+position = Vector2(1560, 245)
 enemy_type = "usuario_red"
 enemy_id = "npc_diego_cable"
+
+[node name="NPCTechLead" parent="." instance=ExtResource("7_enemy")]
+position = Vector2(1720, 140)
+enemy_type = "bsod"
+enemy_id = "npc_techlead_bsod"
 
 [node name="DragonBoss" type="Node2D" parent="."]
 visible = false
@@ -560,7 +683,7 @@ theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "[!] Sombras del Pasado"
+text = "[!] El Señor del Dragón"
 horizontal_alignment = 1
 
 [node name="InteractArea" type="Area2D" parent="DragonBoss"]
