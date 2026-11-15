@@ -168,7 +168,12 @@ func _ready():
 	$Mariana/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("mariana"))
 	$Mariana/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "mariana": _clear_interactable())
 	
-	$EnemyPrinter/PrinterInteract.body_entered.connect(func(body): if body == player: _set_interactable("printer"))
+	$EnemyPrinter/PrinterInteract.body_entered.connect(func(body):
+		if body == player:
+			_set_interactable("printer")
+			if not GameManager.printer_defeated:
+				_trigger_current_interaction()
+	)
 	$EnemyPrinter/PrinterInteract.body_exited.connect(func(body): if body == player and current_interactable == "printer": _clear_interactable())
 	
 	# Verificar estado de la partida
@@ -578,20 +583,59 @@ func _trigger_current_interaction():
 				}
 			]
 		"printer":
-			dialog_queue = [
-				{
-					"speaker": "Impresora",
-					"portrait": "res://assets/props/printer.png",
-					"color": Color("#f87171"),
-					"text": printer_neutralized_text if GameManager.printer_defeated else "¡La impresora está echando chispas y humo! ¡Peligro inminente!"
-				}
-			]
+			if GameManager.printer_defeated:
+				dialog_queue = [
+					{
+						"speaker": "Impresora",
+						"portrait": "res://assets/props/printer.png",
+						"color": Color("#4ade80"),
+						"text": printer_neutralized_text
+					}
+				]
+				on_dialog_closed_callback = func():
+					player.can_move = true
+			else:
+				dialog_queue = [
+					{
+						"speaker": "Impresora Maldita",
+						"portrait": "res://assets/props/printer.png",
+						"color": Color("#f87171"),
+						"text": "¡CHZZZT! ¡GRRRR! ¡La máquina escupe humo negro y tóner hirviendo! ¡Error 0x80070057!"
+					}
+				]
+				on_dialog_closed_callback = func():
+					_start_printer_battle()
 			
-	on_dialog_closed_callback = func():
-		player.can_move = true
+	if current_interactable != "printer":
+		on_dialog_closed_callback = func():
+			player.can_move = true
 		
 	player.can_move = false
 	_show_next_in_queue()
+
+func _start_printer_battle():
+	GameManager.player_saved_position = player.global_position
+	GameManager.current_enemy_id = "enemy_printer_boss"
+	var spec = {
+		"name": "Impresora Maldita",
+		"type": "printer",
+		"desc": "Tiene atasco de papel, no tiene tóner y huele a quemado.",
+		"hp": 420,
+		"max_hp": 420,
+		"atk": 22,
+		"def": 12,
+		"exp_reward": 150,
+		"texture_path": "res://assets/printer_enemy.png",
+		"attacks": [
+			"Atasco de Papel en Bandeja 2",
+			"Falta Tinta Magenta (Error Crítico)",
+			"Ráfaga de Tóner Hirviendo",
+			"Sobrecalentamiento del Rodillo Fusor",
+			"Error 0x80070057 de Windows"
+		]
+	}
+	GameManager.current_enemy_data = spec
+	get_tree().change_scene_to_file("res://scenes/battle.tscn")
 
 func _show_next_in_queue():
 	if dialog_queue.is_empty():

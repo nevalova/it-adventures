@@ -221,7 +221,9 @@ func _on_body_entered(body):
 		if enemy_type == "printer":
 			if GameManager.printer_defeated:
 				return
-			# La impresora se maneja por su propio trigger / escena en overworld
+			var overworld = get_parent()
+			if overworld and overworld.has_method("_start_printer_battle"):
+				overworld._start_printer_battle()
 			return
 			
 		if is_encounter_triggered:
