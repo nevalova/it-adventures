@@ -3,16 +3,12 @@
 [ext_resource type="Script" path="res://scripts/overworld.gd" id="1_overworld"]
 [ext_resource type="Texture2D" path="res://assets/floor_tile.png" id="2_floor"]
 [ext_resource type="Texture2D" path="res://assets/wall_tile.png" id="3_wall"]
-[ext_resource type="Texture2D" path="res://assets/server_rack.png" id="4_rack"]
-[ext_resource type="Texture2D" path="res://assets/desk.png" id="5_desk"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="6_player"]
 [ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="7_enemy"]
 [ext_resource type="Texture2D" path="res://assets/characters/roberto_huerta_spritesheet.png" id="8_roberto_spr"]
 [ext_resource type="Texture2D" path="res://assets/characters/usuaria_spritesheet.png" id="9_usuaria_spr"]
-[ext_resource type="Texture2D" path="res://assets/props/workstation_assembled.png" id="10_workstation"]
 [ext_resource type="Texture2D" path="res://assets/props/desk_light.png" id="11_desk_light"]
 [ext_resource type="Texture2D" path="res://assets/props/desk_office.png" id="12_desk_office"]
-[ext_resource type="Texture2D" path="res://assets/props/workstation_executive.png" id="13_workstation_exec"]
 [ext_resource type="Texture2D" path="res://assets/characters/novato_spritesheet.png" id="16_novato_spr"]
 [ext_resource type="Texture2D" path="res://assets/characters/dragon_boss_spritesheet.png" id="17_dragon_spr"]
 
@@ -161,50 +157,29 @@ horizontal_alignment = 1
 
 [node name="EnvironmentProps" type="Node2D" parent="."]
 
-[node name="ServerRack1" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 0
-position = Vector2(60, 50)
-texture = ExtResource("4_rack")
-
-[node name="ServerRack2" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 0
-position = Vector2(100, 50)
-texture = ExtResource("4_rack")
-
-[node name="ServerRack3" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 0
-position = Vector2(140, 50)
-texture = ExtResource("4_rack")
-
-[node name="ServerRack4" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 0
-position = Vector2(180, 50)
-texture = ExtResource("4_rack")
-
-[node name="ServerRack5" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 0
-position = Vector2(220, 50)
-texture = ExtResource("4_rack")
-
 [node name="DeskIT1" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 0
+texture_filter = 1
 position = Vector2(160, 140)
-texture = ExtResource("5_desk")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="DeskIT2" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 0
+texture_filter = 1
 position = Vector2(340, 140)
-texture = ExtResource("5_desk")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="DeskIT3" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 0
+texture_filter = 1
 position = Vector2(250, 260)
-texture = ExtResource("5_desk")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="DeskIT4" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 0
+texture_filter = 1
 position = Vector2(360, 260)
-texture = ExtResource("5_desk")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="OfficeFurniture" type="Node2D" parent="."]
 
@@ -215,8 +190,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF1"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("10_workstation")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF1"]
 position = Vector2(0, 4)
@@ -229,8 +204,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF2"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("13_workstation_exec")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF2"]
 position = Vector2(0, 4)
@@ -243,8 +218,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF3_Carlos"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("10_workstation")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF3_Carlos"]
 position = Vector2(0, 4)
@@ -257,8 +232,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF4"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("13_workstation_exec")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF4"]
 position = Vector2(0, 4)
@@ -271,8 +246,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF5"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("10_workstation")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF5"]
 position = Vector2(0, 4)
@@ -285,8 +260,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF6"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("13_workstation_exec")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF6"]
 position = Vector2(0, 4)
@@ -299,8 +274,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF7"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("13_workstation_exec")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF7"]
 position = Vector2(0, 4)
@@ -313,8 +288,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF8_Mariana"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("10_workstation")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF8_Mariana"]
 position = Vector2(0, 4)
@@ -327,8 +302,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF9"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("10_workstation")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF9"]
 position = Vector2(0, 4)
@@ -341,8 +316,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF10_Jefa"]
 texture_filter = 1
-scale = Vector2(0.13, 0.13)
-texture = ExtResource("13_workstation_exec")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF10_Jefa"]
 position = Vector2(0, 4)
@@ -355,8 +330,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF11"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("10_workstation")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF11"]
 position = Vector2(0, 4)
@@ -369,8 +344,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF12"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("13_workstation_exec")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF12"]
 position = Vector2(0, 4)
@@ -383,8 +358,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF13"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("10_workstation")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF13"]
 position = Vector2(0, 4)
@@ -397,8 +372,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF14"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("13_workstation_exec")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF14"]
 position = Vector2(0, 4)
@@ -411,8 +386,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF15"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("10_workstation")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("12_desk_office")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF15"]
 position = Vector2(0, 4)
@@ -425,8 +400,8 @@ collision_mask = 1
 
 [node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF16"]
 texture_filter = 1
-scale = Vector2(0.12, 0.12)
-texture = ExtResource("13_workstation_exec")
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
 
 [node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF16"]
 position = Vector2(0, 4)
