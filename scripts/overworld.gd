@@ -40,6 +40,7 @@ extends Node2D
 @onready var dragon_boss = $DragonBoss
 @onready var dragon_boss_sprite = $DragonBoss/Sprite2D
 @onready var dark_overlay = $CanvasLayer/DarkOverlay
+@onready var episode_card = $CanvasLayer/DarkOverlay/EpisodeCard
 
 @onready var office_trigger = $OfficeTrigger
 @onready var enemy_printer = $EnemyPrinter
@@ -423,11 +424,13 @@ func _trigger_dragon_boss_confrontation():
 	dragon_boss_sprite.frame = 6 * 4 + 0 # Mirando a la derecha hacia Roberto y el jugador
 	
 	dark_overlay.visible = true
+	dark_overlay.color = Color(0, 0, 0, 0.65)
 	dark_overlay.modulate = Color(1, 1, 1, 0.0)
+	episode_card.visible = false
 	var tw = create_tween()
-	tw.tween_property(dark_overlay, "modulate:a", 0.75, 0.6)
+	tw.tween_property(dark_overlay, "modulate:a", 1.0, 0.6)
 	
-	objective_label.text = "[!] SOMBRAS DEL PASADO: El Señor del Dragón"
+	objective_label.text = "[!] Pasillo Principal: Presencia Inesperada"
 	
 	dialog_queue = [
 		{
@@ -437,7 +440,7 @@ func _trigger_dragon_boss_confrontation():
 			"text": "¡Ahí está! Es él... ¡las Sombras del Pasado han regresado a la oficina!"
 		},
 		{
-			"speaker": "Sombras del Pasado",
+			"speaker": "???",
 			"portrait": "res://assets/characters/dragon_boss_portrait.png",
 			"color": Color("#ef4444"),
 			"text": "¡Quiero de vuelta mi dragón! Si no lo regresan, nunca volverán a ver el splitter, los discos duros y por supuesto... ¡el Magic Trackpad! ¡JAJAJAJAJA!"
@@ -445,12 +448,29 @@ func _trigger_dragon_boss_confrontation():
 	]
 	
 	on_dialog_closed_callback = func():
+		_start_episode_title_sequence()
+		
+	_show_next_in_queue()
+
+func _start_episode_title_sequence():
+	player.can_move = false
+	touch_controls.visible = false
+	dark_overlay.visible = true
+	dark_overlay.color = Color(0, 0, 0, 1.0)
+	dark_overlay.modulate = Color(1, 1, 1, 1.0)
+	episode_card.visible = true
+	episode_card.modulate = Color(1, 1, 1, 0.0)
+	
+	var tw = create_tween()
+	tw.tween_property(episode_card, "modulate:a", 1.0, 0.8)
+	tw.tween_interval(1.8)
+	tw.tween_callback(func():
 		dark_overlay.visible = false
 		GameManager.dragon_boss_cutscene_done = true
 		GameManager.player_saved_position = player.global_position
 		GameManager.current_enemy_id = "dragon_boss_main"
 		GameManager.current_enemy_data = {
-			"name": "El Señor del Dragón",
+			"name": "Sombras del Pasado",
 			"type": "dragon_boss",
 			"desc": "Sombras del pasado... Exige de vuelta su dragón o retendrá el splitter, discos duros y el trackpad.",
 			"hp": 650,
@@ -458,7 +478,8 @@ func _trigger_dragon_boss_confrontation():
 			"atk": 25,
 			"def": 14,
 			"exp_reward": 350,
-			"texture_path": "res://assets/enemies/enemy_dragon_boss.png",
+			"spritesheet_path": "res://assets/characters/dragon_boss_spritesheet.png",
+			"texture_path": "res://assets/characters/dragon_boss_spritesheet.png",
 			"attacks": [
 				"Acoso",
 				"La Cólera del Dragón",
@@ -466,8 +487,7 @@ func _trigger_dragon_boss_confrontation():
 			]
 		}
 		get_tree().change_scene_to_file("res://scenes/battle.tscn")
-		
-	_show_next_in_queue()
+	)
 
 func _open_demo_modal():
 	var leader = GameManager.get_leader_data()
