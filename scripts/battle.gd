@@ -101,6 +101,7 @@ func _ready():
 	btn_target_h2.pressed.connect(func(): _apply_dia_libre_to_target(2))
 	btn_target_h3.pressed.connect(func(): _apply_dia_libre_to_target(3))
 	btn_target_cancel.pressed.connect(_on_target_cancel_pressed)
+	GameManager.preload_scene("res://scenes/overworld.tscn")
 
 func setup_battle():
 	javier_first_attack = true
@@ -594,7 +595,7 @@ func _on_flee_pressed():
 	set_log("¡El equipo de IT huyó al comedor a comer donas!")
 	is_battle_over = true
 	await get_tree().create_timer(1.2).timeout
-	get_tree().change_scene_to_file("res://scenes/overworld.tscn")
+	GameManager.change_scene_instant(get_tree(), "res://scenes/overworld.tscn")
 
 func play_attack_anim(spr: Sprite2D):
 	if not spr:
@@ -1037,13 +1038,13 @@ func enemy_defeated():
 		set_log("[LEVEL UP!] ¡%s subió de nivel! (+25 HP Max, +6 ATQ, +4 DEF, HP restaurado)" % ", ".join(names))
 		
 	await get_tree().create_timer(2.2).timeout
-	get_tree().change_scene_to_file("res://scenes/overworld.tscn")
+	GameManager.change_scene_instant(get_tree(), "res://scenes/overworld.tscn")
 
 func game_over():
 	is_battle_over = true
 	set_log("[KO] GAME OVER: Caída catastrófica de servidores. Todo IT fue despedido.")
 	await get_tree().create_timer(2.0).timeout
-	get_tree().change_scene_to_file("res://scenes/character_select.tscn")
+	GameManager.change_scene_instant(get_tree(), "res://scenes/character_select.tscn")
 
 func set_log(text: String):
 	log_label.text = text

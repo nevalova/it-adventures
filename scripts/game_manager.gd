@@ -186,7 +186,45 @@ func add_exp_to_party(exp_amount: int) -> Array:
 			})
 	return level_ups
 
+# Background Preloading System
+var preloaded_scenes: Dictionary = {}
+
+func preload_scene(path: String) -> void:
+	if preloaded_scenes.has(path):
+		return
+	if ResourceLoader.has_cached(path):
+		preloaded_scenes[path] = ResourceLoader.load(path)
+		return
+	var status = ResourceLoader.load_threaded_get_status(path)
+	if status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+		ResourceLoader.load_threaded_request(path)
+
+func get_preloaded_scene(path: String) -> PackedScene:
+	if preloaded_scenes.has(path):
+		return preloaded_scenes[path]
+	var status = ResourceLoader.load_threaded_get_status(path)
+	if status == ResourceLoader.THREAD_LOAD_LOADED:
+		var scene = ResourceLoader.load_threaded_get(path) as PackedScene
+		preloaded_scenes[path] = scene
+		return scene
+	# Fallback synchronous load if threaded load has not finished
+	var scene = load(path) as PackedScene
+	preloaded_scenes[path] = scene
+	return scene
+
+func change_scene_instant(tree: SceneTree, path: String) -> void:
+	var packed = get_preloaded_scene(path)
+	if packed != null:
+		tree.change_scene_to_packed(packed)
+	else:
+		tree.change_scene_to_file(path)
+
 func _ready():
+	# Iniciar precarga asincrona en segundo plano de las escenas principales
+	preload_scene("res://scenes/character_select.tscn")
+	preload_scene("res://scenes/overworld.tscn")
+	preload_scene("res://scenes/battle.tscn")
+	
 	# Party por defecto con los héroes principales
 	init_party("javier")
 

@@ -15,6 +15,8 @@ var character_keys = ["javier", "tonazo", "juan_carlos", "alejandro", "israel"]
 var current_selected_id = "javier"
 
 func _ready():
+	GameManager.preload_scene("res://scenes/overworld.tscn")
+	GameManager.preload_scene("res://scenes/battle.tscn")
 	setup_cards()
 	update_preview(current_selected_id)
 	select_button.pressed.connect(_on_confirm_selection)
@@ -69,4 +71,4 @@ func _on_confirm_selection():
 	GameManager.intro_cutscene_done = false
 	GameManager.office_cutscene_done = false
 	GameManager.player_saved_position = Vector2(140, 200)
-	get_tree().change_scene_to_file("res://scenes/overworld.tscn")
+	GameManager.change_scene_instant(get_tree(), "res://scenes/overworld.tscn")

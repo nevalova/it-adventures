@@ -99,6 +99,8 @@ var on_dialog_closed_callback: Callable
 var current_interactable: String = ""
 
 func _ready():
+	GameManager.preload_scene("res://scenes/battle.tscn")
+	GameManager.preload_scene("res://scenes/character_select.tscn")
 	$Player/Camera2D.make_current()
 	var leader = GameManager.get_leader_data()
 	hud_hero_name.text = leader["name"]
@@ -114,7 +116,7 @@ func _ready():
 	hud_hero_name.modulate = leader["color"]
 	
 	btn_switch.pressed.connect(func():
-		get_tree().change_scene_to_file("res://scenes/character_select.tscn")
+		GameManager.change_scene_instant(get_tree(), "res://scenes/character_select.tscn")
 	)
 	
 	btn_demo_modal.pressed.connect(func():
@@ -123,7 +125,7 @@ func _ready():
 	
 	btn_restart_demo.pressed.connect(func():
 		GameManager.reset_game()
-		get_tree().change_scene_to_file("res://scenes/character_select.tscn")
+		GameManager.change_scene_instant(get_tree(), "res://scenes/character_select.tscn")
 	)
 	
 	btn_close_modal.pressed.connect(func():
@@ -370,7 +372,7 @@ func start_encounter_dialog(user_name: String, portrait_path: String, color: Col
 		GameManager.player_saved_position = player.global_position
 		GameManager.current_enemy_id = enemy_id
 		GameManager.current_enemy_data = enemy_spec
-		get_tree().change_scene_to_file("res://scenes/battle.tscn")
+		GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
 		
 	_show_next_in_queue()
 
@@ -608,7 +610,7 @@ func _start_dragon_boss_battle():
 			"DONDE ESTA MI DRAGON IMPRESO EN 3D"
 		]
 	}
-	get_tree().change_scene_to_file("res://scenes/battle.tscn")
+	GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
 
 func _open_demo_modal():
 	var leader = GameManager.get_leader_data()
@@ -732,7 +734,7 @@ func _start_printer_battle():
 		]
 	}
 	GameManager.current_enemy_data = spec
-	get_tree().change_scene_to_file("res://scenes/battle.tscn")
+	GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
 
 func _show_next_in_queue():
 	if dialog_queue.is_empty():

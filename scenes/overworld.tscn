@@ -9,7 +9,6 @@
 [ext_resource type="Texture2D" path="res://assets/characters/usuaria_spritesheet.png" id="9_usuaria_spr"]
 [ext_resource type="Texture2D" path="res://assets/props/desk_light.png" id="11_desk_light"]
 [ext_resource type="Texture2D" path="res://assets/props/desk_office.png" id="12_desk_office"]
-[ext_resource type="Texture2D" path="res://assets/characters/novato_spritesheet.png" id="16_novato_spr"]
 [ext_resource type="Texture2D" path="res://assets/characters/dragon_boss_spritesheet.png" id="17_dragon_spr"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
