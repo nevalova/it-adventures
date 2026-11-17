@@ -80,6 +80,14 @@ extends Node2D
 @onready var btn_restart_demo = $CanvasLayer/DemoCompleteModal/Margin/VBox/ButtonsHBox/BtnRestartDemo
 @onready var btn_close_modal = $CanvasLayer/DemoCompleteModal/Margin/VBox/ButtonsHBox/BtnCloseModal
 
+# HUD Budget & Nelly's Shop
+@onready var hud_hero_budget = $CanvasLayer/HUD/HeroInfo/HeroBudget
+@onready var shop_modal = $CanvasLayer/ShopModal
+@onready var shop_budget_label = $CanvasLayer/ShopModal/Margin/VBox/HeaderHBox/BudgetLabel
+@onready var shop_items_list = $CanvasLayer/ShopModal/Margin/VBox/ItemsScroll/ItemsList
+@onready var shop_feedback_label = $CanvasLayer/ShopModal/Margin/VBox/FeedbackLabel
+@onready var btn_close_shop = $CanvasLayer/ShopModal/Margin/VBox/BtnCloseShop
+
 # State Machine
 enum State {
 	IDLE,
@@ -114,6 +122,8 @@ func _ready():
 		leader.get("exp_to_next", 60)
 	]
 	hud_hero_name.modulate = leader["color"]
+	_update_hud_budget()
+	btn_close_shop.pressed.connect(_close_shop_modal)
 	
 	btn_switch.pressed.connect(func():
 		GameManager.change_scene_instant(get_tree(), "res://scenes/character_select.tscn")
@@ -153,6 +163,16 @@ func _ready():
 	office_trigger.body_entered.connect(_on_office_trigger_entered)
 	
 	# Conexión de áreas de interacción
+	if has_node("Nelly/InteractArea"):
+		$Nelly/InteractArea.body_entered.connect(func(body):
+			if body == player:
+				_set_interactable("nelly")
+		)
+		$Nelly/InteractArea.body_exited.connect(func(body):
+			if body == player and current_interactable == "nelly":
+				_clear_interactable()
+		)
+	
 	$Usuaria/InteractArea.body_entered.connect(func(body): if body == player: _set_interactable("usuaria"))
 	$Usuaria/InteractArea.body_exited.connect(func(body): if body == player and current_interactable == "usuaria": _clear_interactable())
 	
@@ -649,17 +669,25 @@ func _set_interactable(id: String):
 	btn_interact.visible = true
 	interact_banner.visible = true
 	match id:
+		"nelly":
+			interact_label.text = "[E] Tiendita de Nelly (Suministros IT)"
+			btn_interact.text = "[E] Tiendita"
 		"usuaria":
 			interact_label.text = "[E] Hablar con Jefa de Finanzas"
+			btn_interact.text = "[E] Hablar"
 		"roberto":
 			interact_label.text = "[E] Hablar con Roberto Huerta"
+			btn_interact.text = "[E] Hablar"
 		"dragon_boss":
 			interact_label.text = "[E] ¡Pelear con El Señor del Dragón!"
+			btn_interact.text = "[E] Pelear"
 		"printer":
 			if GameManager.printer_defeated:
 				interact_label.text = "[E] Inspeccionar Impresora (Reparada)"
+				btn_interact.text = "[E] Revisar"
 			else:
 				interact_label.text = "[E] ¡Combatir Impresora Maldita!"
+				btn_interact.text = "[E] Batalla"
 
 func _clear_interactable():
 	current_interactable = ""
@@ -678,6 +706,8 @@ func _trigger_current_interaction():
 	var hero_name = leader["name"]
 	
 	match current_interactable:
+		"nelly":
+			_open_shop_modal()
 		"dragon_boss":
 			_start_dragon_boss_battle()
 		"roberto":
@@ -762,6 +792,12 @@ func _advance_dialog():
 	_show_next_in_queue()
 
 func _unhandled_input(event):
+	if shop_modal.visible:
+		if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+			_close_shop_modal()
+			get_viewport().set_input_as_handled()
+		return
+		
 	if demo_modal.visible:
 		if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 			_close_demo_modal()
@@ -769,11 +805,96 @@ func _unhandled_input(event):
 		return
 		
 	if dialog_box.visible:
-		if event.is_action_pressed("ui_accept") 		or (event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_E)) 		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) 		or (event is InputEventScreenTouch and event.pressed):
+		if event.is_action_pressed("ui_accept") \
+		or (event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_E)) \
+		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) \
+		or (event is InputEventScreenTouch and event.pressed):
 			get_viewport().set_input_as_handled()
 			_advance_dialog()
 	else:
 		if not current_interactable.is_empty():
-			if event.is_action_pressed("ui_accept") 			or (event is InputEventKey and event.pressed and (event.keycode == KEY_E or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER)):
+			if event.is_action_pressed("ui_accept") \
+			or (event is InputEventKey and event.pressed and (event.keycode == KEY_E or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER)):
 				get_viewport().set_input_as_handled()
 				_trigger_current_interaction()
+
+# --- Tiendita de Nelly & Sistema de Economía ---
+func _update_hud_budget():
+	if hud_hero_budget:
+		hud_hero_budget.text = "Fondos: $%d" % GameManager.it_budget
+
+func _open_shop_modal():
+	player.can_move = false
+	shop_modal.visible = true
+	shop_feedback_label.text = "¡Bienvenido a la Tiendita de Nelly! Elige consumibles para tu equipo."
+	shop_feedback_label.modulate = Color(1.0, 1.0, 1.0)
+	_update_shop_ui()
+
+func _close_shop_modal():
+	shop_modal.visible = false
+	player.can_move = true
+
+func _update_shop_ui():
+	shop_budget_label.text = "Fondos IT: $%d" % GameManager.it_budget
+	_update_hud_budget()
+	
+	for child in shop_items_list.get_children():
+		child.queue_free()
+		
+	var item_defs = [
+		{"key": "pepsi", "name": "Pepsi Helada", "desc": "Restaura +40 HP a un compañero en combate.", "price": GameManager.item_prices.get("pepsi", 15)},
+		{"key": "cafe", "name": "Café de Olla", "desc": "Restaura +75 HP a un compañero en combate.", "price": GameManager.item_prices.get("cafe", 25)},
+		{"key": "predator", "name": "Bebida Predator", "desc": "Restaura +120 HP a un compañero en combate.", "price": GameManager.item_prices.get("predator", 35)},
+		{"key": "foto", "name": "Foto de Familia", "desc": "Cura +200 HP y elimina estrés a un compañero.", "price": GameManager.item_prices.get("foto", 50)},
+		{"key": "dia_libre", "name": "Día Libre (Pase RH)", "desc": "¡Revive a un compañero caído en batalla con 50% HP!", "price": GameManager.item_prices.get("dia_libre", 90)}
+	]
+	
+	for item in item_defs:
+		var panel = PanelContainer.new()
+		var pstyle = StyleBoxFlat.new()
+		pstyle.bg_color = Color(0.12, 0.15, 0.22, 0.9)
+		pstyle.set_corner_radius_all(4)
+		panel.add_theme_stylebox_override("panel", pstyle)
+		
+		var hbox = HBoxContainer.new()
+		hbox.add_theme_constant_override("separation", 10)
+		
+		var info_vbox = VBoxContainer.new()
+		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		
+		var current_qty = GameManager.battle_items.get(item["key"], 0)
+		var title_label = Label.new()
+		title_label.text = "%s ($%d) [Tienes: %d]" % [item["name"], item["price"], current_qty]
+		title_label.add_theme_font_size_override("font_size", 12)
+		title_label.modulate = Color(1.0, 0.85, 0.3)
+		info_vbox.add_child(title_label)
+		
+		var desc_label = Label.new()
+		desc_label.text = item["desc"]
+		desc_label.add_theme_font_size_override("font_size", 10)
+		desc_label.modulate = Color(0.75, 0.8, 0.9)
+		info_vbox.add_child(desc_label)
+		
+		hbox.add_child(info_vbox)
+		
+		var buy_btn = Button.new()
+		buy_btn.text = "Comprar ($%d)" % item["price"]
+		buy_btn.custom_minimum_size = Vector2(100, 26)
+		buy_btn.disabled = (GameManager.it_budget < item["price"])
+		var key = item["key"]
+		var iname = item["name"]
+		var iprice = item["price"]
+		buy_btn.pressed.connect(func():
+			if GameManager.buy_item(key):
+				shop_feedback_label.text = "¡Compraste 1 %s por $%d!" % [iname, iprice]
+				shop_feedback_label.modulate = Color(0.3, 0.9, 0.4)
+				_update_shop_ui()
+			else:
+				shop_feedback_label.text = "¡Fondos insuficientes para comprar %s!" % iname
+				shop_feedback_label.modulate = Color(1.0, 0.4, 0.4)
+		)
+		hbox.add_child(buy_btn)
+		
+		panel.add_child(hbox)
+		shop_items_list.add_child(panel)
+

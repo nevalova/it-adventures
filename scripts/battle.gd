@@ -6,6 +6,8 @@ extends Control
 @onready var enemy_hp_bar = $MainBox/BattleArena/EnemySide/EnemyPanel/VBox/EnemyHPBar
 @onready var enemy_hp_label = $MainBox/BattleArena/EnemySide/EnemyPanel/VBox/EnemyHPText
 @onready var enemy_sprite = $MainBox/BattleArena/EnemySide/Center/EnemySprite
+@onready var boss_target_arrow = $MainBox/BattleArena/EnemySide/EnemyPanel/VBox/BossTargetArrow
+@onready var enemy_panel = $MainBox/BattleArena/EnemySide/EnemyPanel
 
 @onready var hero_sprites_container = $MainBox/BattleArena/BattlersArena/HeroSpritesContainer
 @onready var party_container = $MainBox/BattleArena/PartySide/PartyContainer
@@ -16,6 +18,7 @@ extends Control
 @onready var btn_skill = $MainBox/CommandPanel/Margin/HBox/Commands/BtnSkill
 @onready var btn_item = $MainBox/CommandPanel/Margin/HBox/Commands/BtnItem
 @onready var btn_flee = $MainBox/CommandPanel/Margin/HBox/Commands/BtnFlee
+@onready var btn_cycle_target = $MainBox/CommandPanel/Margin/HBox/Commands/BtnCycleTarget
 
 @onready var items_menu = $MainBox/CommandPanel/Margin/HBox/ItemsMenu
 @onready var btn_item_pepsi = $MainBox/CommandPanel/Margin/HBox/ItemsMenu/BtnItemPepsi
@@ -57,11 +60,15 @@ var javier_can_attack: bool = true
 var javier_first_attack: bool = true
 var boss_has_red_aura: bool = false
 
-# Printer Minions State (4 CMYK Toners)
+# Printer Minions & Target State (4 CMYK Toners + Boss)
+enum TargetType { BOSS, MINION }
+var current_target_type: TargetType = TargetType.BOSS
 var printer_minions_spawned: bool = false
 var selected_minion_index: int = 0
 var printer_minions: Array = []
 var minion_card_nodes: Array = []
+var target_arrow_timer: float = 0.0
+var current_item_in_use: String = ""
 
 # Boss Spritesheet Animation State (16-bit Battler)
 var boss_atlas: AtlasTexture = null
@@ -72,6 +79,14 @@ var boss_cell_size: int = 128
 var boss_is_special_anim: bool = false
 
 func _process(delta):
+	target_arrow_timer += delta * 6.0
+	var bob = sin(target_arrow_timer) * 2.0
+	if boss_target_arrow != null and boss_target_arrow.visible:
+		boss_target_arrow.position.y = -14.0 + bob
+	for card in minion_card_nodes:
+		if card.has("arrow") and card["arrow"].visible:
+			card["arrow"].position.y = -2.0 + bob
+
 	if boss_atlas != null and not is_battle_over:
 		if not boss_is_special_anim:
 			boss_anim_timer += delta
@@ -89,24 +104,41 @@ func _ready():
 	btn_item.pressed.connect(_on_item_pressed)
 	btn_flee.pressed.connect(_on_flee_pressed)
 	
-	btn_item_pepsi.pressed.connect(func(): _use_item("pepsi"))
-	btn_item_cafe.pressed.connect(func(): _use_item("cafe"))
-	btn_item_predator.pressed.connect(func(): _use_item("predator"))
-	btn_item_foto.pressed.connect(func(): _use_item("foto"))
-	btn_item_dia_libre.pressed.connect(_on_dia_libre_pressed)
+	btn_item_pepsi.pressed.connect(func(): _prepare_item_target("pepsi"))
+	btn_item_cafe.pressed.connect(func(): _prepare_item_target("cafe"))
+	btn_item_predator.pressed.connect(func(): _prepare_item_target("predator"))
+	btn_item_foto.pressed.connect(func(): _prepare_item_target("foto"))
+	btn_item_dia_libre.pressed.connect(func(): _prepare_item_target("dia_libre"))
 	btn_item_back.pressed.connect(_on_item_back_pressed)
 	
-	btn_target_h0.pressed.connect(func(): _apply_dia_libre_to_target(0))
-	btn_target_h1.pressed.connect(func(): _apply_dia_libre_to_target(1))
-	btn_target_h2.pressed.connect(func(): _apply_dia_libre_to_target(2))
-	btn_target_h3.pressed.connect(func(): _apply_dia_libre_to_target(3))
+	btn_target_h0.pressed.connect(func(): _apply_item_to_target(0))
+	btn_target_h1.pressed.connect(func(): _apply_item_to_target(1))
+	btn_target_h2.pressed.connect(func(): _apply_item_to_target(2))
+	btn_target_h3.pressed.connect(func(): _apply_item_to_target(3))
 	btn_target_cancel.pressed.connect(_on_target_cancel_pressed)
+	
+	btn_cycle_target.pressed.connect(cycle_next_target)
+	enemy_panel.gui_input.connect(func(ev):
+		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			select_boss_target()
+	)
+	enemy_sprite.gui_input.connect(func(ev):
+		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			select_boss_target()
+	)
 	GameManager.preload_scene("res://scenes/overworld.tscn")
 
 func setup_battle():
 	javier_first_attack = true
 	printer_minions_spawned = false
+	current_target_type = TargetType.BOSS
 	selected_minion_index = 0
+	if boss_target_arrow:
+		boss_target_arrow.visible = false
+	if btn_cycle_target:
+		btn_cycle_target.visible = false
+	if btn_flee:
+		btn_flee.visible = true
 	printer_minions.clear()
 	minion_card_nodes.clear()
 	if has_node("MainBox/BattleArena/EnemySide/MinionsContainer"):
@@ -410,12 +442,14 @@ func _on_item_pressed():
 	commands_box.visible = false
 	items_menu.visible = true
 	update_items_ui()
+	set_log("Selecciona un ítem de tu inventario.")
 
 func update_items_ui():
 	var pepsi = GameManager.battle_items["pepsi"]
 	var cafe = GameManager.battle_items["cafe"]
 	var predator = GameManager.battle_items["predator"]
 	var foto = GameManager.battle_items["foto"]
+	var dia_libre = GameManager.battle_items["dia_libre"]
 	
 	btn_item_pepsi.text = "Pepsi (+20/50) x%d" % pepsi["count"]
 	btn_item_pepsi.disabled = pepsi["count"] <= 0
@@ -426,24 +460,21 @@ func update_items_ui():
 	btn_item_predator.text = "Predator (+50/100) x%d" % predator["count"]
 	btn_item_predator.disabled = predator["count"] <= 0
 	
-	btn_item_foto.text = "Foto Sra. Limpieza x%d" % foto["count"]
+	btn_item_foto.text = "Foto Limpieza x%d" % foto["count"]
 	btn_item_foto.disabled = foto["count"] <= 0
 	
-	var dia_libre = GameManager.battle_items.get("dia_libre", {"count": 2})
-	btn_item_dia_libre.text = "Día Libre (Revivir) x%d" % dia_libre["count"]
+	btn_item_dia_libre.text = "Día Libre x%d" % dia_libre["count"]
 	btn_item_dia_libre.disabled = dia_libre["count"] <= 0
 
-func _on_dia_libre_pressed():
+func _prepare_item_target(item_key: String):
 	if not is_player_turn or is_battle_over:
 		return
-	var item = GameManager.battle_items.get("dia_libre", {"count": 0})
+	var item = GameManager.battle_items.get(item_key, {"count": 0, "name": "Item"})
 	if item["count"] <= 0:
-		set_log("[!] ¡Ya no te quedan solicitudes de Día Libre!")
+		set_log("[!] ¡Ya no te quedan unidades de %s!" % item["name"])
 		return
+	current_item_in_use = item_key
 	items_menu.visible = false
-	open_party_target_menu()
-
-func open_party_target_menu():
 	party_target_menu.visible = true
 	var target_btns = [btn_target_h0, btn_target_h1, btn_target_h2, btn_target_h3]
 	for i in range(target_btns.size()):
@@ -452,63 +483,86 @@ func open_party_target_menu():
 			btn.visible = true
 			var mem = battle_party[i]
 			if mem["hp"] <= 0:
-				btn.text = "[KO] %s (CAÍDO)" % mem["name"]
+				btn.text = "[KO] %s" % mem["name"]
 				btn.modulate = Color(1.0, 0.4, 0.4)
 			else:
 				btn.text = "%s (%d/%d HP)" % [mem["name"], mem["hp"], mem["max_hp"]]
 				btn.modulate = Color.WHITE
 		else:
 			btn.visible = false
-	set_log("[?] ¿A qué compañero deseas concederle el DÍA LIBRE para revivirlo o curarlo?")
+	set_log("[?] ¿En qué compañero deseas usar '%s'?" % item["name"])
 
 func _on_target_cancel_pressed():
 	party_target_menu.visible = false
 	items_menu.visible = true
+	current_item_in_use = ""
+	update_items_ui()
 	set_log("Selecciona un ítem o pulsa Volver.")
 
-func _apply_dia_libre_to_target(target_idx: int):
+func _apply_item_to_target(target_idx: int):
 	if not is_player_turn or is_battle_over:
 		return
-	if target_idx >= battle_party.size():
+	if target_idx >= battle_party.size() or current_item_in_use.is_empty():
 		return
-	var item = GameManager.battle_items["dia_libre"]
+	var item = GameManager.battle_items[current_item_in_use]
 	if item["count"] <= 0:
-		set_log("[!] ¡No quedan Días Libres!")
+		set_log("[!] ¡No quedan unidades de %s!" % item["name"])
 		party_target_menu.visible = false
 		commands_box.visible = true
 		return
 		
+	var mem = battle_party[target_idx]
+	if current_item_in_use == "dia_libre":
+		item["count"] -= 1
+		party_target_menu.visible = false
+		commands_box.visible = true
+		var was_dead = mem["hp"] <= 0
+		if was_dead:
+			mem["hp"] = max(70, int(mem["max_hp"] * 0.5))
+			if target_idx < battler_sprites.size():
+				var spr = battler_sprites[target_idx]
+				spr.frame = 2 * 4 + 0 # Volver a ponerse de pie
+				var tween = create_tween()
+				tween.tween_property(spr, "modulate", Color(0.2, 2.2, 0.5), 0.25)
+				tween.tween_property(spr, "modulate", Color.WHITE, 0.25)
+			set_log("[¡REVIVIDO!] ¡RH concedió un DÍA LIBRE a %s! Regresa con %d HP." % [mem["name"], mem["hp"]])
+		else:
+			var heal = 70
+			mem["hp"] = min(mem["max_hp"], mem["hp"] + heal)
+			if target_idx < battler_sprites.size():
+				var spr = battler_sprites[target_idx]
+				var tween = create_tween()
+				tween.tween_property(spr, "modulate", Color(0.2, 2.2, 0.5), 0.2)
+				tween.tween_property(spr, "modulate", Color.WHITE, 0.2)
+			set_log("[+] ¡%s se tomó su DÍA LIBRE y recuperó salud (+%d HP)!" % [mem["name"], heal])
+		render_party_ui()
+		end_hero_action()
+		return
+
+	# Items de curación normales (no aplican si el compañero está desmayado)
+	if mem["hp"] <= 0:
+		set_log("[!] ¡%s está desmayado! Usa un 'Día Libre' para revivirlo." % mem["name"])
+		return
+
 	item["count"] -= 1
 	party_target_menu.visible = false
 	commands_box.visible = true
-	
-	var mem = battle_party[target_idx]
-	var was_dead = mem["hp"] <= 0
-	if was_dead:
-		mem["hp"] = max(70, int(mem["max_hp"] * 0.5))
-		if target_idx < battler_sprites.size():
-			var spr = battler_sprites[target_idx]
-			spr.frame = 2 * 4 + 0 # Volver a ponerse de pie mirando al frente
-			var tween = create_tween()
-			tween.tween_property(spr, "modulate", Color(0.2, 2.2, 0.5), 0.25)
-			tween.tween_property(spr, "modulate", Color.WHITE, 0.25)
-		set_log("[¡REVIVIDO!] ¡RH concedió un DÍA LIBRE a %s! ¡Descansó del estrés, revivió y regresa al combate con %d HP!" % [mem["name"], mem["hp"]])
-	else:
-		var heal = 70
-		mem["hp"] = min(mem["max_hp"], mem["hp"] + heal)
-		if target_idx < battler_sprites.size():
-			var spr = battler_sprites[target_idx]
-			var tween = create_tween()
-			tween.tween_property(spr, "modulate", Color(0.2, 2.2, 0.5), 0.2)
-			tween.tween_property(spr, "modulate", Color.WHITE, 0.2)
-		set_log("[+] ¡%s se tomó su merecido DÍA LIBRE y recargó baterías (+%d HP)!" % [mem["name"], heal])
-		
+	var heal_amt = get_item_heal_amount(current_item_in_use, mem)
+	mem["hp"] = min(mem["max_hp"], mem["hp"] + heal_amt)
+	if target_idx < battler_sprites.size():
+		var spr = battler_sprites[target_idx]
+		var tween = create_tween()
+		tween.tween_property(spr, "modulate", Color(0.3, 1.8, 0.4), 0.15)
+		tween.tween_property(spr, "modulate", Color.WHITE, 0.15)
 	render_party_ui()
+	var msg = get_item_log_message(current_item_in_use, mem, heal_amt)
+	set_log(msg)
 	end_hero_action()
 
 func _on_item_back_pressed():
 	items_menu.visible = false
 	commands_box.visible = true
+	set_log("¡Elige una acción para tu turno!")
 
 func get_item_heal_amount(item_key: String, member: Dictionary) -> int:
 	var name_lower = member.get("name", "").to_lower()
@@ -619,15 +673,69 @@ func has_alive_minions() -> bool:
 			return true
 	return false
 
-func select_next_alive_minion():
+func select_boss_target():
+	current_target_type = TargetType.BOSS
+	update_target_selection_ui()
+	set_log("[🎯] Objetivo fijado: Impresora Maldita.")
+
+func select_minion_target(idx: int):
+	if idx >= 0 and idx < printer_minions.size() and printer_minions[idx]["alive"]:
+		current_target_type = TargetType.MINION
+		selected_minion_index = idx
+		update_target_selection_ui()
+		set_log("[🎯] Objetivo fijado: %s." % printer_minions[idx]["name"])
+
+func cycle_next_target():
+	var valid_targets = []
+	if enemy_current_hp > 0:
+		valid_targets.append({"type": TargetType.BOSS, "index": -1})
 	for i in range(printer_minions.size()):
-		if printer_minions[i].get("alive", false):
-			selected_minion_index = i
-			update_minions_ui()
-			return
+		if printer_minions[i]["alive"]:
+			valid_targets.append({"type": TargetType.MINION, "index": i})
+	
+	if valid_targets.size() <= 1:
+		return
+		
+	var cur_idx = -1
+	for i in range(valid_targets.size()):
+		var vt = valid_targets[i]
+		if vt["type"] == current_target_type:
+			if vt["type"] == TargetType.BOSS or vt["index"] == selected_minion_index:
+				cur_idx = i
+				break
+				
+	var next_idx = (cur_idx + 1) % valid_targets.size()
+	var nxt = valid_targets[next_idx]
+	current_target_type = nxt["type"]
+	if current_target_type == TargetType.MINION:
+		selected_minion_index = nxt["index"]
+		set_log("[🎯] Objetivo: %s." % printer_minions[selected_minion_index]["name"])
+	else:
+		set_log("[🎯] Objetivo: Impresora Maldita.")
+	update_target_selection_ui()
+
+func update_target_selection_ui():
+	if current_target_type == TargetType.BOSS:
+		if boss_target_arrow:
+			boss_target_arrow.visible = (printer_minions_spawned and has_alive_minions())
+		if btn_cycle_target:
+			btn_cycle_target.text = "[🎯] Obj: Impresora ▼"
+	else:
+		if boss_target_arrow:
+			boss_target_arrow.visible = false
+		if btn_cycle_target:
+			btn_cycle_target.text = "[🎯] Obj: %s ▼" % printer_minions[selected_minion_index]["short"]
+	
+	update_minions_ui()
 
 func spawn_printer_minions():
 	printer_minions_spawned = true
+	current_target_type = TargetType.MINION
+	selected_minion_index = 0
+	if btn_cycle_target:
+		btn_cycle_target.visible = true
+	if btn_flee:
+		btn_flee.visible = false
 	printer_minions = [
 		{
 			"id": "toner_k",
@@ -682,9 +790,9 @@ func spawn_printer_minions():
 			"alive": true
 		}
 	]
-	selected_minion_index = 0
 	render_minions_ui()
-	set_log("[!] ¡ALERTA CRÍTICA! ¡La Impresora Maldita eyecta 4 Cartuchos de Tóner CMYK para defenderse!")
+	update_target_selection_ui()
+	set_log("[!] ¡La Impresora eyecta 4 Tóners! Elige tu objetivo con la flechita.")
 
 func render_minions_ui():
 	if not has_node("MainBox/BattleArena/EnemySide/MinionsContainer"):
@@ -707,11 +815,19 @@ func render_minions_ui():
 		vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		
+		var arrow_lbl = Label.new()
+		arrow_lbl.text = "▼"
+		arrow_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		arrow_lbl.add_theme_font_size_override("font_size", 9)
+		arrow_lbl.add_theme_color_override("font_color", Color(1, 0.9, 0.1))
+		arrow_lbl.visible = (current_target_type == TargetType.MINION and i == selected_minion_index)
+		vbox.add_child(arrow_lbl)
+		
 		var tag = Label.new()
-		tag.text = ("▶ " if i == selected_minion_index else "") + m["short"]
+		tag.text = m["short"]
 		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		tag.add_theme_font_size_override("font_size", 7)
-		tag.add_theme_color_override("font_color", Color.YELLOW if i == selected_minion_index else m["color"])
+		tag.add_theme_color_override("font_color", Color.YELLOW if (current_target_type == TargetType.MINION and i == selected_minion_index) else m["color"])
 		vbox.add_child(tag)
 		
 		var img = TextureRect.new()
@@ -738,13 +854,12 @@ func render_minions_ui():
 		btn.add_child(vbox)
 		var minion_idx = i
 		btn.pressed.connect(func():
-			if printer_minions[minion_idx]["alive"]:
-				selected_minion_index = minion_idx
-				update_minions_ui()
+			select_minion_target(minion_idx)
 		)
 		container.add_child(btn)
 		minion_card_nodes.append({
 			"btn": btn,
+			"arrow": arrow_lbl,
 			"tag": tag,
 			"img": img,
 			"hp_bar": hp_bar,
@@ -758,14 +873,17 @@ func update_minions_ui():
 			var card = minion_card_nodes[i]
 			card["hp_bar"].value = m["hp"]
 			card["hp_txt"].text = "%d HP" % m["hp"]
+			var is_selected = (current_target_type == TargetType.MINION and i == selected_minion_index)
+			if card.has("arrow"):
+				card["arrow"].visible = is_selected and m["alive"]
 			if not m["alive"]:
 				card["btn"].modulate = Color(0.4, 0.4, 0.4, 0.3)
 				card["tag"].text = "[X]"
 				card["tag"].add_theme_color_override("font_color", Color.GRAY)
 			else:
 				card["btn"].modulate = Color.WHITE
-				card["tag"].text = ("▶ " if i == selected_minion_index else "") + m["short"]
-				card["tag"].add_theme_color_override("font_color", Color.YELLOW if i == selected_minion_index else m["color"])
+				card["tag"].text = m["short"]
+				card["tag"].add_theme_color_override("font_color", Color.YELLOW if is_selected else m["color"])
 
 func deal_aoe_damage_to_minions(damage: int, message: String):
 	set_log("%s (%d de daño en área)." % [message, damage])
@@ -784,17 +902,18 @@ func deal_aoe_damage_to_minions(damage: int, message: String):
 	update_minions_ui()
 	if not has_alive_minions():
 		set_log("[!] ¡TODOS LOS CARTUCHOS NEUTRALIZADOS! ¡La Impresora Maldita quedó vulnerable!")
+		select_boss_target()
 	else:
-		select_next_alive_minion()
+		cycle_next_target()
 	end_hero_action()
 
 func deal_damage_to_enemy(damage: int, message: String):
-	# Si hay minions vivos protegiendo a la impresora:
-	if has_alive_minions():
+	# Si se tiene como objetivo a un minion con vida:
+	if current_target_type == TargetType.MINION and has_alive_minions():
 		var m = printer_minions[selected_minion_index]
 		m["hp"] = max(0, m["hp"] - damage)
 		update_minions_ui()
-		set_log("%s -> Impactó a %s (%d de daño)." % [message, m["name"], damage])
+		set_log("%s -> Impactó a %s (%d daño)." % [message, m["name"], damage])
 		
 		if selected_minion_index < minion_card_nodes.size():
 			var spr_node = minion_card_nodes[selected_minion_index]["img"]
@@ -808,8 +927,9 @@ func deal_damage_to_enemy(damage: int, message: String):
 			set_log("¡El %s explotó y se quedó sin tinta!" % m["name"])
 			if not has_alive_minions():
 				set_log("[!] ¡TODOS LOS CARTUCHOS NEUTRALIZADOS! ¡La Impresora Maldita quedó vulnerable!")
+				select_boss_target()
 			else:
-				select_next_alive_minion()
+				cycle_next_target()
 		end_hero_action()
 		return
 
@@ -949,9 +1069,22 @@ func enemy_turn():
 	
 	target["hp"] = max(0, target["hp"] - dmg)
 	
-	# Ataques coordinados de los cartuchos de tóner
-	if printer_minions_spawned and has_alive_minions():
-		var extra_logs = []
+	# Efecto visual de golpe en el héroe objetivo
+	if target_index < battler_sprites.size():
+		var spr = battler_sprites[target_index]
+		var tween = create_tween()
+		tween.tween_property(spr, "modulate", Color.RED, 0.1)
+		tween.tween_property(spr, "modulate", Color.WHITE, 0.1)
+		if target["hp"] <= 0:
+			spr.frame = 11 * 4 + 3
+			
+	render_party_ui()
+	set_log(log_msg)
+	
+	await get_tree().create_timer(0.7).timeout
+	
+	# Ataques de los cartuchos de tóner (uno a uno con pausa breve para no saturar la pantalla)
+	if printer_minions_spawned and has_alive_minions() and not is_battle_over:
 		for m in printer_minions:
 			if m["alive"] and not is_battle_over:
 				var m_alive = []
@@ -963,22 +1096,16 @@ func enemy_turn():
 					var m_tgt = battle_party[m_tgt_idx]
 					var m_dmg = max(2, m["atk"] + randi_range(-1, 2) - int(m_tgt["def"] * 0.3))
 					m_tgt["hp"] = max(0, m_tgt["hp"] - m_dmg)
-					extra_logs.append("¡%s disparó %s! (%d daño a %s)" % [m["name"], m["atk_name"], m_dmg, m_tgt["name"]])
-		if not extra_logs.is_empty():
-			log_msg += "\n" + "\n".join(extra_logs)
-	
-	# Efecto visual de golpe en el héroe objetivo
-	if target_index < battler_sprites.size():
-		var spr = battler_sprites[target_index]
-		var tween = create_tween()
-		tween.tween_property(spr, "modulate", Color.RED, 0.1)
-		tween.tween_property(spr, "modulate", Color.WHITE, 0.1)
-		if target["hp"] <= 0:
-			spr.frame = 11 * 4 + 3
-			set_log("[KO] ¡%s ha caído desmayado!" % target["name"])
-	
-	render_party_ui()
-	set_log(log_msg)
+					if m_tgt_idx < battler_sprites.size():
+						var spr_h = battler_sprites[m_tgt_idx]
+						var tw = create_tween()
+						tw.tween_property(spr_h, "modulate", Color(1.8, 0.3, 0.3), 0.1)
+						tw.tween_property(spr_h, "modulate", Color.WHITE, 0.1)
+						if m_tgt["hp"] <= 0:
+							spr_h.frame = 11 * 4 + 3
+					render_party_ui()
+					set_log("¡%s disparó %s! (%d daño a %s)" % [m["name"], m["atk_name"], m_dmg, m_tgt["name"]])
+					await get_tree().create_timer(0.45).timeout
 	
 	var all_dead = true
 	for m in battle_party:
@@ -986,7 +1113,7 @@ func enemy_turn():
 			all_dead = false
 			break
 			
-	await get_tree().create_timer(1.2).timeout
+	await get_tree().create_timer(0.5).timeout
 	
 	if all_dead:
 		game_over()
@@ -1008,6 +1135,12 @@ func enemy_defeated():
 		
 	var enemy_type_str = enemy.get("type", "printer")
 	var exp_gained = enemy.get("exp_reward", 45)
+	var coins_reward = 80
+	if enemy_type_str == "printer":
+		coins_reward = 250
+	elif enemy_type_str == "dragon_boss":
+		coins_reward = 500
+	GameManager.it_budget += coins_reward
 	
 	for i in range(min(GameManager.party.size(), battle_party.size())):
 		GameManager.party[i]["hp"] = battle_party[i]["hp"]
@@ -1022,13 +1155,13 @@ func enemy_defeated():
 	if enemy_type_str == "printer":
 		GameManager.printer_defeated = true
 		GameManager.player_saved_position = Vector2(980, 200)
-		set_log("[!] ¡VICTORIA TOTAL! ¡La Impresora Maldita fue neutralizada! (+%d EXP)" % exp_gained)
+		set_log("[!] ¡VICTORIA TOTAL! ¡La Impresora Maldita fue neutralizada! (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
 	elif enemy_type_str == "dragon_boss":
 		GameManager.dragon_boss_defeated = true
 		GameManager.player_saved_position = Vector2(1820, 180)
-		set_log("[VICTORIA LEGENDARIA] ¡Derrotaste a El Señor del Dragón! ¡Rescataste el splitter, discos y el Magic Trackpad! (+%d EXP)" % exp_gained)
+		set_log("[VICTORIA LEGENDARIA] ¡Derrotaste a El Señor del Dragón! (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
 	else:
-		set_log("[!] ¡Ticket resuelto! '%s' ha sido neutralizado. (+%d EXP)" % [enemy.get("name", "Enemigo"), exp_gained])
+		set_log("[!] ¡Ticket resuelto! '%s' neutralizado. (+%d EXP, +$%d Presupuesto)" % [enemy.get("name", "Enemigo"), exp_gained, coins_reward])
 		
 	if level_ups.size() > 0:
 		await get_tree().create_timer(1.2).timeout

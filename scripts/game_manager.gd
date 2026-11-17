@@ -125,6 +125,16 @@ var dragon_boss_cutscene_done: bool = false
 var dragon_boss_fled: bool = false
 var dragon_boss_defeated: bool = false
 
+var it_budget: int = 200 # Presupuesto de caja chica de IT para la tiendita de Nelly
+
+var item_prices = {
+	"pepsi": 15,
+	"cafe": 25,
+	"predator": 35,
+	"foto": 50,
+	"dia_libre": 90
+}
+
 var battle_items = {
 	"pepsi": {"name": "Lata de Pepsi", "count": 4, "desc": "Cura 20 HP (50 HP a Alejandro)"},
 	"cafe": {"name": "Taza de Café", "count": 4, "desc": "Cura 50 HP (0 HP a Alex y Javier)"},
@@ -133,7 +143,17 @@ var battle_items = {
 	"dia_libre": {"name": "Día Libre", "count": 2, "desc": "Revive a un compañero caído y restaura 70 HP."}
 }
 
+func buy_item(item_key: String) -> bool:
+	var price = item_prices.get(item_key, 25)
+	if it_budget >= price:
+		it_budget -= price
+		if battle_items.has(item_key):
+			battle_items[item_key]["count"] += 1
+		return true
+	return false
+
 func reset_battle_items():
+	it_budget = 200
 	battle_items["pepsi"]["count"] = 4
 	battle_items["cafe"]["count"] = 4
 	battle_items["predator"]["count"] = 3

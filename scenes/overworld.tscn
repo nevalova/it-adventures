@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://assets/props/desk_light.png" id="11_desk_light"]
 [ext_resource type="Texture2D" path="res://assets/props/desk_office.png" id="12_desk_office"]
 [ext_resource type="Texture2D" path="res://assets/characters/dragon_boss_spritesheet.png" id="17_dragon_spr"]
+[ext_resource type="Texture2D" path="res://assets/characters/npc_pelirroja_spritesheet.png" id="18_nelly_spr"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
 size = Vector2(2048, 20)
@@ -581,6 +582,36 @@ collision_mask = 1
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RobertoHuerta/InteractArea"]
 shape = SubResource("CircleShape2D_npc_interact")
 
+[node name="Nelly" type="Node2D" parent="."]
+position = Vector2(340, 112)
+
+[node name="Sprite2D" type="Sprite2D" parent="Nelly"]
+texture_filter = 1
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("18_nelly_spr")
+hframes = 4
+vframes = 12
+frame = 0
+
+[node name="NameTag" type="Label" parent="Nelly"]
+offset_left = -60.0
+offset_top = -34.0
+offset_right = 60.0
+offset_bottom = -21.0
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Nelly (Tiendita IT)"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="Nelly"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Nelly/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
 [node name="Usuaria" type="Node2D" parent="."]
 position = Vector2(970, 155)
 
@@ -787,6 +818,12 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 1, 0.5, 1)
 theme_override_font_sizes/font_size = 12
 text = "HP: 160/160"
+
+[node name="HeroBudget" type="Label" parent="CanvasLayer/HUD/HeroInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+text = "Fondos: $200"
 
 [node name="Hint" type="Label" parent="CanvasLayer/HUD/HeroInfo"]
 layout_mode = 2
@@ -1090,3 +1127,69 @@ size_flags_horizontal = 3
 focus_mode = 0
 theme_override_font_sizes/font_size = 11
 text = "[>] Explorar la Oficina"
+
+[node name="ShopModal" type="PanelContainer" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -155.0
+offset_right = 260.0
+offset_bottom = 155.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_demo_modal")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/ShopModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/ShopModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeaderHBox" type="HBoxContainer" parent="CanvasLayer/ShopModal/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CanvasLayer/ShopModal/Margin/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 13
+text = "🏪 TIENDITA DE NELLY (SUMINISTROS IT)"
+
+[node name="BudgetLabel" type="Label" parent="CanvasLayer/ShopModal/Margin/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 12
+text = "Fondos: $200"
+
+[node name="ItemsScroll" type="ScrollContainer" parent="CanvasLayer/ShopModal/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ItemsList" type="VBoxContainer" parent="CanvasLayer/ShopModal/Margin/VBox/ItemsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="FeedbackLabel" type="Label" parent="CanvasLayer/ShopModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "¡Hola! ¿Qué necesitas llevar para el turno de hoy?"
+horizontal_alignment = 1
+
+[node name="BtnCloseShop" type="Button" parent="CanvasLayer/ShopModal/Margin/VBox"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 11
+text = "[X] Cerrar Tiendita y Salir"
