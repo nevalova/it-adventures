@@ -192,6 +192,15 @@ func setup_battle():
 			enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			enemy_sprite.custom_minimum_size = Vector2(140, 140)
+	elif enemy.get("type") == "password_boss":
+		$Background.color = Color(0.01, 0.04, 0.1, 1.0)
+		enemy_name_label.text = "[JEFE SITE] " + enemy.get("name", "Contraseña Olvidada")
+		enemy_name_label.modulate = Color(0.3, 0.85, 1.0)
+		if ResourceLoader.exists(enemy.get("texture_path", "")):
+			enemy_sprite.texture = load(enemy.get("texture_path"))
+		enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		enemy_sprite.custom_minimum_size = Vector2(160, 150)
 	else:
 		if ResourceLoader.exists(enemy.get("texture_path", "")):
 			enemy_sprite.texture = load(enemy.get("texture_path"))
@@ -207,6 +216,8 @@ func setup_battle():
 	
 	if enemy.get("type") == "dragon_boss":
 		set_log("¡SOMBRAS DEL PASADO! ¡El Señor del Dragón exige su dragón!")
+	elif enemy.get("type") == "password_boss":
+		set_log("¡EMERGENCIA EN EL SITE! ¡La Contraseña Olvidada bloquea el Servidor!")
 	else:
 		set_log("¡Un " + enemy.get("name", "problema") + " salvaje ha detenido las operaciones!")
 	start_turn()
@@ -1126,9 +1137,9 @@ func enemy_defeated():
 	
 	if boss_atlas != null:
 		boss_is_special_anim = true
-		boss_frame_row = 5 # Row 5: Col 7 = KO tumbado en el piso
-		boss_frame_col = 7
-		boss_atlas.region = Rect2(7 * boss_cell_size, 5 * boss_cell_size, boss_cell_size, boss_cell_size)
+		boss_frame_row = 5 # Row 5: Col 5 = Hincado en pose de derrota
+		boss_frame_col = 5
+		boss_atlas.region = Rect2(5 * boss_cell_size, 5 * boss_cell_size, boss_cell_size, boss_cell_size)
 	
 	if GameManager.current_enemy_id != "" and not GameManager.defeated_enemies.has(GameManager.current_enemy_id):
 		GameManager.defeated_enemies.append(GameManager.current_enemy_id)
@@ -1159,7 +1170,11 @@ func enemy_defeated():
 	elif enemy_type_str == "dragon_boss":
 		GameManager.dragon_boss_defeated = true
 		GameManager.player_saved_position = Vector2(1820, 180)
-		set_log("[VICTORIA LEGENDARIA] ¡Derrotaste a El Señor del Dragón! (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
+		set_log("[VICTORIA!] El Señor del Dragón cae hincado exhausto: '¡Maldita sea... no es la última vez que sabrán de mí!...' (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
+	elif enemy_type_str == "password_boss":
+		GameManager.server_boss_defeated = true
+		GameManager.player_saved_position = Vector2(2560, 180)
+		set_log("[SITE SALVADO] ¡Descifraste la Contraseña del Servidor con la foto de Roberto! (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
 	else:
 		set_log("[!] ¡Ticket resuelto! '%s' neutralizado. (+%d EXP, +$%d Presupuesto)" % [enemy.get("name", "Enemigo"), exp_gained, coins_reward])
 		

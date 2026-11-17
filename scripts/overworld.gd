@@ -42,6 +42,11 @@ extends Node2D
 @onready var dark_overlay = $CanvasLayer/DarkOverlay
 @onready var episode_card = $CanvasLayer/DarkOverlay/EpisodeCard
 
+# Servidor Principal / Contraseña Olvidada
+@onready var server_boss = $ServerBoss
+@onready var server_boss_sprite = $ServerBoss/Sprite2D
+@onready var server_boss_nametag = $ServerBoss/NameTag
+
 @onready var office_trigger = $OfficeTrigger
 @onready var enemy_printer = $EnemyPrinter
 @onready var enemy_printer_sprite = $EnemyPrinter/Sprite2D
@@ -183,13 +188,26 @@ func _ready():
 	$EnemyPrinter/PrinterInteract.body_exited.connect(func(body): if body == player and current_interactable == "printer": _clear_interactable())
 	
 	$DragonBoss/InteractArea.body_entered.connect(func(body):
-		if body == player and GameManager.dragon_boss_fled and not GameManager.dragon_boss_defeated:
-			_set_interactable("dragon_boss")
+		if body == player:
+			if GameManager.dragon_boss_fled and not GameManager.dragon_boss_defeated:
+				_set_interactable("dragon_boss")
+			elif GameManager.dragon_boss_defeated:
+				_set_interactable("dragon_boss_kneeling")
 	)
 	$DragonBoss/InteractArea.body_exited.connect(func(body):
-		if body == player and current_interactable == "dragon_boss":
+		if body == player and (current_interactable == "dragon_boss" or current_interactable == "dragon_boss_kneeling"):
 			_clear_interactable()
 	)
+	
+	if has_node("ServerBoss/InteractArea"):
+		$ServerBoss/InteractArea.body_entered.connect(func(body):
+			if body == player:
+				_set_interactable("server_boss")
+		)
+		$ServerBoss/InteractArea.body_exited.connect(func(body):
+			if body == player and current_interactable == "server_boss":
+				_clear_interactable()
+		)
 	
 	if $RobertoHuerta.has_node("InteractArea"):
 		$RobertoHuerta/InteractArea.body_entered.connect(func(body):
@@ -219,17 +237,43 @@ func _ready():
 		touch_controls.visible = true
 		
 		if GameManager.dragon_boss_defeated:
-			dragon_boss.visible = false
+			# El Señor del Dragón queda hincado en su animación de derrota
+			dragon_boss.visible = true
+			dragon_boss.position = Vector2(1920, 180)
+			dragon_boss_sprite.texture = load("res://assets/characters/dragon_boss_battle_spritesheet.png")
+			dragon_boss_sprite.hframes = 8
+			dragon_boss_sprite.vframes = 8
+			dragon_boss_sprite.frame = 45 # Hincado exhausto
+			dragon_boss_sprite.scale = Vector2(0.35, 0.35)
+			if dragon_boss.has_node("NameTag"):
+				$DragonBoss/NameTag.text = "[!] El Señor del Dragón (Hincado)"
+				$DragonBoss/NameTag.modulate = Color(1.0, 0.5, 0.3)
+				
 			roberto.visible = true
 			roberto.position = Vector2(1820, 180)
-			roberto_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda hacia el jugador
-			btn_demo_modal.visible = true
-			objective_label.text = "[!] ¡Victoria Legendaria! Habla con Roberto para revisar el reporte final."
+			roberto_sprite.frame = 6 * 4 + 0 # Mirando hacia la derecha
+			
 			enemy_printer.set_collision_layer_value(3, false)
 			enemy_printer_sprite.position = Vector2.ZERO
 			enemy_printer_sprite.modulate = Color(0.55, 0.55, 0.55, 1.0)
 			enemy_printer_nametag.text = "[V] Neutralizada"
 			enemy_printer_nametag.modulate = Color(0.3, 0.9, 0.6, 1.0)
+			
+			if GameManager.server_boss_defeated:
+				btn_demo_modal.visible = true
+				objective_label.text = "[!] ¡Victoria Total! El Servidor ha sido rescatado. ¡Habla con Roberto!"
+				if has_node("ServerBoss"):
+					server_boss.visible = true
+					server_boss_sprite.modulate = Color(0.4, 0.9, 0.5)
+					server_boss_nametag.text = "[V] Servidor Desbloqueado"
+					server_boss_nametag.modulate = Color(0.3, 0.9, 0.5)
+			elif not GameManager.roberto_server_dialogue_done:
+				player.global_position = Vector2(1860, 180)
+				player.set_facing(Vector2.LEFT)
+				objective_label.text = "[!] El Señor del Dragón ha caído..."
+				_start_post_dragon_dialogue()
+			else:
+				objective_label.text = "[!] ¡Ve a la Sala de Servidores (al este) y vence a la Contraseña Olvidada!"
 		elif GameManager.printer_defeated:
 			roberto.visible = false
 			btn_demo_modal.visible = true
@@ -632,6 +676,88 @@ func _start_dragon_boss_battle():
 	}
 	GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
 
+func _start_post_dragon_dialogue():
+	player.can_move = false
+	var leader = GameManager.get_leader_data()
+	var hero_name = leader["name"]
+	
+	dialog_queue = [
+		{
+			"speaker": "El Señor del Dragón",
+			"portrait": "res://assets/characters/dragon_boss_portrait.png",
+			"color": Color("#e17055"),
+			"text": "¡Aghhh... Maldita sea!... ¡¿Cómo es posible que unos técnicos de soporte me hayan dejado así?!"
+		},
+		{
+			"speaker": "El Señor del Dragón",
+			"portrait": "res://assets/characters/dragon_boss_portrait.png",
+			"color": Color("#e17055"),
+			"text": "¡No crean que esto se queda así!... ¡No es la última vez que sabrán de mí!... ¡Volveré por lo que es mío y por mi dragón impreso en 3D!"
+		},
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#0984e3"),
+			"text": "¡Uff, %s! ¡Qué paliza le diste! ¡Sabía que con el equipo de TI nadie se mete!" % hero_name
+		},
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#0984e3"),
+			"text": "Pero no cantes victoria todavía... ¡acaba de surgir una emergencia de nivel crítico en el Site!"
+		},
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#0984e3"),
+			"text": "¡Los de Producción cambiaron la contraseña del Servidor Principal de la base de datos y... NADIE la recuerda!"
+		},
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#0984e3"),
+			"text": "¡Por suerte alcancé a tomarle foto con mi celular antes de que se bloqueara! Salió un poco desenfocada, pero nos servirá para descifrarla."
+		},
+		{
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#0984e3"),
+			"text": "¡Rápido! Cruza la puerta del este hacia la Sala de Servidores. ¡Debemos derrotar a la Temible Contraseña Olvidada antes de que colapse toda la empresa!"
+		}
+	]
+	
+	on_dialog_closed_callback = func():
+		GameManager.roberto_server_dialogue_done = true
+		GameManager.password_quest_active = true
+		objective_label.text = "[!] ¡Entra a la Sala de Servidores (al este) y vence a la Contraseña Olvidada!"
+		player.can_move = true
+		
+	_show_next_in_queue()
+
+func _start_server_boss_battle():
+	GameManager.player_saved_position = player.global_position
+	GameManager.current_enemy_id = "server_password_boss"
+	var spec = {
+		"name": "Contraseña Olvidada del Servidor",
+		"type": "password_boss",
+		"desc": "Un críptico enigma de caracteres especiales y números que nadie apuntó. La foto de Roberto está desenfocada.",
+		"hp": 750,
+		"max_hp": 750,
+		"atk": 26,
+		"def": 15,
+		"exp_reward": 450,
+		"texture_path": "res://assets/enemies/boss_password_server.png",
+		"attacks": [
+			"Error: Contraseña Incorrecta",
+			"Complejidad Máxima (Requiere caracter especial)",
+			"Foto Borrosa de Roberto (Confusión)",
+			"Bloqueo de Cuenta por 30 Minutos",
+			"Fuerza Bruta Fallida"
+		]
+	}
+	GameManager.current_enemy_data = spec
+	GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
+
 func _open_demo_modal():
 	var leader = GameManager.get_leader_data()
 	var hero_name = leader["name"]
@@ -639,14 +765,24 @@ func _open_demo_modal():
 	var hero_title = leader["title"]
 	var hero_level = leader.get("level", 1)
 	
-	if GameManager.dragon_boss_defeated:
+	if GameManager.server_boss_defeated:
+		demo_title.text = "¡HÉROE SUPREMO DE IT!"
+		demo_subtitle.text = "¡Felicidades %s! ¡Has salvado el Site y descifrado el Servidor!" % hero_name
+		demo_body.text = ("Has superado todos los desafíos de IT Adventures:\n\n" +
+			" 1. Neutralizaste la Impresora Maldita y salvaste la nómina.\n" +
+			" 2. Derrotaste a El Señor del Dragón dejándolo hincado.\n" +
+			" 3. Descifraste la Temible Contraseña Olvidada con la foto de Roberto.\n\n" +
+			"Héroe Legendario: %s [Nivel %d - %s]\n" +
+			"Fondos de IT Restantes: $%d\n\n" +
+			"[!] ¡Has completado con honores toda la Demo de IT Adventures!") % [hero_name, hero_level, hero_role, GameManager.it_budget]
+	elif GameManager.dragon_boss_defeated:
 		demo_title.text = "¡VICTORIA LEGENDARIA!"
 		demo_subtitle.text = "¡Felicidades %s! ¡Has derrotado al Señor del Dragón!" % hero_name
 		demo_body.text = ("Has vencido a la Impresora Maldita y derrotado a las Sombras del Pasado.\n\n" +
 			"¡El splitter, los discos duros y el Magic Trackpad han sido rescatados para Sistemas!\n\n" +
 			"Héroe Legendario: %s [Nivel %d - %s]\n" +
 			"Especialidad: %s\n\n" +
-			"[!] ¡Has completado todas las misiones de la Demo de IT Adventures!") % [hero_name, hero_level, hero_role, hero_title]
+			"[!] ¡Avanza a la Sala de Servidores para descifrar la contraseña olvidada!") % [hero_name, hero_level, hero_role, hero_title]
 	else:
 		demo_subtitle.text = "¡Gracias %s, esto solo es un demo!" % hero_name
 		demo_body.text = ("Has neutralizado con éxito a la Impresora Maldita y salvado la nómina de Finanzas.\n\n" +
@@ -669,6 +805,16 @@ func _set_interactable(id: String):
 	btn_interact.visible = true
 	interact_banner.visible = true
 	match id:
+		"server_boss":
+			if GameManager.server_boss_defeated:
+				interact_label.text = "[E] Inspeccionar Servidor Principal (Desbloqueado)"
+				btn_interact.text = "[E] Revisar"
+			else:
+				interact_label.text = "[E] ¡Pelear con la Contraseña Olvidada!"
+				btn_interact.text = "[E] Batalla"
+		"dragon_boss_kneeling":
+			interact_label.text = "[E] Hablar con El Señor del Dragón (Hincado)"
+			btn_interact.text = "[E] Hablar"
 		"nelly":
 			interact_label.text = "[E] Tiendita de Nelly (Suministros IT)"
 			btn_interact.text = "[E] Tiendita"
@@ -710,8 +856,53 @@ func _trigger_current_interaction():
 			_open_shop_modal()
 		"dragon_boss":
 			_start_dragon_boss_battle()
+		"dragon_boss_kneeling":
+			dialog_queue = [
+				{
+					"speaker": "El Señor del Dragón",
+					"portrait": "res://assets/characters/dragon_boss_portrait.png",
+					"color": Color("#e17055"),
+					"text": "[El Señor del Dragón sigue hincado en el suelo, respirando agitado y fulminándote con la mirada]\n\n'¡Lárguense al site antes de que me levante!... ¡Esto no es la última vez que sabrán de mí! ¡Volveré por mi dragón 3D!'"
+				}
+			]
+			on_dialog_closed_callback = func():
+				player.can_move = true
+			player.can_move = false
+			_show_next_in_queue()
 		"roberto":
-			_open_demo_modal()
+			if GameManager.server_boss_defeated:
+				_open_demo_modal()
+			elif GameManager.dragon_boss_defeated:
+				dialog_queue = [
+					{
+						"speaker": "Roberto Huerta",
+						"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+						"color": Color("#0984e3"),
+						"text": "¡Corre al Site de Servidores al este, %s! ¡Usa la foto de mi celular para descifrar esa contraseña antes de que tire el sistema!" % hero_name
+					}
+				]
+				on_dialog_closed_callback = func():
+					player.can_move = true
+				player.can_move = false
+				_show_next_in_queue()
+			else:
+				_open_demo_modal()
+		"server_boss":
+			if GameManager.server_boss_defeated:
+				dialog_queue = [
+					{
+						"speaker": "Servidor Principal",
+						"portrait": "res://assets/enemies/boss_password_portrait.png",
+						"color": Color("#4ade80"),
+						"text": "El Servidor Principal funciona con normalidad. Las luces LED parpadean rítmicamente en verde.\n\nAcceso concedido: root@srv-prod-01 (Autenticación descifrada con éxito gracias a la foto de Roberto)."
+					}
+				]
+				on_dialog_closed_callback = func():
+					player.can_move = true
+				player.can_move = false
+				_show_next_in_queue()
+			else:
+				_start_server_boss_battle()
 		"usuaria":
 			dialog_queue = [
 				{

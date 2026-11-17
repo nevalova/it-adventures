@@ -124,6 +124,9 @@ var victory_dialogue_shown: bool = false
 var dragon_boss_cutscene_done: bool = false
 var dragon_boss_fled: bool = false
 var dragon_boss_defeated: bool = false
+var roberto_server_dialogue_done: bool = false
+var password_quest_active: bool = false
+var server_boss_defeated: bool = false
 
 var it_budget: int = 200 # Presupuesto de caja chica de IT para la tiendita de Nelly
 
@@ -168,6 +171,9 @@ func reset_game():
 	dragon_boss_cutscene_done = false
 	dragon_boss_fled = false
 	dragon_boss_defeated = false
+	roberto_server_dialogue_done = false
+	password_quest_active = false
+	server_boss_defeated = false
 	defeated_enemies.clear()
 	current_enemy_id = ""
 	player_saved_position = Vector2(140, 200)

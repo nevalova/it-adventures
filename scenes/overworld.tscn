@@ -11,9 +11,11 @@
 [ext_resource type="Texture2D" path="res://assets/props/desk_office.png" id="12_desk_office"]
 [ext_resource type="Texture2D" path="res://assets/characters/dragon_boss_spritesheet.png" id="17_dragon_spr"]
 [ext_resource type="Texture2D" path="res://assets/characters/npc_pelirroja_spritesheet.png" id="18_nelly_spr"]
+[ext_resource type="Texture2D" path="res://assets/enemies/boss_password_server.png" id="19_server_boss"]
+[ext_resource type="Texture2D" path="res://assets/enemies/enemy_cpu_tower.png" id="20_server_rack"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
-size = Vector2(2048, 20)
+size = Vector2(3072, 20)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_v"]
 size = Vector2(20, 360)
@@ -76,7 +78,7 @@ script = ExtResource("1_overworld")
 
 [node name="Floor" type="TextureRect" parent="."]
 texture_filter = 0
-offset_right = 2048.0
+offset_right = 3072.0
 offset_bottom = 360.0
 texture = ExtResource("2_floor")
 stretch_mode = 1
@@ -87,17 +89,17 @@ collision_mask = 1
 
 [node name="WallTop" type="TextureRect" parent="Walls"]
 texture_filter = 0
-offset_right = 2048.0
+offset_right = 3072.0
 offset_bottom = 24.0
 texture = ExtResource("3_wall")
 stretch_mode = 1
 
 [node name="CollTop" type="CollisionShape2D" parent="Walls"]
-position = Vector2(1024, 10)
+position = Vector2(1536, 10)
 shape = SubResource("RectangleShape2D_wall_h")
 
 [node name="CollBottom" type="CollisionShape2D" parent="Walls"]
-position = Vector2(1024, 350)
+position = Vector2(1536, 350)
 shape = SubResource("RectangleShape2D_wall_h")
 
 [node name="CollLeft" type="CollisionShape2D" parent="Walls"]
@@ -105,13 +107,13 @@ position = Vector2(10, 180)
 shape = SubResource("RectangleShape2D_wall_v")
 
 [node name="CollRight" type="CollisionShape2D" parent="Walls"]
-position = Vector2(2038, 180)
+position = Vector2(3062, 180)
 shape = SubResource("RectangleShape2D_wall_v")
 
 [node name="WallRightVisual" type="TextureRect" parent="Walls"]
 texture_filter = 0
-offset_left = 2032.0
-offset_right = 2048.0
+offset_left = 3056.0
+offset_right = 3072.0
 offset_bottom = 360.0
 texture = ExtResource("3_wall")
 stretch_mode = 1
@@ -168,6 +170,32 @@ stretch_mode = 1
 position = Vector2(1248, 290)
 shape = SubResource("RectangleShape2D_divider")
 
+[node name="WallDivider3Top" type="TextureRect" parent="Walls"]
+texture_filter = 0
+offset_left = 2032.0
+offset_top = 20.0
+offset_right = 2048.0
+offset_bottom = 125.0
+texture = ExtResource("3_wall")
+stretch_mode = 1
+
+[node name="CollDivider3Top" type="CollisionShape2D" parent="Walls"]
+position = Vector2(2040, 70)
+shape = SubResource("RectangleShape2D_divider")
+
+[node name="WallDivider3Bottom" type="TextureRect" parent="Walls"]
+texture_filter = 0
+offset_left = 2032.0
+offset_top = 235.0
+offset_right = 2048.0
+offset_bottom = 345.0
+texture = ExtResource("3_wall")
+stretch_mode = 1
+
+[node name="CollDivider3Bottom" type="CollisionShape2D" parent="Walls"]
+position = Vector2(2040, 290)
+shape = SubResource("RectangleShape2D_divider")
+
 [node name="SignLabel" type="Label" parent="."]
 offset_left = 515.0
 offset_top = 112.0
@@ -191,6 +219,38 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 10
 text = "[ DEPARTAMENTO DE FINANZAS Y CONTABILIDAD ]"
 horizontal_alignment = 1
+
+[node name="ServerSignLabel" type="Label" parent="."]
+offset_left = 1965.0
+offset_top = 112.0
+offset_right = 2120.0
+offset_bottom = 135.0
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 9
+text = "-> SALA DE SERVIDORES"
+horizontal_alignment = 1
+
+[node name="ServerBannerSign" type="Label" parent="."]
+offset_left = 2240.0
+offset_top = 26.0
+offset_right = 2800.0
+offset_bottom = 44.0
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 0.95)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 10
+text = "[ SALA DE SERVIDORES PRINCIPALES - SITE TI & DATACENTER ]"
+horizontal_alignment = 1
+
+[node name="ServerRoomAmbience" type="ColorRect" parent="."]
+offset_left = 2048.0
+offset_top = 24.0
+offset_right = 3056.0
+offset_bottom = 336.0
+color = Color(0.02, 0.08, 0.22, 0.28)
+mouse_filter = 2
 
 [node name="EnvironmentProps" type="Node2D" parent="."]
 
@@ -543,13 +603,125 @@ texture = ExtResource("11_desk_light")
 position = Vector2(0, 4)
 shape = SubResource("RectangleShape2D_desk_col")
 
+[node name="RackTop1" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(2160, 60)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/RackTop1"]
+texture_filter = 1
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("20_server_rack")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/RackTop1"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="RackTop2" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(2320, 60)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/RackTop2"]
+texture_filter = 1
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("20_server_rack")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/RackTop2"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="RackTop3" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(2780, 60)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/RackTop3"]
+texture_filter = 1
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("20_server_rack")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/RackTop3"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="RackTop4" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(2940, 60)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/RackTop4"]
+texture_filter = 1
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("20_server_rack")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/RackTop4"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="RackBot1" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(2160, 300)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/RackBot1"]
+texture_filter = 1
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("20_server_rack")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/RackBot1"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="RackBot2" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(2320, 300)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/RackBot2"]
+texture_filter = 1
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("20_server_rack")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/RackBot2"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="RackBot3" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(2780, 300)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/RackBot3"]
+texture_filter = 1
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("20_server_rack")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/RackBot3"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
+[node name="RackBot4" type="StaticBody2D" parent="OfficeFurniture"]
+position = Vector2(2940, 300)
+collision_layer = 2
+collision_mask = 1
+
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/RackBot4"]
+texture_filter = 1
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("20_server_rack")
+
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/RackBot4"]
+position = Vector2(0, 4)
+shape = SubResource("RectangleShape2D_desk_col")
+
 [node name="Player" parent="." instance=ExtResource("6_player")]
 position = Vector2(140, 200)
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
 limit_left = 0
 limit_top = 0
-limit_right = 2048
+limit_right = 3072
 limit_bottom = 360
 
 [node name="RobertoHuerta" type="Node2D" parent="."]
@@ -721,6 +893,33 @@ collision_layer = 0
 collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DragonBoss/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
+[node name="ServerBoss" type="Node2D" parent="."]
+position = Vector2(2620, 180)
+
+[node name="Sprite2D" type="Sprite2D" parent="ServerBoss"]
+texture_filter = 1
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("19_server_boss")
+
+[node name="NameTag" type="Label" parent="ServerBoss"]
+offset_left = -110.0
+offset_top = -45.0
+offset_right = 110.0
+offset_bottom = -32.0
+theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "[!] Servidor Principal (Contraseña Olvidada)"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="ServerBoss"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ServerBoss/InteractArea"]
 shape = SubResource("CircleShape2D_npc_interact")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
