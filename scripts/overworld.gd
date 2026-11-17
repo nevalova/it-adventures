@@ -93,6 +93,15 @@ extends Node2D
 @onready var shop_feedback_label = $CanvasLayer/ShopModal/Margin/VBox/FeedbackLabel
 @onready var btn_close_shop = $CanvasLayer/ShopModal/Margin/VBox/BtnCloseShop
 
+# Photo Modal & Server Login Modal
+@onready var photo_modal = $CanvasLayer/PhotoModal
+@onready var btn_close_photo = $CanvasLayer/PhotoModal/Margin/VBox/BtnClosePhoto
+@onready var server_login_modal = $CanvasLayer/ServerLoginModal
+@onready var pass_input = $CanvasLayer/ServerLoginModal/Margin/VBox/PassRow/PassInput
+@onready var hint_label = $CanvasLayer/ServerLoginModal/Margin/VBox/HintLabel
+@onready var btn_submit_pass = $CanvasLayer/ServerLoginModal/Margin/VBox/BtnHBox/BtnSubmitPass
+@onready var btn_cancel_pass = $CanvasLayer/ServerLoginModal/Margin/VBox/BtnHBox/BtnCancelPass
+
 # State Machine
 enum State {
 	IDLE,
@@ -109,6 +118,7 @@ var current_state: State = State.IDLE
 var anim_timer: float = 0.0
 var dialog_queue: Array = []
 var on_dialog_closed_callback: Callable
+var on_photo_closed_callback: Callable
 var current_interactable: String = ""
 
 func _ready():
@@ -129,6 +139,10 @@ func _ready():
 	hud_hero_name.modulate = leader["color"]
 	_update_hud_budget()
 	btn_close_shop.pressed.connect(_close_shop_modal)
+	btn_close_photo.pressed.connect(_close_photo_modal)
+	btn_cancel_pass.pressed.connect(_close_server_login_modal)
+	btn_submit_pass.pressed.connect(_on_submit_password)
+	pass_input.text_submitted.connect(func(_t): _on_submit_password())
 	
 	btn_switch.pressed.connect(func():
 		GameManager.change_scene_instant(get_tree(), "res://scenes/character_select.tscn")
@@ -716,23 +730,67 @@ func _start_post_dragon_dialogue():
 			"speaker": "Roberto Huerta",
 			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 			"color": Color("#0984e3"),
-			"text": "¡Por suerte alcancé a tomarle foto con mi celular antes de que se bloqueara! Salió un poco desenfocada, pero nos servirá para descifrarla."
-		},
-		{
-			"speaker": "Roberto Huerta",
-			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
-			"color": Color("#0984e3"),
-			"text": "¡Rápido! Cruza la puerta del este hacia la Sala de Servidores. ¡Debemos derrotar a la Temible Contraseña Olvidada antes de que colapse toda la empresa!"
+			"text": "¡Por suerte alcancé a tomarle foto a la pantalla con mi celular antes de que se bloqueara! ¡Mira esto!"
 		}
 	]
 	
 	on_dialog_closed_callback = func():
-		GameManager.roberto_server_dialogue_done = true
-		GameManager.password_quest_active = true
-		objective_label.text = "[!] ¡Entra a la Sala de Servidores (al este) y vence a la Contraseña Olvidada!"
-		player.can_move = true
+		on_photo_closed_callback = func():
+			dialog_queue = [
+				{
+					"speaker": "Roberto Huerta",
+					"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+					"color": Color("#0984e3"),
+					"text": "¡Ya viste la foto!... Solo muestra la pantalla donde dice 'Usuario' y pide el texto... ¡no le tomé foto a la contraseña!"
+				},
+				{
+					"speaker": "Roberto Huerta",
+					"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+					"color": Color("#0984e3"),
+					"text": "¡El servidor está trabado pidiendo el texto de la clave! ¡Tenemos que ir a la Sala de Servidores (Site) a resolverlo!"
+				}
+			]
+			on_dialog_closed_callback = func():
+				GameManager.roberto_server_dialogue_done = true
+				GameManager.password_quest_active = true
+				objective_label.text = "[!] ¡Entra a la Sala de Servidores (al este) y vence a la Contraseña Olvidada!"
+				player.can_move = true
+			_show_next_in_queue()
+		_open_photo_modal()
 		
 	_show_next_in_queue()
+
+func _open_photo_modal():
+	player.can_move = false
+	photo_modal.visible = true
+
+func _close_photo_modal():
+	photo_modal.visible = false
+	if on_photo_closed_callback.is_valid():
+		var cb = on_photo_closed_callback
+		on_photo_closed_callback = Callable()
+		cb.call()
+	else:
+		player.can_move = true
+
+func _open_server_login_modal():
+	player.can_move = false
+	server_login_modal.visible = true
+	pass_input.text = ""
+	hint_label.text = "(Foto de Roberto: 'Solo dice Usuario y pide el texto...')"
+	hint_label.modulate = Color(1.0, 0.75, 0.3)
+	pass_input.grab_focus()
+
+func _close_server_login_modal():
+	server_login_modal.visible = false
+	player.can_move = true
+
+func _on_submit_password():
+	hint_label.text = "¡ERROR: Texto Incorrecto! ¡El sistema se ha bloqueado!"
+	hint_label.modulate = Color(1.0, 0.3, 0.3)
+	await get_tree().create_timer(1.2).timeout
+	_close_server_login_modal()
+	_start_server_boss_battle()
 
 func _start_server_boss_battle():
 	GameManager.player_saved_position = player.global_position
@@ -902,7 +960,7 @@ func _trigger_current_interaction():
 				player.can_move = false
 				_show_next_in_queue()
 			else:
-				_start_server_boss_battle()
+				_open_server_login_modal()
 		"usuaria":
 			dialog_queue = [
 				{
@@ -983,6 +1041,20 @@ func _advance_dialog():
 	_show_next_in_queue()
 
 func _unhandled_input(event):
+	if photo_modal.visible:
+		if event.is_action_pressed("ui_cancel") \
+		or (event is InputEventKey and event.pressed and (event.keycode == KEY_ESCAPE or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_E)) \
+		or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+			_close_photo_modal()
+			get_viewport().set_input_as_handled()
+		return
+		
+	if server_login_modal.visible:
+		if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+			_close_server_login_modal()
+			get_viewport().set_input_as_handled()
+		return
+		
 	if shop_modal.visible:
 		if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
 			_close_shop_modal()

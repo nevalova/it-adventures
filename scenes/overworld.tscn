@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" path="res://assets/characters/npc_pelirroja_spritesheet.png" id="18_nelly_spr"]
 [ext_resource type="Texture2D" path="res://assets/enemies/boss_password_server.png" id="19_server_boss"]
 [ext_resource type="Texture2D" path="res://assets/enemies/enemy_cpu_tower.png" id="20_server_rack"]
+[ext_resource type="Texture2D" path="res://assets/props/roberto_screen_photo.png" id="21_screen_photo"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
 size = Vector2(3072, 20)
@@ -1392,3 +1393,150 @@ layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 11
 text = "[X] Cerrar Tiendita y Salir"
+
+[node name="PhotoModal" type="PanelContainer" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -145.0
+offset_right = 210.0
+offset_bottom = 145.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/PhotoModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/PhotoModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="CanvasLayer/PhotoModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 11
+text = "📱 Foto de la Pantalla del Servidor (Celular de Roberto)"
+horizontal_alignment = 1
+
+[node name="PhotoRect" type="TextureRect" parent="CanvasLayer/PhotoModal/Margin/VBox"]
+custom_minimum_size = Vector2(380, 200)
+layout_mode = 2
+texture = ExtResource("21_screen_photo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Caption" type="Label" parent="CanvasLayer/PhotoModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 10
+text = "[!] La foto solo muestra 'Usuario: admin_sistemas' y la caja pidiendo el texto..."
+horizontal_alignment = 1
+
+[node name="BtnClosePhoto" type="Button" parent="CanvasLayer/PhotoModal/Margin/VBox"]
+custom_minimum_size = Vector2(120, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+theme_override_font_sizes/font_size = 10
+text = "Entendido / Continuar"
+
+[node name="ServerLoginModal" type="PanelContainer" parent="CanvasLayer"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -170.0
+offset_top = -105.0
+offset_right = 170.0
+offset_bottom = 105.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/ServerLoginModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/ServerLoginModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="Label" parent="CanvasLayer/ServerLoginModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 11
+text = "🖥️ Terminal de Autenticación - Servidor Principal"
+horizontal_alignment = 1
+
+[node name="UserRow" type="HBoxContainer" parent="CanvasLayer/ServerLoginModal/Margin/VBox"]
+layout_mode = 2
+
+[node name="UserLabel" type="Label" parent="CanvasLayer/ServerLoginModal/Margin/VBox/UserRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Usuario:"
+
+[node name="UserVal" type="Label" parent="CanvasLayer/ServerLoginModal/Margin/VBox/UserRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 11
+text = "admin_sistemas"
+
+[node name="PassRow" type="HBoxContainer" parent="CanvasLayer/ServerLoginModal/Margin/VBox"]
+layout_mode = 2
+
+[node name="PassLabel" type="Label" parent="CanvasLayer/ServerLoginModal/Margin/VBox/PassRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Texto Clave:"
+
+[node name="PassInput" type="LineEdit" parent="CanvasLayer/ServerLoginModal/Margin/VBox/PassRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+placeholder_text = "Escriba el texto de la contraseña..."
+
+[node name="HintLabel" type="Label" parent="CanvasLayer/ServerLoginModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.3, 1)
+theme_override_font_sizes/font_size = 9
+text = "(Foto de Roberto: 'Solo dice Usuario y pide el texto...')"
+horizontal_alignment = 1
+
+[node name="BtnHBox" type="HBoxContainer" parent="CanvasLayer/ServerLoginModal/Margin/VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="BtnSubmitPass" type="Button" parent="CanvasLayer/ServerLoginModal/Margin/VBox/BtnHBox"]
+custom_minimum_size = Vector2(110, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "🔑 Probar Texto"
+
+[node name="BtnCancelPass" type="Button" parent="CanvasLayer/ServerLoginModal/Margin/VBox/BtnHBox"]
+custom_minimum_size = Vector2(70, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Cancelar"
