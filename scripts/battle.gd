@@ -217,7 +217,7 @@ func setup_battle():
 	if enemy.get("type") == "dragon_boss":
 		set_log("¡SOMBRAS DEL PASADO! ¡El Señor del Dragón exige su dragón!")
 	elif enemy.get("type") == "password_boss":
-		set_log("¡EMERGENCIA EN EL SITE! ¡La Contraseña Olvidada bloquea el Servidor!")
+		set_log("¡FALLA DE ENRUTAMIENTO! ¡Nadie se sabe la contraseña del Servidor 117!")
 	else:
 		set_log("¡Un " + enemy.get("name", "problema") + " salvaje ha detenido las operaciones!")
 	start_turn()
@@ -1174,7 +1174,7 @@ func enemy_defeated():
 	elif enemy_type_str == "password_boss":
 		GameManager.server_boss_defeated = true
 		GameManager.player_saved_position = Vector2(2560, 180)
-		set_log("[SITE SALVADO] ¡Descifraste la Contraseña del Servidor con la foto de Roberto! (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
+		set_log("[SITE SALVADO] ¡Ruta establecida al 189 y Servidor 117 desbloqueado! (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
 	else:
 		set_log("[!] ¡Ticket resuelto! '%s' neutralizado. (+%d EXP, +$%d Presupuesto)" % [enemy.get("name", "Enemigo"), exp_gained, coins_reward])
 		

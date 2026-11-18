@@ -14,6 +14,7 @@
 [ext_resource type="Texture2D" path="res://assets/enemies/boss_password_server.png" id="19_server_boss"]
 [ext_resource type="Texture2D" path="res://assets/enemies/enemy_cpu_tower.png" id="20_server_rack"]
 [ext_resource type="Texture2D" path="res://assets/props/roberto_screen_photo.png" id="21_screen_photo"]
+[ext_resource type="Texture2D" path="res://assets/characters/director_censurado_spritesheet.png" id="22_director_spr"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
 size = Vector2(3072, 20)
@@ -913,7 +914,7 @@ theme_override_colors/font_color = Color(1, 0.35, 0.35, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "[!] Servidor Principal (Contraseña Olvidada)"
+text = "[!] Servidor 117 (Bloqueado)"
 horizontal_alignment = 1
 
 [node name="InteractArea" type="Area2D" parent="ServerBoss"]
@@ -921,6 +922,37 @@ collision_layer = 0
 collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ServerBoss/InteractArea"]
+shape = SubResource("CircleShape2D_npc_interact")
+
+[node name="DirectorCensurado" type="Node2D" parent="."]
+visible = false
+position = Vector2(1780, 180)
+
+[node name="Sprite2D" type="Sprite2D" parent="DirectorCensurado"]
+texture_filter = 1
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("22_director_spr")
+hframes = 4
+vframes = 12
+frame = 8
+
+[node name="NameTag" type="Label" parent="DirectorCensurado"]
+offset_left = -70.0
+offset_top = -34.0
+offset_right = 70.0
+offset_bottom = -21.0
+theme_override_colors/font_color = Color(1, 0.75, 0.25, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "[!] Director de Redes"
+horizontal_alignment = 1
+
+[node name="InteractArea" type="Area2D" parent="DirectorCensurado"]
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DirectorCensurado/InteractArea"]
 shape = SubResource("CircleShape2D_npc_interact")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]

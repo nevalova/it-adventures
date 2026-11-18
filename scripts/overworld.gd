@@ -47,6 +47,10 @@ extends Node2D
 @onready var server_boss_sprite = $ServerBoss/Sprite2D
 @onready var server_boss_nametag = $ServerBoss/NameTag
 
+# Director de Redes (Censurado)
+@onready var director_censurado = $DirectorCensurado
+@onready var director_sprite = $DirectorCensurado/Sprite2D
+
 @onready var office_trigger = $OfficeTrigger
 @onready var enemy_printer = $EnemyPrinter
 @onready var enemy_printer_sprite = $EnemyPrinter/Sprite2D
@@ -223,6 +227,16 @@ func _ready():
 				_clear_interactable()
 		)
 	
+	if has_node("DirectorCensurado/InteractArea"):
+		$DirectorCensurado/InteractArea.body_entered.connect(func(body):
+			if body == player:
+				_set_interactable("director")
+		)
+		$DirectorCensurado/InteractArea.body_exited.connect(func(body):
+			if body == player and current_interactable == "director":
+				_clear_interactable()
+		)
+	
 	if $RobertoHuerta.has_node("InteractArea"):
 		$RobertoHuerta/InteractArea.body_entered.connect(func(body):
 			if body == player and GameManager.dragon_boss_defeated:
@@ -232,6 +246,8 @@ func _ready():
 			if body == player and current_interactable == "roberto":
 				_clear_interactable()
 		)
+	
+	director_censurado.visible = false
 	
 	# Verificar estado de la partida
 	if not GameManager.intro_cutscene_done:
@@ -263,9 +279,9 @@ func _ready():
 				$DragonBoss/NameTag.text = "[!] El Señor del Dragón (Hincado)"
 				$DragonBoss/NameTag.modulate = Color(1.0, 0.5, 0.3)
 				
-			roberto.visible = true
-			roberto.position = Vector2(1820, 180)
-			roberto_sprite.frame = 6 * 4 + 0 # Mirando hacia la derecha
+			director_censurado.visible = true
+			director_censurado.position = Vector2(1780, 180)
+			director_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda hacia el jugador
 			
 			enemy_printer.set_collision_layer_value(3, false)
 			enemy_printer_sprite.position = Vector2.ZERO
@@ -274,20 +290,25 @@ func _ready():
 			enemy_printer_nametag.modulate = Color(0.3, 0.9, 0.6, 1.0)
 			
 			if GameManager.server_boss_defeated:
+				roberto.visible = true
+				roberto.position = Vector2(1820, 180)
+				roberto_sprite.frame = 6 * 4 + 0
 				btn_demo_modal.visible = true
-				objective_label.text = "[!] ¡Victoria Total! El Servidor ha sido rescatado. ¡Habla con Roberto!"
+				objective_label.text = "[!] ¡Victoria Total! Servidores 100, 245, 189, 122 y 117 conectados. ¡Habla con Roberto!"
 				if has_node("ServerBoss"):
 					server_boss.visible = true
 					server_boss_sprite.modulate = Color(0.4, 0.9, 0.5)
-					server_boss_nametag.text = "[V] Servidor Desbloqueado"
+					server_boss_nametag.text = "[V] Servidor 117 (Desbloqueado)"
 					server_boss_nametag.modulate = Color(0.3, 0.9, 0.5)
-			elif not GameManager.roberto_server_dialogue_done:
-				player.global_position = Vector2(1860, 180)
+			elif not GameManager.director_cutscene_done:
+				roberto.visible = false
+				player.global_position = Vector2(1850, 180)
 				player.set_facing(Vector2.LEFT)
 				objective_label.text = "[!] El Señor del Dragón ha caído..."
 				_start_post_dragon_dialogue()
 			else:
-				objective_label.text = "[!] ¡Ve a la Sala de Servidores (al este) y vence a la Contraseña Olvidada!"
+				roberto.visible = false
+				objective_label.text = "[!] ¡Ve a la Sala de Servidores al este y resuelve el Servidor 117!"
 		elif GameManager.printer_defeated:
 			roberto.visible = false
 			btn_demo_modal.visible = true
@@ -709,28 +730,45 @@ func _start_post_dragon_dialogue():
 			"text": "¡No crean que esto se queda así!... ¡No es la última vez que sabrán de mí!... ¡Volveré por lo que es mío y por mi dragón impreso en 3D!"
 		},
 		{
-			"speaker": "Roberto Huerta",
-			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
-			"color": Color("#0984e3"),
-			"text": "¡Uff, %s! ¡Qué paliza le diste! ¡Sabía que con el equipo de TI nadie se mete!" % hero_name
+			"speaker": "Director de Redes",
+			"portrait": "res://assets/characters/director_censurado_portrait.png",
+			"color": Color("#fdcb6e"),
+			"text": "¡Muchachos de Sistemas! Necesito conectarme al servidor 100 desde el 245 para poder alcanzar el 189..."
 		},
+		{
+			"speaker": "Director de Redes",
+			"portrait": "res://assets/characters/director_censurado_portrait.png",
+			"color": Color("#fdcb6e"),
+			"text": "...¡pero no puedo porque el 122 no da, y nadie se sabe la contraseña del 117!"
+		},
+		{
+			"speaker": "Director de Redes",
+			"portrait": "res://assets/characters/director_censurado_portrait.png",
+			"color": Color("#fdcb6e"),
+			"text": "¡Tienen que ir ya mismo a la Sala de Servidores (al este) a resolver el problema del 117 antes de que colapse la red!"
+		}
+	]
+	
+	on_dialog_closed_callback = func():
+		GameManager.director_cutscene_done = true
+		GameManager.password_quest_active = true
+		objective_label.text = "[!] ¡Ve a la Sala de Servidores (al este) y resuelve el Servidor 117!"
+		player.can_move = true
+		
+	_show_next_in_queue()
+
+func _start_server_site_cutscene():
+	player.can_move = false
+	roberto.visible = true
+	roberto.position = Vector2(player.global_position.x - 70, 180)
+	roberto_sprite.frame = 6 * 4 + 0 # Mirando hacia el jugador y el servidor
+	
+	dialog_queue = [
 		{
 			"speaker": "Roberto Huerta",
 			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 			"color": Color("#0984e3"),
-			"text": "Pero no cantes victoria todavía... ¡acaba de surgir una emergencia de nivel crítico en el Site!"
-		},
-		{
-			"speaker": "Roberto Huerta",
-			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
-			"color": Color("#0984e3"),
-			"text": "¡Los de Producción cambiaron la contraseña del Servidor Principal de la base de datos y... NADIE la recuerda!"
-		},
-		{
-			"speaker": "Roberto Huerta",
-			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
-			"color": Color("#0984e3"),
-			"text": "¡Por suerte alcancé a tomarle foto a la pantalla con mi celular antes de que se bloqueara! ¡Mira esto!"
+			"text": "¡Tranquilos muchachos, yo ayudo! ¡Dejen le tomo foto a la pantalla del Servidor 117 para ver qué pide!"
 		}
 	]
 	
@@ -741,20 +779,34 @@ func _start_post_dragon_dialogue():
 					"speaker": "Roberto Huerta",
 					"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 					"color": Color("#0984e3"),
-					"text": "¡Ya viste la foto!... Solo muestra la pantalla donde dice 'Usuario' y pide el texto... ¡no le tomé foto a la contraseña!"
+					"text": "¡Listo, ya le tomé foto!... Ah caray, la pantalla solo dice 'Usuario' y pide el texto... ¡no sale la contraseña!"
 				},
 				{
 					"speaker": "Roberto Huerta",
 					"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 					"color": Color("#0984e3"),
-					"text": "¡El servidor está trabado pidiendo el texto de la clave! ¡Tenemos que ir a la Sala de Servidores (Site) a resolverlo!"
+					"text": "¡Bueno, yo ya cumplí con avisar y tomar la foto! ¡Ahí se ven, me voy de nuevo!"
 				}
 			]
 			on_dialog_closed_callback = func():
-				GameManager.roberto_server_dialogue_done = true
-				GameManager.password_quest_active = true
-				objective_label.text = "[!] ¡Entra a la Sala de Servidores (al este) y vence a la Contraseña Olvidada!"
-				player.can_move = true
+				# Roberto escapa corriendo hacia la izquierda
+				var tween = create_tween()
+				tween.tween_property(roberto, "position:x", roberto.position.x - 300, 0.7)
+				tween.tween_callback(func():
+					roberto.visible = false
+				)
+				# Servidor 117 entra en alerta crítica y desafía al jugador
+				dialog_queue = [
+					{
+						"speaker": "Servidor 117",
+						"portrait": "res://assets/enemies/boss_password_portrait.png",
+						"color": Color("#e74c3c"),
+						"text": "¡ERROR CRÍTICO: FALLA DE ENRUTAMIENTO!\n\nNo se puede conectar al servidor 100 desde el 245 para alcanzar el 189 porque el 122 no da.\n¡La Contraseña Olvidada del 117 se materializa para bloquear el acceso!"
+					}
+				]
+				on_dialog_closed_callback = func():
+					_start_server_boss_battle()
+				_show_next_in_queue()
 			_show_next_in_queue()
 		_open_photo_modal()
 		
@@ -796,9 +848,9 @@ func _start_server_boss_battle():
 	GameManager.player_saved_position = player.global_position
 	GameManager.current_enemy_id = "server_password_boss"
 	var spec = {
-		"name": "Contraseña Olvidada del Servidor",
+		"name": "Contraseña del Servidor 117",
 		"type": "password_boss",
-		"desc": "Un críptico enigma de caracteres especiales y números que nadie apuntó. La foto de Roberto está desenfocada.",
+		"desc": "Nadie se sabe la contraseña del 117 para llegar al 189 desde el 245 pasando por el 100 porque el 122 no da.",
 		"hp": 750,
 		"max_hp": 750,
 		"atk": 26,
@@ -806,11 +858,11 @@ func _start_server_boss_battle():
 		"exp_reward": 450,
 		"texture_path": "res://assets/enemies/boss_password_server.png",
 		"attacks": [
-			"Error: Contraseña Incorrecta",
-			"Complejidad Máxima (Requiere caracter especial)",
-			"Foto Borrosa de Roberto (Confusión)",
-			"Bloqueo de Cuenta por 30 Minutos",
-			"Fuerza Bruta Fallida"
+			"Falla de Ruta (245 -> 100 -> 189)",
+			"El 122 No Da (Timeout)",
+			"Contraseña Desconocida del 117",
+			"Foto Inútil de Roberto",
+			"Bloqueo de Acceso Total"
 		]
 	}
 	GameManager.current_enemy_data = spec
@@ -825,11 +877,11 @@ func _open_demo_modal():
 	
 	if GameManager.server_boss_defeated:
 		demo_title.text = "¡HÉROE SUPREMO DE IT!"
-		demo_subtitle.text = "¡Felicidades %s! ¡Has salvado el Site y descifrado el Servidor!" % hero_name
+		demo_subtitle.text = "¡Felicidades %s! ¡Has salvado el Site y conectado los servidores!" % hero_name
 		demo_body.text = ("Has superado todos los desafíos de IT Adventures:\n\n" +
 			" 1. Neutralizaste la Impresora Maldita y salvaste la nómina.\n" +
 			" 2. Derrotaste a El Señor del Dragón dejándolo hincado.\n" +
-			" 3. Descifraste la Temible Contraseña Olvidada con la foto de Roberto.\n\n" +
+			" 3. Resolviste la ruta de red (245 -> 100 -> 189) desbloqueando el Servidor 117 tras la foto de Roberto.\n\n" +
 			"Héroe Legendario: %s [Nivel %d - %s]\n" +
 			"Fondos de IT Restantes: $%d\n\n" +
 			"[!] ¡Has completado con honores toda la Demo de IT Adventures!") % [hero_name, hero_level, hero_role, GameManager.it_budget]
@@ -840,7 +892,7 @@ func _open_demo_modal():
 			"¡El splitter, los discos duros y el Magic Trackpad han sido rescatados para Sistemas!\n\n" +
 			"Héroe Legendario: %s [Nivel %d - %s]\n" +
 			"Especialidad: %s\n\n" +
-			"[!] ¡Avanza a la Sala de Servidores para descifrar la contraseña olvidada!") % [hero_name, hero_level, hero_role, hero_title]
+			"[!] ¡Avanza a la Sala de Servidores para resolver el Servidor 117 y las rutas de red!") % [hero_name, hero_level, hero_role, hero_title]
 	else:
 		demo_subtitle.text = "¡Gracias %s, esto solo es un demo!" % hero_name
 		demo_body.text = ("Has neutralizado con éxito a la Impresora Maldita y salvado la nómina de Finanzas.\n\n" +
@@ -863,13 +915,16 @@ func _set_interactable(id: String):
 	btn_interact.visible = true
 	interact_banner.visible = true
 	match id:
+		"director":
+			interact_label.text = "[E] Hablar con Director de Redes"
+			btn_interact.text = "[E] Hablar"
 		"server_boss":
 			if GameManager.server_boss_defeated:
-				interact_label.text = "[E] Inspeccionar Servidor Principal (Desbloqueado)"
+				interact_label.text = "[E] Inspeccionar Servidor 117 (Desbloqueado)"
 				btn_interact.text = "[E] Revisar"
 			else:
-				interact_label.text = "[E] ¡Pelear con la Contraseña Olvidada!"
-				btn_interact.text = "[E] Batalla"
+				interact_label.text = "[E] ¡Inspeccionar Servidor 117!"
+				btn_interact.text = "[E] Inspeccionar"
 		"dragon_boss_kneeling":
 			interact_label.text = "[E] Hablar con El Señor del Dragón (Hincado)"
 			btn_interact.text = "[E] Hablar"
@@ -914,6 +969,29 @@ func _trigger_current_interaction():
 			_open_shop_modal()
 		"dragon_boss":
 			_start_dragon_boss_battle()
+		"director":
+			if GameManager.server_boss_defeated:
+				dialog_queue = [
+					{
+						"speaker": "Director de Redes",
+						"portrait": "res://assets/characters/director_censurado_portrait.png",
+						"color": Color("#fdcb6e"),
+						"text": "¡Excelente trabajo muchachos! Gracias a que resolvieron el Servidor 117, ya podemos alcanzar el 189 conectando desde el 245 al 100 sin problemas con el 122."
+					}
+				]
+			else:
+				dialog_queue = [
+					{
+						"speaker": "Director de Redes",
+						"portrait": "res://assets/characters/director_censurado_portrait.png",
+						"color": Color("#fdcb6e"),
+						"text": "¡Rápido muchachos! Necesito conectarme al servidor 100 desde el 245 para alcanzar el 189, pero el 122 no da y falta la clave del 117. ¡Vayan a la Sala de Servidores al este!"
+					}
+				]
+			on_dialog_closed_callback = func():
+				player.can_move = true
+			player.can_move = false
+			_show_next_in_queue()
 		"dragon_boss_kneeling":
 			dialog_queue = [
 				{
@@ -936,7 +1014,7 @@ func _trigger_current_interaction():
 						"speaker": "Roberto Huerta",
 						"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 						"color": Color("#0984e3"),
-						"text": "¡Corre al Site de Servidores al este, %s! ¡Usa la foto de mi celular para descifrar esa contraseña antes de que tire el sistema!" % hero_name
+						"text": "¡Corre a la Sala de Servidores al este, %s! ¡Apóyale al Director de Redes con el Servidor 117!" % hero_name
 					}
 				]
 				on_dialog_closed_callback = func():
@@ -949,10 +1027,10 @@ func _trigger_current_interaction():
 			if GameManager.server_boss_defeated:
 				dialog_queue = [
 					{
-						"speaker": "Servidor Principal",
+						"speaker": "Servidor 117",
 						"portrait": "res://assets/enemies/boss_password_portrait.png",
 						"color": Color("#4ade80"),
-						"text": "El Servidor Principal funciona con normalidad. Las luces LED parpadean rítmicamente en verde.\n\nAcceso concedido: root@srv-prod-01 (Autenticación descifrada con éxito gracias a la foto de Roberto)."
+						"text": "El Servidor 117 funciona con normalidad. La ruta desde el 245 pasando por el 100 hasta el 189 ha sido establecida con éxito.\n\nAcceso concedido: root@srv-117-prod (Enrutamiento OK, 122 restablecido)."
 					}
 				]
 				on_dialog_closed_callback = func():
@@ -960,7 +1038,7 @@ func _trigger_current_interaction():
 				player.can_move = false
 				_show_next_in_queue()
 			else:
-				_open_server_login_modal()
+				_start_server_site_cutscene()
 		"usuaria":
 			dialog_queue = [
 				{

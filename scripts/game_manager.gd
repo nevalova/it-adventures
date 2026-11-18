@@ -124,7 +124,8 @@ var victory_dialogue_shown: bool = false
 var dragon_boss_cutscene_done: bool = false
 var dragon_boss_fled: bool = false
 var dragon_boss_defeated: bool = false
-var roberto_server_dialogue_done: bool = false
+var director_cutscene_done: bool = false
+var server_site_cutscene_done: bool = false
 var password_quest_active: bool = false
 var server_boss_defeated: bool = false
 
@@ -171,7 +172,8 @@ func reset_game():
 	dragon_boss_cutscene_done = false
 	dragon_boss_fled = false
 	dragon_boss_defeated = false
-	roberto_server_dialogue_done = false
+	director_cutscene_done = false
+	server_site_cutscene_done = false
 	password_quest_active = false
 	server_boss_defeated = false
 	defeated_enemies.clear()
