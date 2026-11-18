@@ -69,6 +69,15 @@ extends Node2D
 @onready var interact_label = $CanvasLayer/HUD/InteractBanner/Label
 
 # D-Pad táctil
+@onready var dpad_box = $CanvasLayer/HUD/TouchControls/DpadBox
+@onready var joystick_box = $CanvasLayer/HUD/TouchControls/JoystickBox
+@onready var btn_control_mode = $CanvasLayer/HUD/TouchControls/RightBox/BtnControlMode
+@onready var click_marker = $ClickMarker
+@onready var modal_control_options = $CanvasLayer/ControlOptionsModal
+@onready var btn_mode_dpad = $CanvasLayer/ControlOptionsModal/Margin/VBox/CardsBox/BtnModeDpad
+@onready var btn_mode_joystick = $CanvasLayer/ControlOptionsModal/Margin/VBox/CardsBox/BtnModeJoystick
+@onready var btn_mode_point_click = $CanvasLayer/ControlOptionsModal/Margin/VBox/CardsBox/BtnModePointClick
+@onready var btn_close_control_options = $CanvasLayer/ControlOptionsModal/Margin/VBox/BtnCloseOptions
 @onready var btn_up = $CanvasLayer/HUD/TouchControls/DpadBox/BtnUp
 @onready var btn_down = $CanvasLayer/HUD/TouchControls/DpadBox/BtnDown
 @onready var btn_left = $CanvasLayer/HUD/TouchControls/DpadBox/BtnLeft
@@ -178,6 +187,24 @@ func _ready():
 	btn_left.button_up.connect(func(): player.dpad_left = false)
 	btn_right.button_down.connect(func(): player.dpad_right = true)
 	btn_right.button_up.connect(func(): player.dpad_right = false)
+	
+	# Conexión del Joystick Virtual
+	joystick_box.joystick_moved.connect(func(v):
+		if player:
+			player.joystick_vector = v
+	)
+	joystick_box.joystick_released.connect(func():
+		if player:
+			player.joystick_vector = Vector2.ZERO
+	)
+	
+	# Conexión del selector de controles
+	btn_control_mode.pressed.connect(_open_control_options)
+	btn_close_control_options.pressed.connect(_close_control_options)
+	btn_mode_dpad.pressed.connect(func(): _select_overworld_control_mode("dpad"))
+	btn_mode_joystick.pressed.connect(func(): _select_overworld_control_mode("joystick"))
+	btn_mode_point_click.pressed.connect(func(): _select_overworld_control_mode("point_and_click"))
+	_update_touch_controls_mode()
 	
 	# Conexión del botón de diálogo
 	dialog_btn.pressed.connect(_advance_dialog)
@@ -341,6 +368,13 @@ func _ready():
 
 func _process(delta):
 	anim_timer += delta
+	
+	if touch_controls.visible:
+		dpad_box.visible = (GameManager.control_type == "dpad")
+		joystick_box.visible = (GameManager.control_type == "joystick")
+	else:
+		dpad_box.visible = false
+		joystick_box.visible = false
 	
 	if usuaria.visible:
 		if GameManager.printer_defeated:
@@ -1119,6 +1153,12 @@ func _advance_dialog():
 	_show_next_in_queue()
 
 func _unhandled_input(event):
+	if modal_control_options.visible:
+		if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE):
+			_close_control_options()
+			get_viewport().set_input_as_handled()
+		return
+		
 	if photo_modal.visible:
 		if event.is_action_pressed("ui_cancel") \
 		or (event is InputEventKey and event.pressed and (event.keycode == KEY_ESCAPE or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER or event.keycode == KEY_E)) \
@@ -1158,6 +1198,16 @@ func _unhandled_input(event):
 			or (event is InputEventKey and event.pressed and (event.keycode == KEY_E or event.keycode == KEY_SPACE or event.keycode == KEY_ENTER)):
 				get_viewport().set_input_as_handled()
 				_trigger_current_interaction()
+				return
+				
+		# Modo Point and Click: tocar en el suelo para caminar automáticamente
+		if GameManager.control_type == "point_and_click" and player and player.can_move:
+			if (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) \
+			or (event is InputEventScreenTouch and event.pressed):
+				var target_pos = get_global_mouse_position()
+				player.navigate_to(target_pos)
+				if click_marker:
+					click_marker.trigger_at(target_pos)
 
 # --- Tiendita de Nelly & Sistema de Economía ---
 func _update_hud_budget():
@@ -1238,4 +1288,56 @@ func _update_shop_ui():
 		
 		panel.add_child(hbox)
 		shop_items_list.add_child(panel)
+
+# --- Sistema de Configuración de Controles ---
+func _update_touch_controls_mode():
+	var cur = GameManager.control_type
+	var mode_info = GameManager.control_modes.get(cur, {})
+	var short_name = mode_info.get("short", "D-Pad")
+	btn_control_mode.text = "[⚙] " + short_name
+	
+	if not touch_controls.visible:
+		dpad_box.visible = false
+		joystick_box.visible = false
+	else:
+		match cur:
+			"dpad":
+				dpad_box.visible = true
+				joystick_box.visible = false
+			"joystick":
+				dpad_box.visible = false
+				joystick_box.visible = true
+			"point_and_click":
+				dpad_box.visible = false
+				joystick_box.visible = false
+				
+	_format_overworld_mode_btn(btn_mode_dpad, "dpad", "1. D-Pad Clásico (Botones Fijos)")
+	_format_overworld_mode_btn(btn_mode_joystick, "joystick", "2. Análogo Arrastrable (Joystick Táctil)")
+	_format_overworld_mode_btn(btn_mode_point_click, "point_and_click", "3. Point and Click (Tocar para Moverse)")
+
+func _format_overworld_mode_btn(btn: Button, mode_key: String, base_title: String):
+	var is_selected = (GameManager.control_type == mode_key)
+	if is_selected:
+		btn.text = "  [✓] " + base_title + "  <ACTIVO>"
+		btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.7, 1.0))
+	else:
+		btn.text = "  [  ] " + base_title
+		btn.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
+
+func _open_control_options():
+	player.can_move = false
+	modal_control_options.visible = true
+	_update_touch_controls_mode()
+
+func _close_control_options():
+	modal_control_options.visible = false
+	player.can_move = true
+	_update_touch_controls_mode()
+
+func _select_overworld_control_mode(new_mode: String):
+	GameManager.set_control_type(new_mode)
+	if player:
+		player.joystick_vector = Vector2.ZERO
+		player.cancel_navigation()
+	_update_touch_controls_mode()
 

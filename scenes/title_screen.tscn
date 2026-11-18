@@ -1,7 +1,20 @@
-[gd_scene load_steps=3 format=3 uid="uid://c6xk3m4n8281"]
+[gd_scene load_steps=4 format=3 uid="uid://c6xk3m4n8281"]
 
 [ext_resource type="Script" path="res://scripts/title_screen.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/logo.jpg" id="2_logo"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.06, 0.09, 0.16, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.75, 1, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_size = 6
 
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
@@ -30,24 +43,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.2)
-
-[node name="PromptLabel" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -250.0
-offset_top = -55.0
-offset_right = 250.0
-offset_bottom = -25.0
-grow_horizontal = 2
-grow_vertical = 0
-text = "* PRESIONA ESPACIO / ENTER O CLIC PARA JUGAR *"
-horizontal_alignment = 1
-vertical_alignment = 1
+color = Color(0, 0, 0, 0.25)
 
 [node name="Sub" type="Label" parent="."]
 layout_mode = 1
@@ -55,11 +51,149 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -200.0
-offset_top = 10.0
+offset_top = 8.0
 offset_right = 200.0
-offset_bottom = 33.0
+offset_bottom = 31.0
 grow_horizontal = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 text = "THE RETRO IT DEPT SIMULATOR"
 horizontal_alignment = 1
+
+[node name="MenuVBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -120.0
+offset_right = 140.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 5
+
+[node name="BtnStart" type="Button" parent="MenuVBox"]
+custom_minimum_size = Vector2(220, 32)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 12
+text = "▶ INICIAR PARTIDA"
+
+[node name="BtnOptions" type="Button" parent="MenuVBox"]
+custom_minimum_size = Vector2(220, 26)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "⚙ TIPO DE CONTROL: D-PAD"
+
+[node name="PromptLabel" type="Label" parent="MenuVBox"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 9
+text = "* O presiona ESPACIO / ENTER para jugar *"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ControlOptionsModal" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -225.0
+offset_top = -140.0
+offset_right = 225.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="ControlOptionsModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="ControlOptionsModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Title" type="Label" parent="ControlOptionsModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "⚙ OPCIONES DE CONTROL"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="ControlOptionsModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "Selecciona el método de movimiento para tu aventura:"
+horizontal_alignment = 1
+
+[node name="CardsBox" type="VBoxContainer" parent="ControlOptionsModal/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BtnModeDpad" type="Button" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 10
+text = "1. D-Pad Clásico (Botones Fijos)"
+alignment = 0
+
+[node name="DescDpad" type="Label" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "• Cruceta tradicional de 4 direcciones fija en pantalla (y teclas WASD). Movimiento ortogonal clásico con máxima precisión."
+autowrap_mode = 2
+
+[node name="BtnModeJoystick" type="Button" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 10
+text = "2. Análogo Arrastrable (Joystick Táctil)"
+alignment = 0
+
+[node name="DescJoystick" type="Label" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "• Stick análogo táctil arrastrable con el pulgar. Deslizamiento suave en 360° en cualquier dirección e inclinación. Ideal para celulares."
+autowrap_mode = 2
+
+[node name="BtnModePointClick" type="Button" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 10
+text = "3. Point and Click (Tocar para Moverse)"
+alignment = 0
+
+[node name="DescPointClick" type="Label" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "• Toca o haz clic con el ratón en cualquier punto del suelo y el personaje caminará hacia allá. Ideal para mouse o una sola mano."
+autowrap_mode = 2
+
+[node name="BtnCloseOptions" type="Button" parent="ControlOptionsModal/Margin/VBox"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+theme_override_colors/font_color = Color(0.4, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 10
+text = "Guardar y Regresar"

@@ -16,8 +16,27 @@ var dpad_down: bool = false
 var dpad_left: bool = false
 var dpad_right: bool = false
 
+# Control tipo Análogo Arrastrable (Joystick)
+var joystick_vector: Vector2 = Vector2.ZERO
+
+# Control tipo Point and Click
+var target_position: Vector2 = Vector2.ZERO
+var is_navigating: bool = false
+var stuck_timer: float = 0.0
+var last_nav_pos: Vector2 = Vector2.ZERO
+
 @onready var sprite = $Sprite2D
 @onready var name_tag = $NameTag
+
+func navigate_to(pos: Vector2):
+	target_position = pos
+	is_navigating = true
+	stuck_timer = 0.0
+	last_nav_pos = global_position
+
+func cancel_navigation():
+	is_navigating = false
+	stuck_timer = 0.0
 
 func _ready():
 	var leader = GameManager.get_leader_data()
@@ -55,11 +74,13 @@ func _physics_process(delta):
 	if not can_move:
 		velocity = Vector2.ZERO
 		is_moving = false
+		cancel_navigation()
 		if not is_scripted_walking:
 			anim_timer = 0.0
 			sprite.frame = current_row * 4 + 0
 		move_and_slide()
 		return
+		
 	var input_vector = Vector2.ZERO
 	input_vector.x = Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left")
 	input_vector.y = Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
@@ -75,16 +96,40 @@ func _physics_process(delta):
 	elif Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
 		input_vector.y = 1.0
 
-	# Compatibilidad con controles táctiles móviles
-	if dpad_left:
-		input_vector.x = -1.0
-	elif dpad_right:
-		input_vector.x = 1.0
-		
-	if dpad_up:
-		input_vector.y = -1.0
-	elif dpad_down:
-		input_vector.y = 1.0
+	# Si hay entrada por teclado, cancelar navegación automática
+	if input_vector != Vector2.ZERO:
+		cancel_navigation()
+
+	# Modos táctiles según la configuración de GameManager
+	if GameManager.control_type == "dpad":
+		if dpad_left:
+			input_vector.x = -1.0
+		elif dpad_right:
+			input_vector.x = 1.0
+			
+		if dpad_up:
+			input_vector.y = -1.0
+		elif dpad_down:
+			input_vector.y = 1.0
+	elif GameManager.control_type == "joystick":
+		if joystick_vector.length() > 0.05:
+			input_vector = joystick_vector
+			cancel_navigation()
+	elif GameManager.control_type == "point_and_click":
+		if is_navigating:
+			var diff = target_position - global_position
+			if diff.length() <= 8.0:
+				cancel_navigation()
+			else:
+				input_vector = diff.normalized()
+				# Evitar atasco infinito en paredes
+				if global_position.distance_to(last_nav_pos) < 0.6:
+					stuck_timer += delta
+					if stuck_timer > 0.4:
+						cancel_navigation()
+				else:
+					stuck_timer = 0.0
+					last_nav_pos = global_position
 
 	if input_vector.length() > 0:
 		input_vector = input_vector.normalized()

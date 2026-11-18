@@ -131,6 +131,57 @@ var server_boss_defeated: bool = false
 
 var it_budget: int = 200 # Presupuesto de caja chica de IT para la tiendita de Nelly
 
+# Sistema de Configuración de Controles
+# Tipos: "dpad" (Botones Fijos), "joystick" (Análogo Arrastrable), "point_and_click" (Tocar para Moverse)
+var control_type: String = "dpad"
+
+var control_modes = {
+	"dpad": {
+		"title": "D-Pad Clásico (Botones Fijos)",
+		"short": "D-Pad",
+		"desc": "Cruceta direccional tradicional de 4 direcciones fija en pantalla táctil (y teclas WASD / Flechas en PC). Movimiento ortogonal clásico con máxima precisión retro."
+	},
+	"joystick": {
+		"title": "Análogo Arrastrable (Joystick Táctil)",
+		"short": "Joystick",
+		"desc": "Stick análogo táctil arrastrable con el pulgar. Deslizamiento fluido y suave en 360° en cualquier dirección e inclinación. Ideal para celulares y pantallas táctiles."
+	},
+	"point_and_click": {
+		"title": "Point and Click (Tocar para Moverse)",
+		"short": "Point & Click",
+		"desc": "Toca o haz clic con el ratón en cualquier punto del suelo y tu personaje caminará automáticamente hacia allí. Ideal para jugar con mouse en PC o con una sola mano en móvil."
+	}
+}
+
+func set_control_type(new_type: String):
+	if control_modes.has(new_type):
+		control_type = new_type
+		save_settings()
+
+func cycle_control_type() -> String:
+	match control_type:
+		"dpad":
+			set_control_type("joystick")
+		"joystick":
+			set_control_type("point_and_click")
+		"point_and_click":
+			set_control_type("dpad")
+		_:
+			set_control_type("dpad")
+	return control_type
+
+func save_settings():
+	var config = ConfigFile.new()
+	config.set_value("controls", "type", control_type)
+	config.save("user://settings.cfg")
+
+func load_settings():
+	var config = ConfigFile.new()
+	if config.load("user://settings.cfg") == OK:
+		var saved_mode = config.get_value("controls", "type", "dpad")
+		if control_modes.has(saved_mode):
+			control_type = saved_mode
+
 var item_prices = {
 	"pepsi": 15,
 	"cafe": 25,
@@ -248,6 +299,7 @@ func change_scene_instant(tree: SceneTree, path: String) -> void:
 		tree.change_scene_to_file(path)
 
 func _ready():
+	load_settings()
 	# Iniciar precarga asincrona en segundo plano de las escenas principales
 	preload_scene("res://scenes/character_select.tscn")
 	preload_scene("res://scenes/overworld.tscn")

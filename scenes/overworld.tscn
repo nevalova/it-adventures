@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://c28k4m9v3j7r"]
+[gd_scene load_steps=29 format=3 uid="uid://c28k4m9v3j7r"]
 
 [ext_resource type="Script" path="res://scripts/overworld.gd" id="1_overworld"]
 [ext_resource type="Texture2D" path="res://assets/floor_tile.png" id="2_floor"]
@@ -15,6 +15,8 @@
 [ext_resource type="Texture2D" path="res://assets/enemies/enemy_cpu_tower.png" id="20_server_rack"]
 [ext_resource type="Texture2D" path="res://assets/props/roberto_screen_photo.png" id="21_screen_photo"]
 [ext_resource type="Texture2D" path="res://assets/characters/director_censurado_spritesheet.png" id="22_director_spr"]
+[ext_resource type="Script" path="res://scripts/virtual_joystick.gd" id="23_joystick_script"]
+[ext_resource type="Script" path="res://scripts/click_marker.gd" id="24_click_marker_script"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
 size = Vector2(3072, 20)
@@ -955,6 +957,11 @@ collision_mask = 1
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DirectorCensurado/InteractArea"]
 shape = SubResource("CircleShape2D_npc_interact")
 
+[node name="ClickMarker" type="Node2D" parent="."]
+visible = false
+z_index = 10
+script = ExtResource("24_click_marker_script")
+
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="DarkOverlay" type="ColorRect" parent="CanvasLayer"]
@@ -1187,6 +1194,19 @@ focus_mode = 0
 theme_override_font_sizes/font_size = 16
 text = ">"
 
+[node name="JoystickBox" type="Control" parent="CanvasLayer/HUD/TouchControls"]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -136.0
+offset_right = 136.0
+offset_bottom = -16.0
+grow_vertical = 0
+script = ExtResource("23_joystick_script")
+
 [node name="RightBox" type="VBoxContainer" parent="CanvasLayer/HUD/TouchControls"]
 layout_mode = 1
 anchors_preset = 3
@@ -1195,12 +1215,20 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -140.0
-offset_top = -100.0
+offset_top = -135.0
 offset_right = -12.0
 offset_bottom = -12.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
+
+[node name="BtnControlMode" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
+custom_minimum_size = Vector2(120, 26)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 9
+text = "[⚙] Control: D-Pad"
 
 [node name="BtnInteract" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
 visible = false
@@ -1572,3 +1600,102 @@ custom_minimum_size = Vector2(70, 24)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 text = "Cancelar"
+
+[node name="ControlOptionsModal" type="PanelContainer" parent="CanvasLayer"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -225.0
+offset_top = -140.0
+offset_right = 225.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/ControlOptionsModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/ControlOptionsModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Title" type="Label" parent="CanvasLayer/ControlOptionsModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "⚙ OPCIONES DE CONTROL"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CanvasLayer/ControlOptionsModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "Selecciona el método de movimiento para tu aventura:"
+horizontal_alignment = 1
+
+[node name="CardsBox" type="VBoxContainer" parent="CanvasLayer/ControlOptionsModal/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BtnModeDpad" type="Button" parent="CanvasLayer/ControlOptionsModal/Margin/VBox/CardsBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 10
+text = "1. D-Pad Clásico (Botones Fijos)"
+alignment = 0
+
+[node name="DescDpad" type="Label" parent="CanvasLayer/ControlOptionsModal/Margin/VBox/CardsBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "• Cruceta tradicional de 4 direcciones fija en pantalla (y teclas WASD). Movimiento ortogonal clásico con máxima precisión."
+autowrap_mode = 2
+
+[node name="BtnModeJoystick" type="Button" parent="CanvasLayer/ControlOptionsModal/Margin/VBox/CardsBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 10
+text = "2. Análogo Arrastrable (Joystick Táctil)"
+alignment = 0
+
+[node name="DescJoystick" type="Label" parent="CanvasLayer/ControlOptionsModal/Margin/VBox/CardsBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "• Stick análogo táctil arrastrable con el pulgar. Deslizamiento suave en 360° en cualquier dirección e inclinación. Ideal para celulares."
+autowrap_mode = 2
+
+[node name="BtnModePointClick" type="Button" parent="CanvasLayer/ControlOptionsModal/Margin/VBox/CardsBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+focus_mode = 0
+theme_override_font_sizes/font_size = 10
+text = "3. Point and Click (Tocar para Moverse)"
+alignment = 0
+
+[node name="DescPointClick" type="Label" parent="CanvasLayer/ControlOptionsModal/Margin/VBox/CardsBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "• Toca o haz clic con el ratón en cualquier punto del suelo y el personaje caminará hacia allá. Ideal para mouse o una sola mano."
+autowrap_mode = 2
+
+[node name="BtnCloseOptions" type="Button" parent="CanvasLayer/ControlOptionsModal/Margin/VBox"]
+custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+theme_override_colors/font_color = Color(0.4, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 10
+text = "Guardar y Regresar"
