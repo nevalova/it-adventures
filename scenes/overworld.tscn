@@ -81,6 +81,7 @@ shadow_size = 8
 script = ExtResource("1_overworld")
 
 [node name="Floor" type="TextureRect" parent="."]
+z_index = -1
 texture_filter = 0
 offset_right = 3072.0
 offset_bottom = 360.0
@@ -257,6 +258,7 @@ color = Color(0.02, 0.08, 0.22, 0.28)
 mouse_filter = 2
 
 [node name="EnvironmentProps" type="Node2D" parent="."]
+y_sort_enabled = true
 
 [node name="DeskIT1" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 1
@@ -266,9 +268,9 @@ texture = ExtResource("12_desk_office")
 
 [node name="DeskIT2" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 1
-position = Vector2(340, 140)
-scale = Vector2(0.14, 0.14)
-texture = ExtResource("11_desk_light")
+position = Vector2(356, 146)
+scale = Vector2(0.24, 0.22)
+texture = ExtResource("12_desk_office")
 
 [node name="DeskIT3" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 1
@@ -282,7 +284,14 @@ position = Vector2(360, 260)
 scale = Vector2(0.14, 0.14)
 texture = ExtResource("12_desk_office")
 
+[node name="DeskIT5" type="Sprite2D" parent="EnvironmentProps"]
+texture_filter = 1
+position = Vector2(450, 140)
+scale = Vector2(0.14, 0.14)
+texture = ExtResource("11_desk_light")
+
 [node name="OfficeFurniture" type="Node2D" parent="."]
+y_sort_enabled = true
 
 [node name="DeskF1" type="StaticBody2D" parent="OfficeFurniture"]
 position = Vector2(680, 80)
@@ -720,6 +729,7 @@ position = Vector2(0, 4)
 shape = SubResource("RectangleShape2D_desk_col")
 
 [node name="Player" parent="." instance=ExtResource("6_player")]
+y_sort_enabled = true
 position = Vector2(140, 200)
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
@@ -729,10 +739,12 @@ limit_right = 3072
 limit_bottom = 360
 
 [node name="RobertoHuerta" type="Node2D" parent="."]
+y_sort_enabled = true
 position = Vector2(480, 200)
 
 [node name="Sprite2D" type="Sprite2D" parent="RobertoHuerta"]
 texture_filter = 1
+position = Vector2(0, -12)
 scale = Vector2(0.24, 0.24)
 texture = ExtResource("8_roberto_spr")
 hframes = 4
@@ -759,40 +771,47 @@ collision_mask = 1
 shape = SubResource("CircleShape2D_npc_interact")
 
 [node name="Nelly" type="Node2D" parent="."]
-position = Vector2(340, 112)
+y_sort_enabled = true
+position = Vector2(320, 146)
 
 [node name="Sprite2D" type="Sprite2D" parent="Nelly"]
 texture_filter = 1
-scale = Vector2(0.24, 0.24)
+position = Vector2(0, -21)
+scale = Vector2(0.52, 0.52)
 texture = ExtResource("18_nelly_spr")
 hframes = 4
 vframes = 12
 frame = 0
 
 [node name="NameTag" type="Label" parent="Nelly"]
-offset_left = -60.0
-offset_top = -34.0
-offset_right = 60.0
-offset_bottom = -21.0
+offset_left = -70.0
+offset_top = -48.0
+offset_right = 70.0
+offset_bottom = -35.0
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "Nelly (Tiendita IT)"
+text = "🏪 Nelly (Tiendita IT)"
 horizontal_alignment = 1
 
 [node name="InteractArea" type="Area2D" parent="Nelly"]
-collision_layer = 0
+collision_layer = 4
 collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Nelly/InteractArea"]
 shape = SubResource("CircleShape2D_npc_interact")
 
+[node name="Companions" type="Node2D" parent="."]
+y_sort_enabled = true
+
 [node name="Usuaria" type="Node2D" parent="."]
+y_sort_enabled = true
 position = Vector2(970, 155)
 
 [node name="Sprite2D" type="Sprite2D" parent="Usuaria"]
 texture_filter = 1
+position = Vector2(0, -12)
 scale = Vector2(0.24, 0.24)
 texture = ExtResource("9_usuaria_spr")
 hframes = 4
@@ -870,10 +889,12 @@ enemy_id = "npc_techlead_bsod"
 
 [node name="DragonBoss" type="Node2D" parent="."]
 visible = false
+y_sort_enabled = true
 position = Vector2(460, 180)
 
 [node name="Sprite2D" type="Sprite2D" parent="DragonBoss"]
 texture_filter = 1
+position = Vector2(0, -12)
 scale = Vector2(0.24, 0.24)
 texture = ExtResource("17_dragon_spr")
 hframes = 4
@@ -900,10 +921,12 @@ collision_mask = 1
 shape = SubResource("CircleShape2D_npc_interact")
 
 [node name="ServerBoss" type="Node2D" parent="."]
+y_sort_enabled = true
 position = Vector2(2620, 180)
 
 [node name="Sprite2D" type="Sprite2D" parent="ServerBoss"]
 texture_filter = 1
+position = Vector2(0, -20)
 scale = Vector2(0.24, 0.24)
 texture = ExtResource("19_server_boss")
 
@@ -928,10 +951,12 @@ shape = SubResource("CircleShape2D_npc_interact")
 
 [node name="DirectorCensurado" type="Node2D" parent="."]
 visible = false
+y_sort_enabled = true
 position = Vector2(1780, 180)
 
 [node name="Sprite2D" type="Sprite2D" parent="DirectorCensurado"]
 texture_filter = 1
+position = Vector2(0, -18)
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("22_director_spr")
 hframes = 4
@@ -1215,20 +1240,28 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -140.0
-offset_top = -135.0
+offset_top = -165.0
 offset_right = -12.0
 offset_bottom = -12.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
 [node name="BtnControlMode" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
-custom_minimum_size = Vector2(120, 26)
+custom_minimum_size = Vector2(120, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 9
 text = "[⚙] Control: D-Pad"
+
+[node name="BtnSquad" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
+custom_minimum_size = Vector2(120, 24)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 9
+text = "[👥] Squad IT (3/4)"
 
 [node name="BtnInteract" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
 visible = false
@@ -1693,6 +1726,74 @@ autowrap_mode = 2
 
 [node name="BtnCloseOptions" type="Button" parent="CanvasLayer/ControlOptionsModal/Margin/VBox"]
 custom_minimum_size = Vector2(140, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+theme_override_colors/font_color = Color(0.4, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 10
+text = "Guardar y Regresar"
+
+[node name="SquadModal" type="PanelContainer" parent="CanvasLayer"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -145.0
+offset_right = 230.0
+offset_bottom = 145.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dialog")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/SquadModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/SquadModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeaderHBox" type="HBoxContainer" parent="CanvasLayer/SquadModal/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CanvasLayer/SquadModal/Margin/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 11
+text = "👥 GESTOR DE ESCUADRÓN DE TI"
+
+[node name="SlotCountLabel" type="Label" parent="CanvasLayer/SquadModal/Margin/VBox/HeaderHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 11
+text = "Squad: 3/4"
+
+[node name="Subtitle" type="Label" parent="CanvasLayer/SquadModal/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 8
+text = "Elige qué compañeros te acompañan a la aventura (máximo 4):"
+
+[node name="Scroll" type="ScrollContainer" parent="CanvasLayer/SquadModal/Margin/VBox"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HeroesList" type="VBoxContainer" parent="CanvasLayer/SquadModal/Margin/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="BtnCloseSquad" type="Button" parent="CanvasLayer/SquadModal/Margin/VBox"]
+custom_minimum_size = Vector2(130, 24)
 layout_mode = 2
 size_flags_horizontal = 4
 focus_mode = 0

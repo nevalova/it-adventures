@@ -61,12 +61,20 @@ extends Node2D
 @onready var hud_hero_role = $CanvasLayer/HUD/HeroInfo/HeroRole
 @onready var hud_stats = $CanvasLayer/HUD/HeroInfo/HeroStats
 @onready var btn_switch = $CanvasLayer/HUD/TouchControls/RightBox/SwitchBtn
+@onready var btn_squad = $CanvasLayer/HUD/TouchControls/RightBox/BtnSquad
 @onready var btn_demo_modal = $CanvasLayer/HUD/TouchControls/RightBox/BtnDemoModal
 @onready var btn_interact = $CanvasLayer/HUD/TouchControls/RightBox/BtnInteract
 @onready var touch_controls = $CanvasLayer/HUD/TouchControls
 @onready var objective_label = $CanvasLayer/HUD/ObjectiveBanner/Label
 @onready var interact_banner = $CanvasLayer/HUD/InteractBanner
 @onready var interact_label = $CanvasLayer/HUD/InteractBanner/Label
+
+# Companions & Gestor de Escuadrón IT
+@onready var companions_root = $Companions
+@onready var squad_modal = $CanvasLayer/SquadModal
+@onready var squad_slot_count_label = $CanvasLayer/SquadModal/Margin/VBox/HeaderHBox/SlotCountLabel
+@onready var squad_heroes_list = $CanvasLayer/SquadModal/Margin/VBox/Scroll/HeroesList
+@onready var btn_close_squad = $CanvasLayer/SquadModal/Margin/VBox/BtnCloseSquad
 
 # D-Pad táctil
 @onready var dpad_box = $CanvasLayer/HUD/TouchControls/DpadBox
@@ -134,6 +142,10 @@ var on_dialog_closed_callback: Callable
 var on_photo_closed_callback: Callable
 var current_interactable: String = ""
 
+# Sistema de Compañeros de Escuadrón
+var companion_nodes: Dictionary = {}
+var player_trail: Array = []
+
 func _ready():
 	GameManager.preload_scene("res://scenes/battle.tscn")
 	GameManager.preload_scene("res://scenes/character_select.tscn")
@@ -156,6 +168,19 @@ func _ready():
 	btn_cancel_pass.pressed.connect(_close_server_login_modal)
 	btn_submit_pass.pressed.connect(_on_submit_password)
 	pass_input.text_submitted.connect(func(_t): _on_submit_password())
+	
+	btn_squad.pressed.connect(_open_squad_modal)
+	btn_close_squad.pressed.connect(_close_squad_modal)
+	
+	# Y-Sort dinámico para que todos los muebles y personajes se ordenen exactamente por profundidad
+	if has_node("OfficeFurniture"):
+		for desk in $OfficeFurniture.get_children():
+			desk.reparent(self)
+	if has_node("EnvironmentProps"):
+		for prop in $EnvironmentProps.get_children():
+			prop.reparent(self)
+			
+	_setup_companions()
 	
 	btn_switch.pressed.connect(func():
 		GameManager.change_scene_instant(get_tree(), "res://scenes/character_select.tscn")
@@ -368,6 +393,21 @@ func _ready():
 
 func _process(delta):
 	anim_timer += delta
+	
+	# Trail de movimiento para los compañeros de escuadrón
+	if player:
+		var p_pos = player.global_position
+		var moved_enough = player_trail.is_empty() or player_trail[0]["pos"].distance_squared_to(p_pos) > 9.0
+		if moved_enough:
+			player_trail.push_front({
+				"pos": p_pos,
+				"row": player.current_row,
+				"moving": player.is_moving
+			})
+			if player_trail.size() > 180:
+				player_trail.pop_back()
+				
+	_update_companions_movement(delta)
 	
 	if touch_controls.visible:
 		dpad_box.visible = (GameManager.control_type == "dpad")
@@ -981,6 +1021,17 @@ func _set_interactable(id: String):
 			else:
 				interact_label.text = "[E] ¡Combatir Impresora Maldita!"
 				btn_interact.text = "[E] Batalla"
+		_:
+			if id.begins_with("companion_"):
+				var c_id = id.trim_prefix("companion_")
+				var c_data = GameManager.characters_data.get(c_id, {})
+				var c_name = c_data.get("name", "Compañero")
+				if GameManager.is_hero_in_party(c_id):
+					interact_label.text = "[E] 👥 Hablar con %s (En Escuadrón)" % c_name
+					btn_interact.text = "[E] Escuadrón"
+				else:
+					interact_label.text = "[E] 👥 Hablar / Reclutar a %s" % c_name
+					btn_interact.text = "[E] Reclutar"
 
 func _clear_interactable():
 	current_interactable = ""
@@ -993,6 +1044,11 @@ func _trigger_current_interaction():
 		return
 		
 	if current_interactable.is_empty():
+		return
+		
+	if current_interactable.begins_with("companion_"):
+		var c_id = current_interactable.trim_prefix("companion_")
+		_interact_with_companion(c_id)
 		return
 		
 	var leader = GameManager.get_leader_data()
@@ -1340,4 +1396,319 @@ func _select_overworld_control_mode(new_mode: String):
 		player.joystick_vector = Vector2.ZERO
 		player.cancel_navigation()
 	_update_touch_controls_mode()
+
+# --- Sistema de Compañeros y Gestor de Escuadrón IT ---
+
+func _setup_companions():
+	if not companions_root:
+		return
+	for c in companions_root.get_children():
+		c.queue_free()
+	companion_nodes.clear()
+	
+	var office_desk_slots = [
+		Vector2(160, 118),
+		Vector2(250, 238),
+		Vector2(360, 238),
+		Vector2(450, 118)
+	]
+	
+	var slot_idx = 0
+	for hero_id in GameManager.characters_data.keys():
+		if hero_id == GameManager.selected_hero_id:
+			continue
+		var data = GameManager.characters_data[hero_id]
+		var desk_pos = office_desk_slots[slot_idx % office_desk_slots.size()]
+		slot_idx += 1
+		
+		var node = Node2D.new()
+		node.name = "Companion_" + hero_id
+		node.y_sort_enabled = true
+		node.set_meta("hero_id", hero_id)
+		node.set_meta("office_pos", desk_pos)
+		
+		# Sprite
+		var spr = Sprite2D.new()
+		spr.name = "Sprite2D"
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		if ResourceLoader.exists(data.get("spritesheet_path", "")):
+			spr.texture = load(data["spritesheet_path"])
+		spr.hframes = 4
+		spr.vframes = 12
+		spr.frame = 0 # Mirando al frente
+		spr.scale = Vector2(0.24, 0.24)
+		spr.position = Vector2(0, -10)
+		node.add_child(spr)
+		
+		# NameTag
+		var tag = Label.new()
+		tag.name = "NameTag"
+		tag.text = data["name"]
+		tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tag.position = Vector2(-40, -34)
+		tag.size = Vector2(80, 13)
+		tag.add_theme_font_size_override("font_size", 8)
+		tag.add_theme_color_override("font_color", data["color"])
+		tag.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+		tag.add_theme_constant_override("outline_size", 2)
+		node.add_child(tag)
+		
+		# Interact Area
+		var area = Area2D.new()
+		area.name = "InteractArea"
+		area.collision_layer = 4
+		area.collision_mask = 1
+		var col = CollisionShape2D.new()
+		var cshape = CircleShape2D.new()
+		cshape.radius = 24.0
+		col.shape = cshape
+		area.add_child(col)
+		
+		var c_id = hero_id
+		area.body_entered.connect(func(body):
+			if body == player:
+				_set_interactable("companion_" + c_id)
+		)
+		area.body_exited.connect(func(body):
+			if body == player and current_interactable == ("companion_" + c_id):
+				_clear_interactable()
+		)
+		node.add_child(area)
+		
+		# Posición inicial: si ya está en la party, cerca del jugador; si no, en su escritorio
+		if GameManager.is_hero_in_party(hero_id):
+			node.global_position = player.global_position + Vector2(randf_range(-15, 15), randf_range(-15, 15))
+		else:
+			node.global_position = desk_pos
+			
+		companions_root.add_child(node)
+		companion_nodes[hero_id] = node
+		
+	_update_squad_hud()
+
+func _update_companions_movement(delta: float):
+	var active_party_ids: Array = []
+	for member in GameManager.party:
+		var mid = member.get("id", "")
+		if mid != GameManager.selected_hero_id and not mid.is_empty():
+			active_party_ids.append(mid)
+			
+	for hero_id in companion_nodes.keys():
+		var node = companion_nodes[hero_id]
+		if not is_instance_valid(node):
+			continue
+		var spr = node.get_node_or_null("Sprite2D") as Sprite2D
+		var tag = node.get_node_or_null("NameTag") as Label
+		var is_in_party = GameManager.is_hero_in_party(hero_id)
+		
+		if is_in_party:
+			var slot = active_party_ids.find(hero_id)
+			if slot == -1:
+				slot = 0
+			var trail_idx = (slot + 1) * 16
+			if player_trail.size() > trail_idx:
+				var target_step = player_trail[trail_idx]
+				var target_pos = target_step["pos"]
+				var dist = node.global_position.distance_to(target_pos)
+				if dist > 3.0:
+					var move_vec = (target_pos - node.global_position).normalized()
+					var speed = 145.0 if dist < 40.0 else 180.0
+					node.global_position = node.global_position.move_toward(target_pos, speed * delta)
+					var walk_col = int(anim_timer * 8.0) % 4
+					var row = 0
+					if abs(move_vec.x) > abs(move_vec.y):
+						row = 6 if move_vec.x > 0 else 2
+					else:
+						row = 0 if move_vec.y > 0 else 4
+					if spr:
+						spr.frame = row * 4 + walk_col
+				else:
+					var target_row = target_step.get("row", 0)
+					if spr:
+						spr.frame = target_row * 4 + 0
+			if tag:
+				tag.text = GameManager.characters_data[hero_id]["name"]
+		else:
+			# Está en la oficina descansando / trabajando en su escritorio
+			var desk_pos = node.get_meta("office_pos", Vector2(160, 118))
+			var dist = node.global_position.distance_to(desk_pos)
+			if dist > 3.0:
+				var move_vec = (desk_pos - node.global_position).normalized()
+				node.global_position = node.global_position.move_toward(desk_pos, 130.0 * delta)
+				var walk_col = int(anim_timer * 8.0) % 4
+				var row = 6 if move_vec.x > 0 else (2 if move_vec.x < 0 else (0 if move_vec.y > 0 else 4))
+				if spr:
+					spr.frame = row * 4 + walk_col
+			else:
+				node.global_position = desk_pos
+				if spr:
+					spr.frame = 0 # Mirando al frente hacia el escritorio
+			if tag:
+				tag.text = "💻 " + GameManager.characters_data[hero_id]["name"]
+
+func _interact_with_companion(hero_id: String):
+	var data = GameManager.characters_data.get(hero_id, {})
+	var c_name = data.get("name", hero_id)
+	var portrait = data.get("portrait_path", "")
+	var color = data.get("color", Color(1, 1, 1))
+	var is_in_party = GameManager.is_hero_in_party(hero_id)
+	var p_size = GameManager.party.size()
+	
+	player.can_move = false
+	
+	if is_in_party:
+		dialog_queue = [
+			{
+				"speaker": c_name,
+				"portrait": portrait,
+				"color": color,
+				"text": "¡Listo para partir madres y salvar servidores, jefe! ¿Quieres que me quede aquí en la oficina para darle espacio a alguien más o revisar el escuadrón?"
+			}
+		]
+		on_dialog_closed_callback = func():
+			_open_squad_modal()
+	else:
+		var greeting = ""
+		match hero_id:
+			"javier":
+				greeting = "¡Qué onda! ¿Se cayó el sistema o la impresora empezó a morder de nuevo? Dime si nos lanzamos a la batalla."
+			"tonazo":
+				greeting = "Traigo la USB azul milagrosa y parches listos. ¿Vamos a partirle la madre a esos bugs y fallas?"
+			"juan_carlos":
+				greeting = "Es hora de meter orden financiero y de sistemas. Nadie factura sin mi visto bueno. ¿Nos vamos?"
+			"alejandro":
+				greeting = "Resiliencia total, compa. Un verdadero técnico de TI no se rinde ante ninguna pantalla azul. ¿Marchamos?"
+			"israel":
+				greeting = "He visto pasar 10 generaciones de servidores y gerentes. Dime si nos vamos al frente de batalla."
+			_:
+				greeting = "¡Listo para apoyar en lo que haga falta en el departamento de TI!"
+				
+		if p_size < 4:
+			dialog_queue = [
+				{
+					"speaker": c_name,
+					"portrait": portrait,
+					"color": color,
+					"text": greeting + "\n\n[✓] ¡Me uniré a tu escuadrón de aventura!"
+				}
+			]
+			on_dialog_closed_callback = func():
+				GameManager.add_hero_to_party(hero_id)
+				_update_squad_hud()
+				player.can_move = true
+		else:
+			dialog_queue = [
+				{
+					"speaker": c_name,
+					"portrait": portrait,
+					"color": color,
+					"text": greeting + "\n\n(Tu escuadrón ya está lleno con 4 miembros. Abriendo el Gestor de Escuadrón para relevar a alguien)."
+				}
+			]
+			on_dialog_closed_callback = func():
+				_open_squad_modal()
+				
+	_show_next_in_queue()
+
+func _open_squad_modal():
+	player.can_move = false
+	squad_modal.visible = true
+	_update_squad_ui()
+
+func _close_squad_modal():
+	squad_modal.visible = false
+	player.can_move = true
+	_update_squad_hud()
+
+func _update_squad_hud():
+	if btn_squad:
+		btn_squad.text = "[👥] Squad IT (%d/4)" % GameManager.party.size()
+
+func _update_squad_ui():
+	squad_slot_count_label.text = "Squad: %d/4" % GameManager.party.size()
+	_update_squad_hud()
+	
+	for child in squad_heroes_list.get_children():
+		child.queue_free()
+		
+	var party_full = (GameManager.party.size() >= 4)
+	
+	for hero_id in GameManager.characters_data.keys():
+		var data = GameManager.characters_data[hero_id]
+		var is_leader = (hero_id == GameManager.selected_hero_id)
+		var is_in_party = GameManager.is_hero_in_party(hero_id)
+		
+		var panel = PanelContainer.new()
+		var pstyle = StyleBoxFlat.new()
+		pstyle.bg_color = Color(0.12, 0.16, 0.24, 0.95)
+		pstyle.set_corner_radius_all(6)
+		pstyle.set_border_width_all(1)
+		pstyle.border_color = data["color"] if is_in_party else Color(0.3, 0.35, 0.45, 0.6)
+		panel.add_theme_stylebox_override("panel", pstyle)
+		
+		var hbox = HBoxContainer.new()
+		hbox.add_theme_constant_override("separation", 10)
+		
+		# Portrait
+		var port_rect = TextureRect.new()
+		port_rect.custom_minimum_size = Vector2(36, 36)
+		port_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		port_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		port_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		if ResourceLoader.exists(data.get("portrait_path", "")):
+			port_rect.texture = load(data["portrait_path"])
+		hbox.add_child(port_rect)
+		
+		# Info VBox
+		var info_vbox = VBoxContainer.new()
+		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		
+		var title_lbl = Label.new()
+		title_lbl.text = "%s - %s" % [data["name"], data["role"]]
+		title_lbl.add_theme_font_size_override("font_size", 10)
+		title_lbl.modulate = data["color"]
+		info_vbox.add_child(title_lbl)
+		
+		var sub_lbl = Label.new()
+		sub_lbl.text = "\"%s\" | HP: %d/%d | ATQ: %d" % [data.get("title", ""), data["hp"], data["max_hp"], data["atk"]]
+		sub_lbl.add_theme_font_size_override("font_size", 8)
+		sub_lbl.modulate = Color(0.8, 0.85, 0.95)
+		info_vbox.add_child(sub_lbl)
+		
+		hbox.add_child(info_vbox)
+		
+		# Action Button
+		var btn = Button.new()
+		btn.custom_minimum_size = Vector2(110, 24)
+		btn.add_theme_font_size_override("font_size", 9)
+		
+		if is_leader:
+			btn.text = "👑 Líder (Fijo)"
+			btn.disabled = true
+			btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+		elif is_in_party:
+			btn.text = "✓ En Escuadrón (Quitar)"
+			btn.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
+			var h_id = hero_id
+			btn.pressed.connect(func():
+				GameManager.remove_hero_from_party(h_id)
+				_update_squad_ui()
+			)
+		else:
+			if party_full:
+				btn.text = "Lleno (4/4)"
+				btn.disabled = true
+				btn.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+			else:
+				btn.text = "+ Reclutar"
+				btn.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
+				var h_id = hero_id
+				btn.pressed.connect(func():
+					GameManager.add_hero_to_party(h_id)
+					_update_squad_ui()
+				)
+		hbox.add_child(btn)
+		
+		panel.add_child(hbox)
+		squad_heroes_list.add_child(panel)
 

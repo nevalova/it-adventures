@@ -4,6 +4,7 @@ extends Node
 
 var characters_data = {
 	"javier": {
+		"id": "javier",
 		"name": "Javier",
 		"role": "Soporte Técnico",
 		"title": "El Procrastinador de Servidores",
@@ -25,6 +26,7 @@ var characters_data = {
 		"battle_scale": Vector2(0.32, 0.32)
 	},
 	"tonazo": {
+		"id": "tonazo",
 		"name": "Toñazo",
 		"role": "Soporte Técnico",
 		"title": "El de la USB Azul Milagrosa",
@@ -46,6 +48,7 @@ var characters_data = {
 		"battle_scale": Vector2(0.32, 0.32)
 	},
 	"juan_carlos": {
+		"id": "juan_carlos",
 		"name": "Juan Carlos",
 		"role": "El Top Gun",
 		"title": "Es la mera reata hasta arriba",
@@ -67,6 +70,7 @@ var characters_data = {
 		"battle_scale": Vector2(0.365, 0.365)
 	},
 	"alejandro": {
+		"id": "alejandro",
 		"name": "Alejandro",
 		"role": "Soporte Técnico",
 		"title": "Resiliencia Total",
@@ -88,6 +92,7 @@ var characters_data = {
 		"battle_scale": Vector2(0.32, 0.32)
 	},
 	"israel": {
+		"id": "israel",
 		"name": "Israel",
 		"role": "Soporte Técnico",
 		"title": "El Guardián Veterano",
@@ -314,12 +319,52 @@ func init_party(leader_id: String):
 	reset_battle_items()
 	printer_defeated = false
 	# El líder va de primero
-	party.append(characters_data[leader_id].duplicate(true))
+	var leader_data = characters_data[leader_id].duplicate(true)
+	leader_data["id"] = leader_id
+	party.append(leader_data)
 	
-	# Agregamos a los otros compañeros para formar el squad de IT
+	# Por defecto, sumamos 2 compañeros iniciales (dejando 2 libres en la oficina)
+	# para que el squad tenga 3 miembros y el jugador pueda hablar con los demás y elegir
+	var companion_count = 0
 	for id in characters_data.keys():
-		if id != leader_id and party.size() < 4:
-			party.append(characters_data[id].duplicate(true))
+		if id != leader_id and companion_count < 2:
+			var member = characters_data[id].duplicate(true)
+			member["id"] = id
+			party.append(member)
+			companion_count += 1
+
+func is_hero_in_party(hero_id: String) -> bool:
+	for member in party:
+		if member.get("id", "") == hero_id:
+			return true
+	return false
+
+func add_hero_to_party(hero_id: String) -> bool:
+	if party.size() >= 4:
+		return false
+	if is_hero_in_party(hero_id):
+		return false
+	if characters_data.has(hero_id):
+		var member = characters_data[hero_id].duplicate(true)
+		member["id"] = hero_id
+		party.append(member)
+		return true
+	return false
+
+func remove_hero_from_party(hero_id: String) -> bool:
+	if hero_id == selected_hero_id:
+		return false # El líder nunca puede ser removido
+	for i in range(party.size()):
+		if party[i].get("id", "") == hero_id:
+			party.remove_at(i)
+			return true
+	return false
+
+func toggle_hero_party(hero_id: String) -> bool:
+	if is_hero_in_party(hero_id):
+		return remove_hero_from_party(hero_id)
+	else:
+		return add_hero_to_party(hero_id)
 
 func get_leader_data() -> Dictionary:
 	return characters_data.get(selected_hero_id, characters_data["javier"])
