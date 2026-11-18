@@ -685,6 +685,9 @@ func has_alive_minions() -> bool:
 	return false
 
 func select_boss_target():
+	if has_alive_minions():
+		set_log("[🛡️ ESCUDO CMYK] ¡La Impresora está blindada! Debes acabar con los 4 cartuchos de tóner primero.")
+		return
 	current_target_type = TargetType.BOSS
 	update_target_selection_ui()
 	set_log("[🎯] Objetivo fijado: Impresora Maldita.")
@@ -698,13 +701,14 @@ func select_minion_target(idx: int):
 
 func cycle_next_target():
 	var valid_targets = []
-	if enemy_current_hp > 0:
-		valid_targets.append({"type": TargetType.BOSS, "index": -1})
 	for i in range(printer_minions.size()):
 		if printer_minions[i]["alive"]:
 			valid_targets.append({"type": TargetType.MINION, "index": i})
 	
-	if valid_targets.size() <= 1:
+	if not has_alive_minions() and enemy_current_hp > 0:
+		valid_targets.append({"type": TargetType.BOSS, "index": -1})
+	
+	if valid_targets.is_empty():
 		return
 		
 	var cur_idx = -1
@@ -803,7 +807,7 @@ func spawn_printer_minions():
 	]
 	render_minions_ui()
 	update_target_selection_ui()
-	set_log("[!] ¡La Impresora eyecta 4 Tóners! Elige tu objetivo con la flechita.")
+	set_log("[⚠️ ESCUDO CMYK ACTIVO!] ¡La Impresora eyectó 4 Cartuchos de Tóner! La batalla no terminará hasta acabar con todos los cartuchos.")
 
 func render_minions_ui():
 	if not has_node("MainBox/BattleArena/EnemySide/MinionsContainer"):
@@ -912,8 +916,15 @@ func deal_aoe_damage_to_minions(damage: int, message: String):
 				set_log("¡El %s explotó por sobrecarga!" % m["name"])
 	update_minions_ui()
 	if not has_alive_minions():
-		set_log("[!] ¡TODOS LOS CARTUCHOS NEUTRALIZADOS! ¡La Impresora Maldita quedó vulnerable!")
-		select_boss_target()
+		set_log("[💥 EXPLOSIÓN EN CADENA!] ¡Todos los cartuchos de tóner fueron destruidos! ¡La Impresora Maldita explota en pedazos!")
+		enemy_current_hp = 0
+		update_enemy_ui()
+		var tw_boss = create_tween()
+		tw_boss.tween_property(enemy_sprite, "modulate", Color(3.0, 0.2, 0.2), 0.15)
+		tw_boss.tween_property(enemy_sprite, "modulate", Color.WHITE, 0.15)
+		await get_tree().create_timer(1.2).timeout
+		enemy_defeated()
+		return
 	else:
 		cycle_next_target()
 	end_hero_action()
@@ -937,10 +948,26 @@ func deal_damage_to_enemy(damage: int, message: String):
 			update_minions_ui()
 			set_log("¡El %s explotó y se quedó sin tinta!" % m["name"])
 			if not has_alive_minions():
-				set_log("[!] ¡TODOS LOS CARTUCHOS NEUTRALIZADOS! ¡La Impresora Maldita quedó vulnerable!")
-				select_boss_target()
+				set_log("[💥 EXPLOSIÓN EN CADENA!] ¡Todos los cartuchos de tóner fueron destruidos! ¡La Impresora Maldita explota en pedazos!")
+				enemy_current_hp = 0
+				update_enemy_ui()
+				var tw_boss = create_tween()
+				tw_boss.tween_property(enemy_sprite, "modulate", Color(3.0, 0.2, 0.2), 0.15)
+				tw_boss.tween_property(enemy_sprite, "modulate", Color.WHITE, 0.15)
+				await get_tree().create_timer(1.2).timeout
+				enemy_defeated()
+				return
 			else:
 				cycle_next_target()
+		end_hero_action()
+		return
+
+	# Si la impresora tiene cartuchos de tóner vivos, su escudo CMYK absorbe todo daño y no puede morir
+	if has_alive_minions():
+		var tw = create_tween()
+		tw.tween_property(enemy_sprite, "modulate", Color(0.2, 1.8, 2.5), 0.15)
+		tw.tween_property(enemy_sprite, "modulate", Color.WHITE, 0.15)
+		set_log("[🛡️ ESCUDO CMYK] ¡La Impresora es invulnerable! Debes acabar con todos los cartuchos de tóner primero.")
 		end_hero_action()
 		return
 
@@ -965,16 +992,22 @@ func deal_damage_to_enemy(damage: int, message: String):
 	tween.tween_property(enemy_sprite, "modulate", Color(3.0, 0.2, 0.2), 0.1)
 	tween.tween_property(enemy_sprite, "modulate", Color.WHITE if not boss_has_red_aura else Color(2.5, 0.4, 0.4), 0.1)
 	
-	# Chequeo de minions de la impresora al bajar del 10% (<= 45 HP de 420):
-	if enemy.get("type") == "printer" and enemy_current_hp <= 45 and not printer_minions_spawned:
-		if enemy_current_hp <= 0:
-			enemy_current_hp = 18 # No muere antes de sacar sus minions
+	# Chequeo de minions de la impresora al bajar del 15% (<= 65 HP de 420):
+	if enemy.get("type") == "printer" and enemy_current_hp <= 65 and not printer_minions_spawned:
+		enemy_current_hp = 30 # Mantiene vida remanente mientras los tóners estén activos
 		update_enemy_ui()
 		spawn_printer_minions()
+		set_log("[⚠️ EMERGENCIA CMYK!] ¡La Impresora eyectó 4 Cartuchos de Tóner y activó su escudo! ¡Destruye los cartuchos!")
 		end_hero_action()
 		return
 		
 	if enemy_current_hp <= 0:
+		if has_alive_minions():
+			enemy_current_hp = 30
+			update_enemy_ui()
+			set_log("[🛡️ ESCUDO CMYK] ¡La batalla no puede terminar hasta acabar con los cartuchos de tóner!")
+			end_hero_action()
+			return
 		enemy_defeated()
 	else:
 		end_hero_action()
@@ -1132,6 +1165,9 @@ func enemy_turn():
 		advance_to_next_hero()
 
 func enemy_defeated():
+	if has_alive_minions():
+		set_log("[!] ¡La batalla no puede terminar hasta acabar con los cartuchos de tóner!")
+		return
 	is_battle_over = true
 	GameManager.victorious_count += 1
 	
