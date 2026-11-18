@@ -21,7 +21,7 @@ var enemy_specs = {
 		"max_hp": 420,
 		"atk": 22,
 		"def": 12,
-		"exp_reward": 150,
+		"exp_reward": 250,
 		"texture_path": "res://assets/printer_enemy.png",
 		"attacks": [
 			"Atasco de Papel en Bandeja 2",
@@ -44,7 +44,7 @@ var enemy_specs = {
 		"max_hp": 90,
 		"atk": 19,
 		"def": 8,
-		"exp_reward": 50,
+		"exp_reward": 100,
 		"texture_path": "res://assets/enemies/enemy_chip_cpu.png",
 		"attacks": [
 			"Thermal Throttling a 105°C",
@@ -66,7 +66,7 @@ var enemy_specs = {
 		"max_hp": 95,
 		"atk": 20,
 		"def": 10,
-		"exp_reward": 50,
+		"exp_reward": 120,
 		"texture_path": "res://assets/enemies/enemy_cable_roto.png",
 		"attacks": [
 			"Arrancar Cable con la Silla",
@@ -88,7 +88,7 @@ var enemy_specs = {
 		"max_hp": 85,
 		"atk": 17,
 		"def": 8,
-		"exp_reward": 45,
+		"exp_reward": 110,
 		"texture_path": "res://assets/enemies/enemy_nowifi.png",
 		"attacks": [
 			"Sin Acceso a Internet",
@@ -110,7 +110,7 @@ var enemy_specs = {
 		"max_hp": 110,
 		"atk": 22,
 		"def": 14,
-		"exp_reward": 60,
+		"exp_reward": 120,
 		"texture_path": "res://assets/enemies/enemy_cpu_tower.png",
 		"attacks": [
 			"Botón de Encendido Atorado",
@@ -132,7 +132,7 @@ var enemy_specs = {
 		"max_hp": 80,
 		"atk": 17,
 		"def": 9,
-		"exp_reward": 45,
+		"exp_reward": 110,
 		"texture_path": "res://assets/enemies/enemy_smartphone.png",
 		"attacks": [
 			"Notificaciones de 50 Grupos de Chismes",
@@ -154,7 +154,7 @@ var enemy_specs = {
 		"max_hp": 115,
 		"atk": 23,
 		"def": 12,
-		"exp_reward": 65,
+		"exp_reward": 150,
 		"texture_path": "res://assets/enemies/enemy_bsod.png",
 		"attacks": [
 			"CRITICAL_PROCESS_DIED",
@@ -258,7 +258,7 @@ func _on_body_entered(body):
 					spec.get("user_name", "Usuario"),
 					spec.get("user_portrait", ""),
 					spec.get("user_color", Color.WHITE),
-					"¡Muchas gracias por arreglar mi problema con %s! Ahora todo funciona excelente." % spec.get("name", "el equipo")
+					"¡Muchas gracias por arreglar mi problema con %s! Su equipo de TI subió de nivel y ahora tienen más vida y fuerza para derrotar al Señor del Dragón." % spec.get("name", "el equipo")
 				)
 			get_tree().create_timer(1.2).timeout.connect(func(): is_encounter_triggered = false)
 			return

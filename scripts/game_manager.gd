@@ -187,12 +187,15 @@ func load_settings():
 		if control_modes.has(saved_mode):
 			control_type = saved_mode
 
+var initial_characters_data: Dictionary = {}
+
 var item_prices = {
 	"pepsi": 15,
 	"cafe": 25,
 	"predator": 35,
 	"foto": 50,
-	"dia_libre": 90
+	"dia_libre": 90,
+	"certificacion": 45
 }
 
 var battle_items = {
@@ -207,6 +210,9 @@ func buy_item(item_key: String) -> bool:
 	var price = item_prices.get(item_key, 25)
 	if it_budget >= price:
 		it_budget -= price
+		if item_key == "certificacion":
+			add_exp_to_party(120)
+			return true
 		if battle_items.has(item_key):
 			battle_items[item_key]["count"] += 1
 		return true
@@ -221,6 +227,8 @@ func reset_battle_items():
 	battle_items["dia_libre"]["count"] = 2
 
 func reset_game():
+	if not initial_characters_data.is_empty():
+		characters_data = initial_characters_data.duplicate(true)
 	intro_cutscene_done = false
 	office_cutscene_done = false
 	printer_defeated = false
@@ -240,33 +248,46 @@ func reset_game():
 
 func add_exp_to_party(exp_amount: int) -> Array:
 	var level_ups = []
-	for member in party:
-		var current_exp = member.get("exp", 0) + exp_amount
-		var current_level = member.get("level", 1)
-		var exp_needed = member.get("exp_to_next", 60)
+	for char_id in characters_data.keys():
+		var char_data = characters_data[char_id]
+		var current_exp = char_data.get("exp", 0) + exp_amount
+		var current_level = char_data.get("level", 1)
+		var exp_needed = char_data.get("exp_to_next", 70)
 		var did_level_up = false
 		
 		while current_exp >= exp_needed:
 			current_exp -= exp_needed
 			current_level += 1
-			exp_needed = int(exp_needed * 1.5)
-			member["max_hp"] += 25
-			member["hp"] = member["max_hp"] # Cura completa al subir de nivel
-			member["atk"] += 6
-			member["def"] += 4
+			exp_needed = int(exp_needed * 1.35)
+			char_data["max_hp"] += 35
+			char_data["hp"] = char_data["max_hp"] # Cura completa al subir de nivel
+			char_data["atk"] += 9
+			char_data["def"] += 5
 			did_level_up = true
 			
-		member["exp"] = current_exp
-		member["level"] = current_level
-		member["exp_to_next"] = exp_needed
+		char_data["exp"] = current_exp
+		char_data["level"] = current_level
+		char_data["exp_to_next"] = exp_needed
+		
+		# Sincronizar de inmediato con party si el personaje está en el equipo activo
+		for member in party:
+			if member.get("id", "") == char_id:
+				member["max_hp"] = char_data["max_hp"]
+				member["hp"] = char_data["hp"]
+				member["atk"] = char_data["atk"]
+				member["def"] = char_data["def"]
+				member["level"] = char_data["level"]
+				member["exp"] = char_data["exp"]
+				member["exp_to_next"] = char_data["exp_to_next"]
 		
 		if did_level_up:
 			level_ups.append({
-				"name": member["name"],
+				"id": char_id,
+				"name": char_data["name"],
 				"level": current_level,
-				"max_hp": member["max_hp"],
-				"atk": member["atk"],
-				"def": member["def"]
+				"max_hp": char_data["max_hp"],
+				"atk": char_data["atk"],
+				"def": char_data["def"]
 			})
 	return level_ups
 
@@ -305,6 +326,7 @@ func change_scene_instant(tree: SceneTree, path: String) -> void:
 
 func _ready():
 	load_settings()
+	initial_characters_data = characters_data.duplicate(true)
 	# Iniciar precarga asincrona en segundo plano de las escenas principales
 	preload_scene("res://scenes/character_select.tscn")
 	preload_scene("res://scenes/overworld.tscn")

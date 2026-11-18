@@ -1183,7 +1183,7 @@ func enemy_defeated():
 		var names = []
 		for lup in level_ups:
 			names.append("%s (Nv. %d)" % [lup["name"], lup["level"]])
-		set_log("[LEVEL UP!] ¡%s subió de nivel! (+25 HP Max, +6 ATQ, +4 DEF, HP restaurado)" % ", ".join(names))
+		set_log("[⭐ LEVEL UP!] ¡%s subió de nivel! (+35 HP Max, +9 ATQ, +5 DEF, ¡Salud al 100%!)" % ", ".join(names))
 		
 	await get_tree().create_timer(2.2).timeout
 	GameManager.change_scene_instant(get_tree(), "res://scenes/overworld.tscn")

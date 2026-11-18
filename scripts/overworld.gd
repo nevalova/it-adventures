@@ -150,19 +150,7 @@ func _ready():
 	GameManager.preload_scene("res://scenes/battle.tscn")
 	GameManager.preload_scene("res://scenes/character_select.tscn")
 	$Player/Camera2D.make_current()
-	var leader = GameManager.get_leader_data()
-	hud_hero_name.text = leader["name"]
-	hud_hero_role.text = leader["role"]
-	hud_stats.text = "Nv. %d  |  HP: %d/%d  |  ATQ: %d  |  EXP: %d/%d" % [
-		leader.get("level", 1),
-		leader["hp"],
-		leader["max_hp"],
-		leader["atk"],
-		leader.get("exp", 0),
-		leader.get("exp_to_next", 60)
-	]
-	hud_hero_name.modulate = leader["color"]
-	_update_hud_budget()
+	_update_hud_stats()
 	btn_close_shop.pressed.connect(_close_shop_modal)
 	btn_close_photo.pressed.connect(_close_photo_modal)
 	btn_cancel_pass.pressed.connect(_close_server_login_modal)
@@ -1266,6 +1254,21 @@ func _unhandled_input(event):
 					click_marker.trigger_at(target_pos)
 
 # --- Tiendita de Nelly & Sistema de Economía ---
+func _update_hud_stats():
+	var leader = GameManager.get_leader_data()
+	hud_hero_name.text = leader["name"]
+	hud_hero_role.text = leader["role"]
+	hud_stats.text = "Nv. %d  |  HP: %d/%d  |  ATQ: %d  |  EXP: %d/%d" % [
+		leader.get("level", 1),
+		leader["hp"],
+		leader["max_hp"],
+		leader["atk"],
+		leader.get("exp", 0),
+		leader.get("exp_to_next", 70)
+	]
+	hud_hero_name.modulate = leader["color"]
+	_update_hud_budget()
+
 func _update_hud_budget():
 	if hud_hero_budget:
 		hud_hero_budget.text = "Fondos: $%d" % GameManager.it_budget
@@ -1273,7 +1276,7 @@ func _update_hud_budget():
 func _open_shop_modal():
 	player.can_move = false
 	shop_modal.visible = true
-	shop_feedback_label.text = "¡Bienvenido a la Tiendita de Nelly! Elige consumibles para tu equipo."
+	shop_feedback_label.text = "¡Bienvenido a la Tiendita de Nelly! Elige consumibles y certificaciones para tu equipo."
 	shop_feedback_label.modulate = Color(1.0, 1.0, 1.0)
 	_update_shop_ui()
 
@@ -1293,7 +1296,8 @@ func _update_shop_ui():
 		{"key": "cafe", "name": "Café de Olla", "desc": "Restaura +75 HP a un compañero en combate.", "price": GameManager.item_prices.get("cafe", 25)},
 		{"key": "predator", "name": "Bebida Predator", "desc": "Restaura +120 HP a un compañero en combate.", "price": GameManager.item_prices.get("predator", 35)},
 		{"key": "foto", "name": "Foto de Familia", "desc": "Cura +200 HP y elimina estrés a un compañero.", "price": GameManager.item_prices.get("foto", 50)},
-		{"key": "dia_libre", "name": "Día Libre (Pase RH)", "desc": "¡Revive a un compañero caído en batalla con 50% HP!", "price": GameManager.item_prices.get("dia_libre", 90)}
+		{"key": "dia_libre", "name": "Día Libre (Pase RH)", "desc": "¡Revive a un compañero caído en batalla con 50% HP!", "price": GameManager.item_prices.get("dia_libre", 90)},
+		{"key": "certificacion", "name": "Certificación IT (Voucher RH)", "desc": "¡Otorga +120 EXP a todo el escuadrón IT para subir de nivel y aguantar al Dragón!", "price": GameManager.item_prices.get("certificacion", 45)}
 	]
 	
 	for item in item_defs:
@@ -1309,11 +1313,18 @@ func _update_shop_ui():
 		var info_vbox = VBoxContainer.new()
 		info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
-		var current_qty = GameManager.battle_items.get(item["key"], 0)
+		var current_qty_str = ""
+		if item["key"] == "certificacion":
+			var ldr = GameManager.get_leader_data()
+			current_qty_str = "Nv. Equipo: %d (EXP: %d/%d)" % [ldr.get("level", 1), ldr.get("exp", 0), ldr.get("exp_to_next", 70)]
+		else:
+			var bitem = GameManager.battle_items.get(item["key"], {})
+			current_qty_str = "Tienes: %d" % bitem.get("count", 0)
+			
 		var title_label = Label.new()
-		title_label.text = "%s ($%d) [Tienes: %d]" % [item["name"], item["price"], current_qty]
+		title_label.text = "%s ($%d) [%s]" % [item["name"], item["price"], current_qty_str]
 		title_label.add_theme_font_size_override("font_size", 12)
-		title_label.modulate = Color(1.0, 0.85, 0.3)
+		title_label.modulate = Color(1.0, 0.85, 0.3) if item["key"] != "certificacion" else Color(0.4, 1.0, 0.5)
 		info_vbox.add_child(title_label)
 		
 		var desc_label = Label.new()
@@ -1333,8 +1344,12 @@ func _update_shop_ui():
 		var iprice = item["price"]
 		buy_btn.pressed.connect(func():
 			if GameManager.buy_item(key):
-				shop_feedback_label.text = "¡Compraste 1 %s por $%d!" % [iname, iprice]
+				if key == "certificacion":
+					shop_feedback_label.text = "¡Acreditada Certificación IT (+120 EXP al equipo)! Salud y estadísticas aumentadas."
+				else:
+					shop_feedback_label.text = "¡Compraste 1 %s por $%d!" % [iname, iprice]
 				shop_feedback_label.modulate = Color(0.3, 0.9, 0.4)
+				_update_hud_stats()
 				_update_shop_ui()
 			else:
 				shop_feedback_label.text = "¡Fondos insuficientes para comprar %s!" % iname
@@ -1670,7 +1685,7 @@ func _update_squad_ui():
 		info_vbox.add_child(title_lbl)
 		
 		var sub_lbl = Label.new()
-		sub_lbl.text = "\"%s\" | HP: %d/%d | ATQ: %d" % [data.get("title", ""), data["hp"], data["max_hp"], data["atk"]]
+		sub_lbl.text = "Nv. %d | HP: %d/%d | ATQ: %d | DEF: %d | \"%s\"" % [data.get("level", 1), data["hp"], data["max_hp"], data["atk"], data.get("def", 15), data.get("title", "")]
 		sub_lbl.add_theme_font_size_override("font_size", 8)
 		sub_lbl.modulate = Color(0.8, 0.85, 0.95)
 		info_vbox.add_child(sub_lbl)
