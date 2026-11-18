@@ -34,8 +34,8 @@ var enemy_specs = {
 	"outlook": {
 		"user_name": "Mario (Compras)",
 		"user_color": Color("#f59e0b"),
-		"user_spritesheet": "res://assets/characters/npc_veterano_spritesheet.png",
-		"user_portrait": "res://assets/characters/npc_veterano_portrait.png",
+		"user_spritesheet": "res://assets/characters/npc_pelirroja_spritesheet.png",
+		"user_portrait": "res://assets/characters/npc_pelirroja_portrait.png",
 		"problem_dialog": "¡Ayuda, tengo un problema con el procesador! La máquina huele a tostada y se congela cada que abro las cotizaciones.",
 		"name": "Microprocesador Hirviendo",
 		"type": "chip_cpu",
@@ -78,9 +78,9 @@ var enemy_specs = {
 	"teclado": {
 		"user_name": "Doña Brenda (Facturación)",
 		"user_color": Color("#a855f7"),
-		"user_spritesheet": "res://assets/characters/npc_curly_spritesheet.png",
-		"user_portrait": "res://assets/characters/npc_curly_portrait.png",
-		"problem_dialog": "¡Ayuda, tengo un problema con el Wi-Fi! Se desconectó toda la oficina y no puedo timbrar las facturas del cierre.",
+		"user_spritesheet": "res://assets/characters/npc_ejecutivo_spritesheet.png",
+		"user_portrait": "res://assets/characters/npc_ejecutivo_portrait.png",
+		"problem_dialog": "¡Ayuda muchachos de TI! No puedo timbrar las facturas del cierre porque la máquina se quedó sin señal de red...",
 		"name": "Señal Wi-Fi Caída",
 		"type": "nowifi",
 		"desc": "La señal inalámbrica colapsó dejando a Facturación completamente desconectada.",
@@ -100,8 +100,8 @@ var enemy_specs = {
 	"cpu": {
 		"user_name": "Laura (Archivo)",
 		"user_color": Color("#f97316"),
-		"user_spritesheet": "res://assets/characters/npc_pelirroja_spritesheet.png",
-		"user_portrait": "res://assets/characters/npc_pelirroja_portrait.png",
+		"user_spritesheet": "res://assets/characters/npc_veterano_spritesheet.png",
+		"user_portrait": "res://assets/characters/npc_veterano_portrait.png",
 		"problem_dialog": "¡Ayuda, tengo un problema con mi CPU! Llegué hoy y solo veo la pantalla negra, ¡mi máquina no prende!",
 		"name": "Gabinete PC Inerte",
 		"type": "cpu_tower",
@@ -122,8 +122,8 @@ var enemy_specs = {
 	"wifi_phone": {
 		"user_name": "Lic. de color serio (RH)",
 		"user_color": Color("#10b981"),
-		"user_spritesheet": "res://assets/characters/npc_techlead_spritesheet.png",
-		"user_portrait": "res://assets/characters/npc_techlead_portrait.png",
+		"user_spritesheet": "res://assets/characters/npc_curly_spritesheet.png",
+		"user_portrait": "res://assets/characters/npc_curly_portrait.png",
 		"problem_dialog": "¡Ayuda, tengo un problema con mi celular! ¿Me lo conectan a la red de la empresa para ver mis mensajes?",
 		"name": "Smartphone sin Wi-Fi",
 		"type": "smartphone",
@@ -144,8 +144,8 @@ var enemy_specs = {
 	"bsod": {
 		"user_name": "Ing. Fernando (Tech Lead)",
 		"user_color": Color("#818cf8"),
-		"user_spritesheet": "res://assets/characters/npc_ejecutivo_spritesheet.png",
-		"user_portrait": "res://assets/characters/npc_ejecutivo_portrait.png",
+		"user_spritesheet": "res://assets/characters/npc_coleta_spritesheet.png",
+		"user_portrait": "res://assets/characters/npc_coleta_portrait.png",
 		"problem_dialog": "¡Ayuda, tengo un problema crítico! Justo al compilar el release me saltó una pantalla azul de la muerte.",
 		"name": "Pantalla Azul (BSOD)",
 		"type": "bsod",
@@ -195,10 +195,12 @@ func apply_spec():
 		var tex = sprite.texture
 		if tex and tex.get_height() < 1500:
 			sprite.scale = Vector2(0.51, 0.51)
-			name_tag.position.y = -28.0
+			sprite.position = Vector2(0, -21)
+			name_tag.position.y = -36.0
 		else:
 			sprite.scale = Vector2(0.24, 0.24)
-			name_tag.position.y = -24.0
+			sprite.position = Vector2(0, -10)
+			name_tag.position.y = -34.0
 		
 		if enemy_id != "" and GameManager.defeated_enemies.has(enemy_id):
 			name_tag.text = "[V] " + spec.get("user_name", "Usuario")

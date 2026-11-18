@@ -10,7 +10,7 @@
 [ext_resource type="Texture2D" path="res://assets/props/desk_light.png" id="11_desk_light"]
 [ext_resource type="Texture2D" path="res://assets/props/desk_office.png" id="12_desk_office"]
 [ext_resource type="Texture2D" path="res://assets/characters/dragon_boss_spritesheet.png" id="17_dragon_spr"]
-[ext_resource type="Texture2D" path="res://assets/characters/npc_pelirroja_spritesheet.png" id="18_nelly_spr"]
+[ext_resource type="Texture2D" path="res://assets/characters/npc_techlead_spritesheet.png" id="18_nelly_spr"]
 [ext_resource type="Texture2D" path="res://assets/enemies/boss_password_server.png" id="19_server_boss"]
 [ext_resource type="Texture2D" path="res://assets/enemies/enemy_cpu_tower.png" id="20_server_rack"]
 [ext_resource type="Texture2D" path="res://assets/props/roberto_screen_photo.png" id="21_screen_photo"]
@@ -321,17 +321,17 @@ texture = ExtResource("11_desk_light")
 position = Vector2(0, 4)
 shape = SubResource("RectangleShape2D_desk_col")
 
-[node name="DeskF3_Carlos" type="StaticBody2D" parent="OfficeFurniture"]
+[node name="DeskF3_DonaBrenda" type="StaticBody2D" parent="OfficeFurniture"]
 position = Vector2(860, 80)
 collision_layer = 2
 collision_mask = 1
 
-[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF3_Carlos"]
+[node name="Sprite" type="Sprite2D" parent="OfficeFurniture/DeskF3_DonaBrenda"]
 texture_filter = 1
 scale = Vector2(0.14, 0.14)
 texture = ExtResource("12_desk_office")
 
-[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF3_Carlos"]
+[node name="Coll" type="CollisionShape2D" parent="OfficeFurniture/DeskF3_DonaBrenda"]
 position = Vector2(0, 4)
 shape = SubResource("RectangleShape2D_desk_col")
 
