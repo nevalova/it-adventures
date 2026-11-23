@@ -173,7 +173,7 @@ func setup_battle():
 	boss_has_red_aura = false
 	boss_atlas = null
 	
-	if enemy.get("type") == "dragon_boss" or enemy.has("spritesheet_path"):
+	if enemy.get("type") == "dragon_boss":
 		$Background.color = Color(0.03, 0.01, 0.05, 1.0)
 		enemy_name_label.text = "[JEFE] El Señor del Dragón"
 		enemy_name_label.modulate = Color(1.0, 0.25, 0.25)
@@ -188,6 +188,23 @@ func setup_battle():
 			boss_frame_col = 0
 			boss_is_special_anim = false
 			boss_atlas.region = Rect2(0, 4 * 128, 128, 128)
+			enemy_sprite.texture = boss_atlas
+			enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			enemy_sprite.custom_minimum_size = Vector2(140, 140)
+	elif enemy.get("type") == "senor_apoyo":
+		$Background.color = Color(0.04, 0.02, 0.02, 1.0)
+		enemy_name_label.text = "[OFICINA] El Señor"
+		enemy_name_label.modulate = Color(1.0, 0.65, 0.25)
+		var sheet_path = enemy.get("spritesheet_path", "res://assets/characters/senor_apoyo_spritesheet.png")
+		if ResourceLoader.exists(sheet_path):
+			boss_atlas = AtlasTexture.new()
+			boss_atlas.atlas = load(sheet_path)
+			boss_cell_size = 85
+			boss_frame_row = 2 # Row 2: mirando a la izquierda hacia la party
+			boss_frame_col = 0
+			boss_is_special_anim = false
+			boss_atlas.region = Rect2(0, 2 * 85, 85, 85)
 			enemy_sprite.texture = boss_atlas
 			enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -216,6 +233,8 @@ func setup_battle():
 	
 	if enemy.get("type") == "dragon_boss":
 		set_log("¡SOMBRAS DEL PASADO! ¡El Señor del Dragón exige su dragón!")
+	elif enemy.get("type") == "senor_apoyo":
+		set_log("¡El Señor exige apoyo! Israel responde: 'Estoy ocupado.'")
 	elif enemy.get("type") == "password_boss":
 		set_log("¡FALLA DE ENRUTAMIENTO! ¡Nadie se sabe la contraseña del Servidor 117!")
 	else:
@@ -978,14 +997,14 @@ func deal_damage_to_enemy(damage: int, message: String):
 	
 	# Efecto visual y cambio de pose al recibir daño
 	if boss_atlas != null and enemy_current_hp > 0 and not boss_is_special_anim:
-		boss_frame_row = 5 # Postura de impacto / dolor
+		boss_frame_row = 10 if enemy.get("type") == "senor_apoyo" else 5 # Postura de impacto / dolor
 		boss_frame_col = 0
-		boss_atlas.region = Rect2(0, 5 * boss_cell_size, boss_cell_size, boss_cell_size)
+		boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		get_tree().create_timer(0.35).timeout.connect(func():
 			if boss_atlas != null and not is_battle_over and not boss_is_special_anim:
-				boss_frame_row = 4
+				boss_frame_row = 2 if enemy.get("type") == "senor_apoyo" else 4
 				boss_frame_col = 0
-				boss_atlas.region = Rect2(0, 4 * boss_cell_size, boss_cell_size, boss_cell_size)
+				boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		)
 		
 	var tween = create_tween()
@@ -1175,12 +1194,18 @@ func enemy_defeated():
 	
 	if boss_atlas != null:
 		boss_is_special_anim = true
-		boss_frame_row = 5 # Row 5: Col 5 = Hincado en pose de derrota
-		boss_frame_col = 5
-		boss_atlas.region = Rect2(5 * boss_cell_size, 5 * boss_cell_size, boss_cell_size, boss_cell_size)
+		if enemy.get("type") == "senor_apoyo":
+			boss_frame_row = 11 # Row 11: Col 3 = tirado en el suelo
+			boss_frame_col = 3
+			boss_atlas.region = Rect2(3 * boss_cell_size, 11 * boss_cell_size, boss_cell_size, boss_cell_size)
+		else:
+			boss_frame_row = 5 # Row 5: Col 5 = Hincado en pose de derrota
+			boss_frame_col = 5
+			boss_atlas.region = Rect2(5 * boss_cell_size, 5 * boss_cell_size, boss_cell_size, boss_cell_size)
 	
-	if GameManager.current_enemy_id != "" and not GameManager.defeated_enemies.has(GameManager.current_enemy_id):
-		GameManager.defeated_enemies.append(GameManager.current_enemy_id)
+	if enemy.get("type") != "senor_apoyo":
+		if GameManager.current_enemy_id != "" and not GameManager.defeated_enemies.has(GameManager.current_enemy_id):
+			GameManager.defeated_enemies.append(GameManager.current_enemy_id)
 		
 	var enemy_type_str = enemy.get("type", "printer")
 	var exp_gained = enemy.get("exp_reward", 45)
@@ -1189,6 +1214,10 @@ func enemy_defeated():
 		coins_reward = 250
 	elif enemy_type_str == "dragon_boss":
 		coins_reward = 500
+	elif enemy_type_str == "senor_apoyo":
+		coins_reward = 0
+		exp_gained = 0
+		GameManager.just_defeated_senor_apoyo = true
 	GameManager.it_budget += coins_reward
 	
 	for i in range(min(GameManager.party.size(), battle_party.size())):
@@ -1213,6 +1242,8 @@ func enemy_defeated():
 		GameManager.server_boss_defeated = true
 		GameManager.player_saved_position = Vector2(2560, 180)
 		set_log("[SITE SALVADO] ¡Ruta establecida al 189 y Servidor 117 desbloqueado! (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
+	elif enemy_type_str == "senor_apoyo":
+		set_log("[VICTORIA!] ¡El Señor fue noqueado de un solo golpe! Israel: 'Lo voy a revivir para volver a darle en su madre.'")
 	else:
 		set_log("[!] ¡Ticket resuelto! '%s' neutralizado. (+%d EXP, +$%d Presupuesto)" % [enemy.get("name", "Enemigo"), exp_gained, coins_reward])
 		

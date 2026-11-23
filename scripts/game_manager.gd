@@ -133,6 +133,7 @@ var director_cutscene_done: bool = false
 var server_site_cutscene_done: bool = false
 var password_quest_active: bool = false
 var server_boss_defeated: bool = false
+var just_defeated_senor_apoyo: bool = false
 
 var it_budget: int = 200 # Presupuesto de caja chica de IT para la tiendita de Nelly
 

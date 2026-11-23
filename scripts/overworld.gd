@@ -145,6 +145,7 @@ var current_interactable: String = ""
 # Sistema de Compañeros de Escuadrón
 var companion_nodes: Dictionary = {}
 var player_trail: Array = []
+var senor_apoyo_node: Node2D = null
 
 func _ready():
 	GameManager.preload_scene("res://scenes/battle.tscn")
@@ -169,6 +170,7 @@ func _ready():
 			prop.reparent(self)
 			
 	_setup_companions()
+	_setup_senor_apoyo()
 	
 	btn_switch.pressed.connect(func():
 		GameManager.change_scene_instant(get_tree(), "res://scenes/character_select.tscn")
@@ -378,6 +380,10 @@ func _ready():
 			roberto_sprite.frame = 2 * 4 + 0
 			objective_label.text = obj_follow_text
 		current_state = State.FREE_EXPLORE
+		
+	if GameManager.just_defeated_senor_apoyo:
+		GameManager.just_defeated_senor_apoyo = false
+		_start_post_senor_apoyo_dialogue()
 
 func _process(delta):
 	anim_timer += delta
@@ -773,6 +779,120 @@ func _start_dragon_boss_battle():
 	}
 	GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
 
+func _setup_senor_apoyo():
+	if senor_apoyo_node != null:
+		senor_apoyo_node.queue_free()
+		senor_apoyo_node = null
+		
+	# Solo aparece si el personaje seleccionado es Israel
+	if GameManager.selected_hero_id != "israel":
+		return
+		
+	senor_apoyo_node = Node2D.new()
+	senor_apoyo_node.name = "SenorApoyo"
+	senor_apoyo_node.y_sort_enabled = true
+	senor_apoyo_node.position = Vector2(280, 190)
+	
+	var spr = Sprite2D.new()
+	spr.name = "Sprite2D"
+	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var sheet_path = "res://assets/characters/senor_apoyo_spritesheet.png"
+	if ResourceLoader.exists(sheet_path):
+		spr.texture = load(sheet_path)
+	spr.hframes = 4
+	spr.vframes = 12
+	spr.frame = 0 # Mirando al frente
+	spr.scale = Vector2(0.24, 0.24)
+	spr.position = Vector2(0, -10)
+	senor_apoyo_node.add_child(spr)
+	
+	var tag = Label.new()
+	tag.name = "NameTag"
+	tag.offset_left = -60.0
+	tag.offset_top = -32.0
+	tag.offset_right = 60.0
+	tag.offset_bottom = -16.0
+	tag.add_theme_font_size_override("font_size", 8)
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag.text = "[!] ¿Me apoyas?"
+	tag.modulate = Color(1.0, 0.65, 0.25)
+	senor_apoyo_node.add_child(tag)
+	
+	var area = Area2D.new()
+	area.name = "InteractArea"
+	area.collision_layer = 4
+	area.collision_mask = 1
+	var col = CollisionShape2D.new()
+	var circle = CircleShape2D.new()
+	circle.radius = 28.0
+	col.shape = circle
+	area.add_child(col)
+	senor_apoyo_node.add_child(area)
+	
+	area.body_entered.connect(func(body):
+		if body == player:
+			_set_interactable("senor_apoyo")
+	)
+	area.body_exited.connect(func(body):
+		if body == player and current_interactable == "senor_apoyo":
+			_clear_interactable()
+	)
+	
+	add_child(senor_apoyo_node)
+
+func _start_senor_apoyo_dialog():
+	player.can_move = false
+	touch_controls.visible = false
+	
+	dialog_queue = [
+		{
+			"speaker": "El Señor",
+			"portrait": "res://assets/characters/senor_apoyo_portrait.png",
+			"color": Color("#e67e22"),
+			"text": "¿Me puedes apoyar con con eso o no?"
+		},
+		{
+			"speaker": "Israel",
+			"portrait": "res://assets/characters/israel_portrait.png",
+			"color": Color("#e74c3c"),
+			"text": "Estoy ocupado."
+		}
+	]
+	
+	on_dialog_closed_callback = func():
+		GameManager.player_saved_position = player.global_position
+		GameManager.current_enemy_id = "senor_apoyo"
+		GameManager.current_enemy_data = {
+			"name": "El Señor",
+			"type": "senor_apoyo",
+			"hp": 1,
+			"max_hp": 1,
+			"atk": 1,
+			"def": 0,
+			"exp_reward": 0,
+			"portrait_path": "res://assets/characters/senor_apoyo_portrait.png",
+			"spritesheet_path": "res://assets/characters/senor_apoyo_spritesheet.png"
+		}
+		GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
+		
+	_show_next_in_queue()
+
+func _start_post_senor_apoyo_dialogue():
+	player.can_move = false
+	touch_controls.visible = false
+	dialog_queue = [
+		{
+			"speaker": "Israel",
+			"portrait": "res://assets/characters/israel_portrait.png",
+			"color": Color("#e74c3c"),
+			"text": "Lo voy a revivir para volver a darle en su madre."
+		}
+	]
+	on_dialog_closed_callback = func():
+		player.can_move = true
+		touch_controls.visible = true
+	_show_next_in_queue()
+
 func _start_post_dragon_dialogue():
 	player.can_move = false
 	var leader = GameManager.get_leader_data()
@@ -999,6 +1119,9 @@ func _set_interactable(id: String):
 		"roberto":
 			interact_label.text = "[E] Hablar con Roberto Huerta"
 			btn_interact.text = "[E] Hablar"
+		"senor_apoyo":
+			interact_label.text = "[E] Hablar con El Señor ('¿Me apoyas?')"
+			btn_interact.text = "[E] Hablar"
 		"dragon_boss":
 			interact_label.text = "[E] ¡Pelear con El Señor del Dragón!"
 			btn_interact.text = "[E] Pelear"
@@ -1045,6 +1168,8 @@ func _trigger_current_interaction():
 	match current_interactable:
 		"nelly":
 			_open_shop_modal()
+		"senor_apoyo":
+			_start_senor_apoyo_dialog()
 		"dragon_boss":
 			_start_dragon_boss_battle()
 		"director":
