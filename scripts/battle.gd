@@ -1083,27 +1083,29 @@ func enemy_turn():
 	var log_msg = ""
 	
 	if is_dragon_boss:
-		if not boss_has_red_aura and randf() < 0.25:
+		if not boss_has_red_aura and randf() < 0.20:
 			chosen_atk = "Emputarse por nada"
-		elif randf() < 0.45 or chosen_atk == "DONDE ESTA MI DRAGON IMPRESO EN 3D":
+		elif randf() < 0.20:
 			chosen_atk = "DONDE ESTA MI DRAGON IMPRESO EN 3D"
-		else:
+		elif randf() < 0.50:
 			chosen_atk = "La Cólera del Dragón"
+		else:
+			chosen_atk = "Acoso"
 
 		if chosen_atk == "DONDE ESTA MI DRAGON IMPRESO EN 3D":
-			dmg = 150 # Baja 150 de vida como pidió el usuario
+			dmg = 55 # Daño especial ajustado a 55 (balanceado y no fulminante)
 			await play_dragon_special_anim(target["name"])
-			log_msg = "¡¡DONDE ESTA MI DRAGON IMPRESO EN 3D!! ¡El Señor del Dragón desató toda su furia acumulada invocando al dragón espectral e infligió 150 de daño directo a %s!" % target["name"]
+			log_msg = "¡¡DONDE ESTA MI DRAGON IMPRESO EN 3D!! ¡El Señor del Dragón invoca al dragón espectral e inflige %d de daño a %s!" % [dmg, target["name"]]
 		elif chosen_atk == "Emputarse por nada":
 			boss_has_red_aura = true
-			enemy["atk"] = enemy.get("atk", 25) + 12 # Boost de 5 niveles
-			dmg = max(14, enemy["atk"] + randi_range(2, 6) - int(target["def"] * 0.4))
+			enemy["atk"] = enemy.get("atk", 18) + 4 # Boost de +4 ATQ
+			dmg = max(10, enemy["atk"] + randi_range(1, 3) - int(target["def"] * 0.4))
 			var aura_tween = create_tween().set_loops()
 			aura_tween.tween_property(enemy_sprite, "modulate", Color(3.5, 0.3, 0.3), 0.3)
 			aura_tween.tween_property(enemy_sprite, "modulate", Color(1.8, 0.6, 0.6), 0.3)
-			log_msg = "¡¡EMPUTARSE POR NADA!! El Señor del Dragón estalla de ira sin motivo, activa un AURA ROJA (+5 niveles, +12 ATQ) y golpea a %s por %d de daño." % [target["name"], dmg]
+			log_msg = "¡¡EMPUTARSE POR NADA!! El Señor del Dragón estalla de ira (+4 ATQ) y golpea a %s por %d de daño." % [target["name"], dmg]
 		elif chosen_atk == "La Cólera del Dragón":
-			dmg = int(dmg * 1.5)
+			dmg = int(dmg * 1.25)
 			log_msg = "¡¡LA CÓLERA DEL DRAGÓN!! ¡Un rugido draconiano hace temblar la sala! %s recibió %d de daño." % [target["name"], dmg]
 		else:
 			chosen_atk = "Acoso"
@@ -1219,7 +1221,7 @@ func enemy_defeated():
 		var names = []
 		for lup in level_ups:
 			names.append("%s (Nv. %d)" % [lup["name"], lup["level"]])
-		set_log("[⭐ LEVEL UP!] ¡%s subió de nivel! (+35 HP Max, +9 ATQ, +5 DEF, ¡Salud al 100%!)" % ", ".join(names))
+		set_log("[⭐ LEVEL UP!] ¡%s subió de nivel! (+50 HP Max, +14 ATQ, +7 DEF, ¡Salud al 100%!)" % ", ".join(names))
 		
 	await get_tree().create_timer(2.2).timeout
 	GameManager.change_scene_instant(get_tree(), "res://scenes/overworld.tscn")

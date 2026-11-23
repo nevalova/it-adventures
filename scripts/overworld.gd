@@ -757,11 +757,11 @@ func _start_dragon_boss_battle():
 		"name": "El Señor del Dragón",
 		"type": "dragon_boss",
 		"desc": "El Señor del Dragón... Exige de vuelta a su dragón o retendrá el splitter, discos duros y el trackpad.",
-		"hp": 650,
-		"max_hp": 650,
-		"atk": 25,
-		"def": 14,
-		"exp_reward": 350,
+		"hp": 360,
+		"max_hp": 360,
+		"atk": 18,
+		"def": 8,
+		"exp_reward": 400,
 		"spritesheet_path": "res://assets/characters/dragon_boss_battle_spritesheet.png",
 		"texture_path": "res://assets/characters/dragon_boss_battle_spritesheet.png",
 		"attacks": [
@@ -1264,7 +1264,7 @@ func _update_hud_stats():
 		leader["max_hp"],
 		leader["atk"],
 		leader.get("exp", 0),
-		leader.get("exp_to_next", 70)
+		leader.get("exp_to_next", 50)
 	]
 	hud_hero_name.modulate = leader["color"]
 	_update_hud_budget()
@@ -1297,7 +1297,7 @@ func _update_shop_ui():
 		{"key": "predator", "name": "Bebida Predator", "desc": "Restaura +120 HP a un compañero en combate.", "price": GameManager.item_prices.get("predator", 35)},
 		{"key": "foto", "name": "Foto de Familia", "desc": "Cura +200 HP y elimina estrés a un compañero.", "price": GameManager.item_prices.get("foto", 50)},
 		{"key": "dia_libre", "name": "Día Libre (Pase RH)", "desc": "¡Revive a un compañero caído en batalla con 50% HP!", "price": GameManager.item_prices.get("dia_libre", 90)},
-		{"key": "certificacion", "name": "Certificación IT (Voucher RH)", "desc": "¡Otorga +120 EXP a todo el escuadrón IT para subir de nivel y aguantar al Dragón!", "price": GameManager.item_prices.get("certificacion", 45)}
+		{"key": "certificacion", "name": "Certificación IT (Voucher RH)", "desc": "¡Otorga +160 EXP a todo el escuadrón IT para subir de nivel rápidamente y vencer al Dragón!", "price": GameManager.item_prices.get("certificacion", 45)}
 	]
 	
 	for item in item_defs:
@@ -1316,7 +1316,7 @@ func _update_shop_ui():
 		var current_qty_str = ""
 		if item["key"] == "certificacion":
 			var ldr = GameManager.get_leader_data()
-			current_qty_str = "Nv. Equipo: %d (EXP: %d/%d)" % [ldr.get("level", 1), ldr.get("exp", 0), ldr.get("exp_to_next", 70)]
+			current_qty_str = "Nv. Equipo: %d (EXP: %d/%d)" % [ldr.get("level", 1), ldr.get("exp", 0), ldr.get("exp_to_next", 50)]
 		else:
 			var bitem = GameManager.battle_items.get(item["key"], {})
 			current_qty_str = "Tienes: %d" % bitem.get("count", 0)

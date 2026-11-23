@@ -15,7 +15,7 @@ var characters_data = {
 		"def": 18,
 		"level": 1,
 		"exp": 0,
-		"exp_to_next": 60,
+		"exp_to_next": 50,
 		"color": Color("#3498db"), # Azul
 		"special_mechanic": "one_turn_skip", # Ataca un turno si y otro no
 		"special_move_name": "Reinicio Forzado al Rack",
@@ -37,7 +37,7 @@ var characters_data = {
 		"def": 15,
 		"level": 1,
 		"exp": 0,
-		"exp_to_next": 60,
+		"exp_to_next": 50,
 		"color": Color("#2ecc71"), # Verde
 		"special_mechanic": "healer",
 		"special_move_name": "USB Booteable con Linux Milagroso",
@@ -59,7 +59,7 @@ var characters_data = {
 		"def": 22,
 		"level": 1,
 		"exp": 0,
-		"exp_to_next": 60,
+		"exp_to_next": 50,
 		"color": Color("#9b59b6"), # Morado
 		"special_mechanic": "shield_tank",
 		"special_move_name": "Ataque DDoS con la Cafetera",
@@ -81,7 +81,7 @@ var characters_data = {
 		"def": 18,
 		"level": 1,
 		"exp": 0,
-		"exp_to_next": 60,
+		"exp_to_next": 50,
 		"color": Color("#e67e22"), # Naranja
 		"special_mechanic": "critical_dev",
 		"special_move_name": "Mañana no vengo, voy a Chilpancingo",
@@ -103,7 +103,7 @@ var characters_data = {
 		"def": 16,
 		"level": 1,
 		"exp": 0,
-		"exp_to_next": 60,
+		"exp_to_next": 50,
 		"color": Color("#e74c3c"), # Rojo
 		"special_mechanic": "high_damage",
 		"special_move_name": "DROP DATABASE CON ROOT",
@@ -211,7 +211,7 @@ func buy_item(item_key: String) -> bool:
 	if it_budget >= price:
 		it_budget -= price
 		if item_key == "certificacion":
-			add_exp_to_party(120)
+			add_exp_to_party(160)
 			return true
 		if battle_items.has(item_key):
 			battle_items[item_key]["count"] += 1
@@ -252,17 +252,17 @@ func add_exp_to_party(exp_amount: int) -> Array:
 		var char_data = characters_data[char_id]
 		var current_exp = char_data.get("exp", 0) + exp_amount
 		var current_level = char_data.get("level", 1)
-		var exp_needed = char_data.get("exp_to_next", 70)
+		var exp_needed = char_data.get("exp_to_next", 50)
 		var did_level_up = false
 		
 		while current_exp >= exp_needed:
 			current_exp -= exp_needed
 			current_level += 1
-			exp_needed = int(exp_needed * 1.35)
-			char_data["max_hp"] += 35
+			exp_needed = int(exp_needed * 1.25)
+			char_data["max_hp"] += 50
 			char_data["hp"] = char_data["max_hp"] # Cura completa al subir de nivel
-			char_data["atk"] += 9
-			char_data["def"] += 5
+			char_data["atk"] += 14
+			char_data["def"] += 7
 			did_level_up = true
 			
 		char_data["exp"] = current_exp
