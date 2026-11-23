@@ -1237,7 +1237,11 @@ func enemy_defeated():
 	elif enemy_type_str == "dragon_boss":
 		GameManager.dragon_boss_defeated = true
 		GameManager.player_saved_position = Vector2(1820, 180)
-		set_log("[VICTORIA!] El Señor del Dragón cae hincado exhausto: '¡Maldita sea... no es la última vez que sabrán de mí!...' (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
+		set_log("[VICTORIA!] El Señor del Dragón cae hincado exhausto...")
+		await _show_boss_defeat_dialog([
+			"¡Aghhh... Maldita sea!... ¡¿Cómo es posible que unos técnicos de soporte me hayan dejado así?!",
+			"¡No crean que esto se queda así!... ¡No es la última vez que sabrán de mí!... ¡Volveré por lo que es mío y por mi dragón impreso en 3D!"
+		])
 	elif enemy_type_str == "password_boss":
 		GameManager.server_boss_defeated = true
 		GameManager.player_saved_position = Vector2(2560, 180)
@@ -1265,3 +1269,83 @@ func game_over():
 
 func set_log(text: String):
 	log_label.text = text
+
+func _show_boss_defeat_dialog(lines: Array):
+	var overlay = PanelContainer.new()
+	overlay.name = "BossDefeatDialog"
+	overlay.anchor_top = 0.55
+	overlay.anchor_bottom = 0.95
+	overlay.anchor_left = 0.08
+	overlay.anchor_right = 0.92
+	
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.06, 0.03, 0.08, 0.96)
+	sb.border_color = Color("#e17055")
+	sb.border_width_bottom = 2
+	sb.border_width_top = 2
+	sb.border_width_left = 2
+	sb.border_width_right = 2
+	sb.corner_radius_bottom_left = 6
+	sb.corner_radius_bottom_right = 6
+	sb.corner_radius_top_left = 6
+	sb.corner_radius_top_right = 6
+	overlay.add_theme_stylebox_override("panel", sb)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	overlay.add_child(margin)
+	
+	var hbox = HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 12)
+	margin.add_child(hbox)
+	
+	var port = TextureRect.new()
+	port.custom_minimum_size = Vector2(64, 64)
+	port.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	port.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var port_path = "res://assets/characters/dragon_boss_portrait.png"
+	if ResourceLoader.exists(port_path):
+		port.texture = load(port_path)
+	hbox.add_child(port)
+	
+	var vbox = VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(vbox)
+	
+	var name_lbl = Label.new()
+	name_lbl.text = "El Señor del Dragón (Hincado)"
+	name_lbl.modulate = Color("#e17055")
+	name_lbl.add_theme_font_size_override("font_size", 12)
+	vbox.add_child(name_lbl)
+	
+	var text_lbl = Label.new()
+	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	text_lbl.add_theme_font_size_override("font_size", 10)
+	vbox.add_child(text_lbl)
+	
+	var btn_next = Button.new()
+	btn_next.text = "Continuar ▶"
+	btn_next.custom_minimum_size = Vector2(90, 22)
+	btn_next.size_flags_horizontal = Control.SIZE_SHRINK_END
+	vbox.add_child(btn_next)
+	
+	add_child(overlay)
+	
+	for line in lines:
+		text_lbl.text = line
+		set_log("[JEFE HINCADO] " + line)
+		var advance_clicked = false
+		var advance_callable = func(): advance_clicked = true
+		btn_next.pressed.connect(advance_callable)
+		var elapsed = 0.0
+		while not advance_clicked and elapsed < 4.5:
+			await get_tree().process_frame
+			elapsed += get_process_delta_time()
+		if btn_next.pressed.is_connected(advance_callable):
+			btn_next.pressed.disconnect(advance_callable)
+			
+	overlay.queue_free()

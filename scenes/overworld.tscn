@@ -268,8 +268,8 @@ texture = ExtResource("12_desk_office")
 
 [node name="DeskIT2" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 1
-position = Vector2(356, 146)
-scale = Vector2(0.24, 0.22)
+position = Vector2(345, 146)
+scale = Vector2(0.14, 0.14)
 texture = ExtResource("12_desk_office")
 
 [node name="DeskIT3" type="Sprite2D" parent="EnvironmentProps"]
@@ -772,12 +772,12 @@ shape = SubResource("CircleShape2D_npc_interact")
 
 [node name="Nelly" type="Node2D" parent="."]
 y_sort_enabled = true
-position = Vector2(320, 146)
+position = Vector2(305, 146)
 
 [node name="Sprite2D" type="Sprite2D" parent="Nelly"]
 texture_filter = 1
-position = Vector2(0, -21)
-scale = Vector2(0.52, 0.52)
+position = Vector2(0, -20)
+scale = Vector2(0.48, 0.48)
 texture = ExtResource("18_nelly_spr")
 hframes = 4
 vframes = 12
@@ -972,7 +972,7 @@ theme_override_colors/font_color = Color(1, 0.75, 0.25, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "[!] Director de Redes"
+text = "[!] Personaje Legalmente Seguro"
 horizontal_alignment = 1
 
 [node name="InteractArea" type="Area2D" parent="DirectorCensurado"]
@@ -1273,6 +1273,7 @@ theme_override_font_sizes/font_size = 12
 text = "[E] Hablar"
 
 [node name="SwitchBtn" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
+visible = false
 custom_minimum_size = Vector2(120, 34)
 layout_mode = 2
 focus_mode = 0

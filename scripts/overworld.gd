@@ -172,6 +172,7 @@ func _ready():
 	_setup_companions()
 	_setup_senor_apoyo()
 	
+	btn_switch.visible = false
 	btn_switch.pressed.connect(func():
 		GameManager.change_scene_instant(get_tree(), "res://scenes/character_select.tscn")
 	)
@@ -309,48 +310,64 @@ func _ready():
 		touch_controls.visible = true
 		
 		if GameManager.dragon_boss_defeated:
-			# El Señor del Dragón queda hincado en su animación de derrota
-			dragon_boss.visible = true
-			dragon_boss.position = Vector2(1920, 180)
-			dragon_boss_sprite.texture = load("res://assets/characters/dragon_boss_battle_spritesheet.png")
-			dragon_boss_sprite.hframes = 8
-			dragon_boss_sprite.vframes = 8
-			dragon_boss_sprite.frame = 45 # Hincado exhausto
-			dragon_boss_sprite.scale = Vector2(0.35, 0.35)
-			if dragon_boss.has_node("NameTag"):
-				$DragonBoss/NameTag.text = "[!] El Señor del Dragón (Hincado)"
-				$DragonBoss/NameTag.modulate = Color(1.0, 0.5, 0.3)
-				
-			director_censurado.visible = true
-			director_censurado.position = Vector2(1780, 180)
-			director_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda hacia el jugador
-			
 			enemy_printer.set_collision_layer_value(3, false)
 			enemy_printer_sprite.position = Vector2.ZERO
 			enemy_printer_sprite.modulate = Color(0.55, 0.55, 0.55, 1.0)
 			enemy_printer_nametag.text = "[V] Neutralizada"
 			enemy_printer_nametag.modulate = Color(0.3, 0.9, 0.6, 1.0)
 			
-			if GameManager.server_boss_defeated:
-				roberto.visible = true
-				roberto.position = Vector2(1820, 180)
-				roberto_sprite.frame = 6 * 4 + 0
-				btn_demo_modal.visible = true
-				objective_label.text = "[!] ¡Victoria Total! Servidores 100, 245, 189, 122 y 117 conectados. ¡Habla con Roberto!"
-				if has_node("ServerBoss"):
-					server_boss.visible = true
-					server_boss_sprite.modulate = Color(0.4, 0.9, 0.5)
-					server_boss_nametag.text = "[V] Servidor 117 (Desbloqueado)"
-					server_boss_nametag.modulate = Color(0.3, 0.9, 0.5)
-			elif not GameManager.director_cutscene_done:
-				roberto.visible = false
-				player.global_position = Vector2(1850, 180)
-				player.set_facing(Vector2.LEFT)
-				objective_label.text = "[!] El Señor del Dragón ha caído..."
-				_start_post_dragon_dialogue()
+			if not GameManager.dragon_flee_cutscene_done:
+				# Mostrar su sprite chibi huyendo hacia la derecha y luego desaparece
+				dragon_boss.visible = true
+				dragon_boss.position = Vector2(1880, 180)
+				dragon_boss_sprite.texture = load("res://assets/characters/dragon_boss_spritesheet.png")
+				dragon_boss_sprite.hframes = 4
+				dragon_boss_sprite.vframes = 12
+				dragon_boss_sprite.frame = 6 * 4 + 0 # Mirando / corriendo hacia la derecha
+				dragon_boss_sprite.scale = Vector2(0.24, 0.24)
+				if dragon_boss.has_node("NameTag"):
+					$DragonBoss/NameTag.text = "¡Huyendo!"
+					$DragonBoss/NameTag.modulate = Color(1.0, 0.4, 0.3)
+				
+				# Personaje Legalmente Seguro aparece para dar el diálogo
+				director_censurado.visible = true
+				director_censurado.position = Vector2(1780, 180)
+				director_sprite.frame = 2 * 4 + 0
+				if director_censurado.has_node("NameTag"):
+					$DirectorCensurado/NameTag.text = "[!] Personaje Legalmente Seguro"
+				
+				player.global_position = Vector2(1820, 180)
+				player.set_facing(Vector2.RIGHT)
+				player.can_move = false
+				touch_controls.visible = false
+				
+				_start_dragon_boss_flee_sequence()
 			else:
-				roberto.visible = false
-				objective_label.text = "[!] ¡Ve a la Sala de Servidores al este y resuelve el Servidor 117!"
+				# Ya huyó: desaparece permanentemente del overworld
+				dragon_boss.visible = false
+				
+				if GameManager.server_boss_defeated:
+					director_censurado.visible = false
+					roberto.visible = true
+					roberto.position = Vector2(1820, 180)
+					roberto_sprite.frame = 6 * 4 + 0
+					btn_demo_modal.visible = true
+					objective_label.text = "[!] ¡Victoria Total! Servidores 100, 245, 189, 122 y 117 conectados. ¡Habla con Roberto!"
+					if has_node("ServerBoss"):
+						server_boss.visible = true
+						server_boss_sprite.modulate = Color(0.4, 0.9, 0.5)
+						server_boss_nametag.text = "[V] Servidor 117 (Desbloqueado)"
+						server_boss_nametag.modulate = Color(0.3, 0.9, 0.5)
+				elif not GameManager.director_cutscene_done:
+					director_censurado.visible = true
+					director_censurado.position = Vector2(1780, 180)
+					director_sprite.frame = 2 * 4 + 0
+					_start_director_incident_dialogue()
+				else:
+					# Personaje Legalmente Seguro ya se fue
+					director_censurado.visible = false
+					roberto.visible = false
+					objective_label.text = "[!] ¡Ve a la Sala de Servidores al este y resuelve el Servidor 117!"
 		elif GameManager.printer_defeated:
 			roberto.visible = false
 			btn_demo_modal.visible = true
@@ -893,38 +910,42 @@ func _start_post_senor_apoyo_dialogue():
 		touch_controls.visible = true
 	_show_next_in_queue()
 
-func _start_post_dragon_dialogue():
+func _start_dragon_boss_flee_sequence():
 	player.can_move = false
-	var leader = GameManager.get_leader_data()
-	var hero_name = leader["name"]
+	touch_controls.visible = false
+	objective_label.text = "[!] ¡El Señor del Dragón huye despavorido de la oficina!"
+	
+	# Animación chibi corriendo hacia la derecha y desapareciendo
+	var tween = create_tween()
+	tween.tween_property(dragon_boss, "position:x", 2250.0, 1.1)
+	tween.tween_callback(func():
+		dragon_boss.visible = false
+		GameManager.dragon_flee_cutscene_done = true
+		_start_director_incident_dialogue()
+	)
+
+func _start_director_incident_dialogue():
+	player.can_move = false
+	touch_controls.visible = false
+	director_censurado.visible = true
+	if director_censurado.has_node("NameTag"):
+		$DirectorCensurado/NameTag.text = "[!] Personaje Legalmente Seguro"
 	
 	dialog_queue = [
 		{
-			"speaker": "El Señor del Dragón",
-			"portrait": "res://assets/characters/dragon_boss_portrait.png",
-			"color": Color("#e17055"),
-			"text": "¡Aghhh... Maldita sea!... ¡¿Cómo es posible que unos técnicos de soporte me hayan dejado así?!"
-		},
-		{
-			"speaker": "El Señor del Dragón",
-			"portrait": "res://assets/characters/dragon_boss_portrait.png",
-			"color": Color("#e17055"),
-			"text": "¡No crean que esto se queda así!... ¡No es la última vez que sabrán de mí!... ¡Volveré por lo que es mío y por mi dragón impreso en 3D!"
-		},
-		{
-			"speaker": "Director de Redes",
+			"speaker": "Personaje Legalmente Seguro",
 			"portrait": "res://assets/characters/director_censurado_portrait.png",
 			"color": Color("#fdcb6e"),
 			"text": "¡Muchachos de Sistemas! Necesito conectarme al servidor 100 desde el 245 para poder alcanzar el 189..."
 		},
 		{
-			"speaker": "Director de Redes",
+			"speaker": "Personaje Legalmente Seguro",
 			"portrait": "res://assets/characters/director_censurado_portrait.png",
 			"color": Color("#fdcb6e"),
 			"text": "...¡pero no puedo porque el 122 no da, y nadie se sabe la contraseña del 117!"
 		},
 		{
-			"speaker": "Director de Redes",
+			"speaker": "Personaje Legalmente Seguro",
 			"portrait": "res://assets/characters/director_censurado_portrait.png",
 			"color": Color("#fdcb6e"),
 			"text": "¡Tienen que ir ya mismo a la Sala de Servidores (al este) a resolver el problema del 117 antes de que colapse la red!"
@@ -935,7 +956,16 @@ func _start_post_dragon_dialogue():
 		GameManager.director_cutscene_done = true
 		GameManager.password_quest_active = true
 		objective_label.text = "[!] ¡Ve a la Sala de Servidores (al este) y resuelve el Servidor 117!"
-		player.can_move = true
+		
+		# Personaje Legalmente Seguro también se va
+		var tween_dir = create_tween()
+		director_sprite.frame = 2 * 4 + 0 # Mirando a la izquierda al irse
+		tween_dir.tween_property(director_censurado, "position:x", director_censurado.position.x - 380.0, 1.0)
+		tween_dir.tween_callback(func():
+			director_censurado.visible = false
+			player.can_move = true
+			touch_controls.visible = true
+		)
 		
 	_show_next_in_queue()
 
@@ -1098,7 +1128,7 @@ func _set_interactable(id: String):
 	interact_banner.visible = true
 	match id:
 		"director":
-			interact_label.text = "[E] Hablar con Director de Redes"
+			interact_label.text = "[E] Hablar con Personaje Legalmente Seguro"
 			btn_interact.text = "[E] Hablar"
 		"server_boss":
 			if GameManager.server_boss_defeated:
@@ -1176,7 +1206,7 @@ func _trigger_current_interaction():
 			if GameManager.server_boss_defeated:
 				dialog_queue = [
 					{
-						"speaker": "Director de Redes",
+						"speaker": "Personaje Legalmente Seguro",
 						"portrait": "res://assets/characters/director_censurado_portrait.png",
 						"color": Color("#fdcb6e"),
 						"text": "¡Excelente trabajo muchachos! Gracias a que resolvieron el Servidor 117, ya podemos alcanzar el 189 conectando desde el 245 al 100 sin problemas con el 122."
@@ -1185,7 +1215,7 @@ func _trigger_current_interaction():
 			else:
 				dialog_queue = [
 					{
-						"speaker": "Director de Redes",
+						"speaker": "Personaje Legalmente Seguro",
 						"portrait": "res://assets/characters/director_censurado_portrait.png",
 						"color": Color("#fdcb6e"),
 						"text": "¡Rápido muchachos! Necesito conectarme al servidor 100 desde el 245 para alcanzar el 189, pero el 122 no da y falta la clave del 117. ¡Vayan a la Sala de Servidores al este!"
@@ -1217,7 +1247,7 @@ func _trigger_current_interaction():
 						"speaker": "Roberto Huerta",
 						"portrait": "res://assets/characters/roberto_huerta_portrait.png",
 						"color": Color("#0984e3"),
-						"text": "¡Corre a la Sala de Servidores al este, %s! ¡Apóyale al Director de Redes con el Servidor 117!" % hero_name
+						"text": "¡Corre a la Sala de Servidores al este, %s! ¡Apóyale a Personaje Legalmente Seguro con el Servidor 117!" % hero_name
 					}
 				]
 				on_dialog_closed_callback = func():

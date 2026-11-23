@@ -194,9 +194,9 @@ func apply_spec():
 		sprite.vframes = 12
 		var tex = sprite.texture
 		if tex and tex.get_height() < 1500:
-			sprite.scale = Vector2(0.51, 0.51)
-			sprite.position = Vector2(0, -21)
-			name_tag.position.y = -36.0
+			sprite.scale = Vector2(0.48, 0.48)
+			sprite.position = Vector2(0, -20)
+			name_tag.position.y = -38.0
 		else:
 			sprite.scale = Vector2(0.24, 0.24)
 			sprite.position = Vector2(0, -10)
