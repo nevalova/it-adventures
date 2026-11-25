@@ -1,9 +1,11 @@
 extends Node2D
 
+const SpriteLayout = preload("res://scripts/sprite_layout.gd")
+
 # --- Variables Exportadas Editables desde el Inspector de Godot ---
 @export_group("Diálogos - Roberto Huerta (Intro)")
 @export_multiline var roberto_intro_1: String = "¡%s, qué bueno que te encuentro! ¡Necesito ayuda urgente en la oficina de Finanzas!"
-@export_multiline var roberto_intro_2: String = "¡La impresora empezó a hacer ruidos raros, huele a quemado y tiene a la jefa al borde del colapso! ¡Sígueme, corre!"
+@export_multiline var roberto_intro_2: String = "¡La impresora empezó a hacer ruidos raros, huele a quemado y tiene a la jefa al borde del colapso! ¡Reúne a tres compañeros y vamos juntos! Te esperaré aquí hasta que el equipo esté completo."
 
 @export_group("Diálogos - Oficina de Finanzas")
 @export_multiline var roberto_office: String = "¡Aquí está el desastre! Bueno... ¡yo ya cumplí con avisar, te dejo con el experto! ¡Suerte!"
@@ -144,11 +146,12 @@ var current_interactable: String = ""
 
 # Sistema de Compañeros de Escuadrón
 var companion_nodes: Dictionary = {}
-var player_trail: Array = []
+var site_exit_barrier: StaticBody2D
+var safety_advisor: Node2D
+var exit_warning_open: bool = false
 var senor_apoyo_node: Node2D = null
 
 # Sistema de Misiones, Oficina Brujiris y Menú Debug/Guardado
-var mariana_node: Node2D = null
 var supply_box_node: Node2D = null
 var door_brujiris_node: Node2D = null
 var brujiris_office_root: Node2D = null
@@ -185,15 +188,19 @@ func _ready():
 	if has_node("OfficeFurniture"):
 		for desk in $OfficeFurniture.get_children():
 			desk.reparent(self)
+			_anchor_furniture(desk)
 	if has_node("EnvironmentProps"):
 		for prop in $EnvironmentProps.get_children():
 			prop.reparent(self)
+			_anchor_furniture(prop)
 			
 	_setup_companions()
+	_setup_team_exit()
 	_setup_senor_apoyo()
 	_setup_paper_quest()
 	_setup_brujiris_office()
 	_setup_debug_and_save_ui()
+	_prepare_world_visuals(self)
 	
 	btn_switch.visible = false
 	btn_switch.pressed.connect(func():
@@ -305,7 +312,7 @@ func _ready():
 	
 	if $RobertoHuerta.has_node("InteractArea"):
 		$RobertoHuerta/InteractArea.body_entered.connect(func(body):
-			if body == player and GameManager.dragon_boss_defeated:
+			if body == player and (GameManager.dragon_boss_defeated or (GameManager.intro_cutscene_done and not GameManager.office_cutscene_done)):
 				_set_interactable("roberto")
 		)
 		$RobertoHuerta/InteractArea.body_exited.connect(func(body):
@@ -315,8 +322,17 @@ func _ready():
 	
 	director_censurado.visible = false
 	
-	# Verificar estado de la partida
-	if not GameManager.intro_cutscene_done:
+	# The repeatable Israel gag must never replay a main-story/final-boss scene.
+	if GameManager.just_defeated_senor_apoyo:
+		player.global_position = GameManager.player_saved_position
+		player.can_move = false
+		current_state = State.FREE_EXPLORE
+		roberto.visible = false
+		if GameManager.dragon_boss_fled and not GameManager.dragon_boss_defeated:
+			dragon_boss.visible = true
+			dragon_boss.position = Vector2(1880, 180)
+		_update_objective_label_for_current_state()
+	elif not GameManager.intro_cutscene_done:
 		player.global_position = Vector2(140, 200)
 		player.set_facing(Vector2.RIGHT)
 		player.can_move = false
@@ -341,7 +357,7 @@ func _ready():
 		
 		if GameManager.dragon_boss_defeated:
 			enemy_printer.set_collision_layer_value(3, false)
-			enemy_printer_sprite.position = Vector2.ZERO
+			enemy_printer_sprite.position = Vector2(0, -19)
 			enemy_printer_sprite.modulate = Color(0.55, 0.55, 0.55, 1.0)
 			enemy_printer_nametag.text = "[V] Neutralizada"
 			enemy_printer_nametag.modulate = Color(0.3, 0.9, 0.6, 1.0)
@@ -354,7 +370,7 @@ func _ready():
 				dragon_boss_sprite.hframes = 4
 				dragon_boss_sprite.vframes = 12
 				dragon_boss_sprite.frame = 6 * 4 + 0 # Mirando / corriendo hacia la derecha
-				dragon_boss_sprite.scale = Vector2(0.24, 0.24)
+				SpriteLayout.configure(dragon_boss_sprite, $DragonBoss/NameTag, 42.0)
 				if dragon_boss.has_node("NameTag"):
 					$DragonBoss/NameTag.text = "¡Huyendo!"
 					$DragonBoss/NameTag.modulate = Color(1.0, 0.4, 0.3)
@@ -404,7 +420,7 @@ func _ready():
 			objective_label.text = obj_victory_text
 			
 			enemy_printer.set_collision_layer_value(3, false)
-			enemy_printer_sprite.position = Vector2.ZERO
+			enemy_printer_sprite.position = Vector2(0, -19)
 			enemy_printer_sprite.modulate = Color(0.55, 0.55, 0.55, 1.0)
 			enemy_printer_nametag.text = "[V] Neutralizada"
 			enemy_printer_nametag.modulate = Color(0.3, 0.9, 0.6, 1.0)
@@ -423,32 +439,144 @@ func _ready():
 			roberto.visible = false
 			objective_label.text = obj_battle_text
 		else:
-			roberto.global_position = Vector2(700, 190)
+			roberto.global_position = Vector2(500 if GameManager.party.size() < 4 else 700, 190)
 			roberto_sprite.frame = 2 * 4 + 0
 			objective_label.text = obj_follow_text
 		current_state = State.FREE_EXPLORE
 		
+	if not GameManager.dragon_boss_defeated:
+		director_censurado.visible = true
+		director_censurado.position = Vector2(750, 155)
+		$DirectorCensurado/NameTag.text = "Personaje Legalmente Seguro"
+
 	if GameManager.just_defeated_senor_apoyo:
 		GameManager.just_defeated_senor_apoyo = false
 		_start_post_senor_apoyo_dialogue()
+	_mount_office_printer()
+
+func _setup_team_exit() -> void:
+	site_exit_barrier = StaticBody2D.new()
+	site_exit_barrier.name = "TeamExitBarrier"
+	site_exit_barrier.position = Vector2(580, 180)
+	site_exit_barrier.collision_layer = 2
+	var shape = RectangleShape2D.new()
+	shape.size = Vector2(16, 114)
+	var collider = CollisionShape2D.new()
+	collider.shape = shape
+	site_exit_barrier.add_child(collider)
+	add_child(site_exit_barrier)
+	# A separate instance avoids interfering with the director's later story.
+	safety_advisor = director_censurado.duplicate(0) as Node2D
+	safety_advisor.name = "SiteSafetyAdvisor"
+	safety_advisor.position = Vector2(542, 165)
+	safety_advisor.visible = false
+	safety_advisor.get_node("NameTag").text = "Personaje Legalmente Seguro"
+	var interaction = safety_advisor.get_node_or_null("InteractArea")
+	if interaction:
+		interaction.free()
+	add_child(safety_advisor)
+
+func _refresh_team_departure() -> void:
+	var complete = GameManager.party.size() == 4
+	# Let an existing save outside return to the site; only outbound travel is gated.
+	site_exit_barrier.collision_layer = 2 if not complete and player.position.x < 580.0 else 0
+	if not exit_warning_open:
+		safety_advisor.visible = false
+	if not GameManager.intro_cutscene_done or GameManager.office_cutscene_done:
+		return
+	if not complete:
+		if current_state == State.ROBERTO_RUN_TO_OFFICE:
+			current_state = State.FREE_EXPLORE
+			roberto.position.x = minf(roberto.position.x, 510.0)
+			roberto_sprite.frame = 8
+		if player.can_move and not dialog_box.visible:
+			objective_label.text = "[!] Recluta tres compañeros en sus escritorios. Equipo: %d/4" % GameManager.party.size()
+	else:
+		if player.can_move and not dialog_box.visible and not squad_modal.visible and current_state in [State.IDLE, State.FREE_EXPLORE]:
+			if roberto.position.x < 700.0:
+				current_state = State.ROBERTO_RUN_TO_OFFICE
+			objective_label.text = obj_follow_text
+
+func _physics_process(_delta: float) -> void:
+	if GameManager.party.size() < 4 and player.can_move and GameManager.intro_cutscene_done and not dialog_box.visible:
+		if player.position.x > 530.0 and player.position.x < 580.0:
+			_warn_about_solo_it()
+
+func _warn_about_solo_it() -> void:
+	if exit_warning_open or dialog_box.visible:
+		return
+	exit_warning_open = true
+	player.cancel_navigation()
+	player.velocity = Vector2.ZERO
+	player.can_move = false
+	player.position.x = minf(player.position.x, 525.0)
+	safety_advisor.visible = true
+	safety_advisor.get_node("Sprite2D").frame = 8
+	dialog_queue = [{
+		"speaker": "Personaje Legalmente Seguro",
+		"portrait": "res://assets/characters/director_censurado_portrait.png",
+		"color": Color("#fdcb6e"),
+		"text": "¡Hey! Es muy peligroso arreglar problemas de IT solo, ¡te comerán vivo! Lleva a tu equipo: lleva tres más contigo. Necesitas un equipo de cuatro para salir. (%d/4)" % GameManager.party.size()
+	}]
+	on_dialog_closed_callback = func():
+		exit_warning_open = false
+		safety_advisor.visible = false
+		player.can_move = true
+		_refresh_team_departure()
+	_show_next_in_queue()
+
+func _mount_office_printer() -> void:
+	# Table and printer sort together; printer art is drawn AFTER the tabletop.
+	var table = get_node("PrinterTable") as Node2D
+	enemy_printer.reparent(table, true)
+	enemy_printer.y_sort_enabled = false
+	enemy_printer_sprite.position.y = -19.0
+	enemy_printer_nametag.position.y = -59.0
+	table.move_child(enemy_printer, table.get_child_count() - 1)
+
+func _anchor_furniture(prop: Node2D) -> void:
+	# Sort at the bottom of the furniture while preserving art and collision.
+	prop.y_sort_enabled = false
+	var visual = prop as Sprite2D
+	if visual == null:
+		visual = prop.get_node_or_null("Sprite") as Sprite2D
+	if visual == null or visual.texture == null:
+		return
+	var image = visual.texture.get_image()
+	var bounds = image.get_used_rect()
+	var bottom = float(bounds.end.y) - image.get_height() * 0.5
+	if prop == visual:
+		prop.position.y += bottom * visual.scale.y
+		visual.offset.y -= bottom
+	else:
+		var ground = visual.position.y + bottom * visual.scale.y
+		prop.position.y += ground
+		for part in prop.get_children():
+			if part is Node2D:
+				part.position.y -= ground
+
+func can_ambient_npcs_walk() -> bool:
+	return is_instance_valid(player) and player.can_move and current_state in [State.IDLE, State.FREE_EXPLORE]
+
+func _prepare_world_visuals(root: Node) -> void:
+	for child in root.get_children():
+		if child is CanvasLayer:
+			continue
+		# Actors are single sorting units: sprite, name and effects stay together.
+		if child is Node2D and child.has_node("Sprite2D"):
+			var actor_sprite = child.get_node("Sprite2D") as Sprite2D
+			if actor_sprite != null and actor_sprite.hframes == 4 and actor_sprite.vframes == 12:
+				child.y_sort_enabled = false
+				SpriteLayout.configure(actor_sprite, child.get_node_or_null("NameTag"), 42.0 if child == dragon_boss else 38.0)
+		_prepare_world_visuals(child)
 
 func _process(delta):
 	anim_timer += delta
 	
-	# Trail de movimiento para los compañeros de escuadrón
-	if player:
-		var p_pos = player.global_position
-		var moved_enough = player_trail.is_empty() or player_trail[0]["pos"].distance_squared_to(p_pos) > 9.0
-		if moved_enough:
-			player_trail.push_front({
-				"pos": p_pos,
-				"row": player.current_row,
-				"moving": player.is_moving
-			})
-			if player_trail.size() > 180:
-				player_trail.pop_back()
-				
-	_update_companions_movement(delta)
+	_refresh_team_departure()
+	_refresh_paper_quest_giver()
+
+	_update_stationed_companions()
 	
 	if touch_controls.visible:
 		dpad_box.visible = (GameManager.control_type == "dpad")
@@ -562,10 +690,10 @@ func _start_intro_dialog():
 	
 	on_dialog_closed_callback = func():
 		GameManager.intro_cutscene_done = true
-		current_state = State.ROBERTO_RUN_TO_OFFICE
+		current_state = State.FREE_EXPLORE
 		player.can_move = true
 		touch_controls.visible = true
-		objective_label.text = obj_follow_text
+		_refresh_team_departure()
 	
 	_show_next_in_queue()
 
@@ -610,6 +738,10 @@ func show_solved_dialog(user_name: String, portrait_path: String, color: Color, 
 	_show_next_in_queue()
 
 func _on_office_trigger_entered(body):
+	if body == player and GameManager.party.size() < 4:
+		player.global_position = Vector2(525, clampf(player.global_position.y, 145, 215))
+		_warn_about_solo_it()
+		return
 	if body == player and not GameManager.office_cutscene_done:
 		GameManager.office_cutscene_done = true
 		player.can_move = false
@@ -810,10 +942,10 @@ func _start_dragon_boss_battle():
 		"name": "El Señor del Dragón",
 		"type": "dragon_boss",
 		"desc": "El Señor del Dragón... Exige de vuelta a su dragón o retendrá el splitter, discos duros y el trackpad.",
-		"hp": 360,
-		"max_hp": 360,
-		"atk": 18,
-		"def": 8,
+		"hp": 280,
+		"max_hp": 280,
+		"atk": 14,
+		"def": 6,
 		"exp_reward": 400,
 		"spritesheet_path": "res://assets/characters/dragon_boss_battle_spritesheet.png",
 		"texture_path": "res://assets/characters/dragon_boss_battle_spritesheet.png",
@@ -838,12 +970,12 @@ func _setup_senor_apoyo():
 	senor_apoyo_node = Node2D.new()
 	senor_apoyo_node.name = "SenorApoyo"
 	senor_apoyo_node.y_sort_enabled = true
-	senor_apoyo_node.position = Vector2(280, 190)
+	senor_apoyo_node.position = Vector2(1185, 240)
 	
 	var spr = Sprite2D.new()
 	spr.name = "Sprite2D"
 	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	var sheet_path = "res://assets/characters/senor_apoyo_spritesheet.png"
+	var sheet_path = GameManager.get_apoyo_spritesheet_path(GameManager.just_defeated_senor_apoyo and not GameManager.current_enemy_data.get("is_skeleton", false))
 	if ResourceLoader.exists(sheet_path):
 		spr.texture = load(sheet_path)
 	spr.hframes = 4
@@ -888,6 +1020,9 @@ func _setup_senor_apoyo():
 	add_child(senor_apoyo_node)
 
 func _start_senor_apoyo_dialog():
+	var spr = senor_apoyo_node.get_node("Sprite2D") as Sprite2D
+	spr.texture = load(GameManager.get_apoyo_spritesheet_path())
+	SpriteLayout.configure(spr, senor_apoyo_node.get_node("NameTag"))
 	player.can_move = false
 	touch_controls.visible = false
 	
@@ -896,7 +1031,8 @@ func _start_senor_apoyo_dialog():
 			"speaker": "El Señor",
 			"portrait": "res://assets/characters/senor_apoyo_portrait.png",
 			"color": Color("#e67e22"),
-			"text": "¿Me puedes apoyar con con eso o no?"
+			"portrait_texture": GameManager.get_apoyo_portrait(),
+			"text": "¿Me apoyas?"
 		},
 		{
 			"speaker": "Israel",
@@ -906,6 +1042,15 @@ func _start_senor_apoyo_dialog():
 		}
 	]
 	
+	if GameManager.apoyo_is_skeleton() and not GameManager.apoyo_skeleton_comment_seen:
+		dialog_queue.insert(1, {
+			"speaker": "Roberto Huerta",
+			"portrait": "res://assets/characters/roberto_huerta_portrait.png",
+			"color": Color("#f1c40f"),
+			"text": "Ya déjalo, ya está muerto."
+		})
+		GameManager.apoyo_skeleton_comment_seen = true
+
 	on_dialog_closed_callback = func():
 		GameManager.player_saved_position = player.global_position
 		GameManager.current_enemy_id = "senor_apoyo"
@@ -918,21 +1063,31 @@ func _start_senor_apoyo_dialog():
 			"def": 0,
 			"exp_reward": 0,
 			"portrait_path": "res://assets/characters/senor_apoyo_portrait.png",
-			"spritesheet_path": "res://assets/characters/senor_apoyo_spritesheet.png"
+			"is_skeleton": GameManager.apoyo_is_skeleton(),
+			"spritesheet_path": GameManager.get_apoyo_spritesheet_path()
 		}
 		GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
 		
 	_show_next_in_queue()
 
 func _start_post_senor_apoyo_dialogue():
+	dialog_queue.clear()
+	on_dialog_closed_callback = Callable()
 	player.can_move = false
 	touch_controls.visible = false
 	dialog_queue = [
 		{
+			"speaker": "El Señor",
+			"portrait": "res://assets/characters/senor_apoyo_portrait.png",
+			"portrait_texture": GameManager.get_apoyo_portrait(not GameManager.current_enemy_data.get("is_skeleton", false)),
+			"color": Color("#e67e22"),
+			"text": "¿Me... apoyas?"
+		},
+		{
 			"speaker": "Israel",
 			"portrait": "res://assets/characters/israel_portrait.png",
 			"color": Color("#e74c3c"),
-			"text": "Lo voy a revivir para volver a darle en su madre."
+			"text": GameManager.get_apoyo_taunt()
 		}
 	]
 	on_dialog_closed_callback = func():
@@ -964,71 +1119,56 @@ func _start_brujiris_battle():
 	GameManager.current_enemy_data = spec
 	GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
 
+func _refresh_paper_quest_giver() -> void:
+	if not GameManager.director_cutscene_done or not GameManager.printer_defeated:
+		return
+	if not player.can_move or dialog_box.visible:
+		return
+	if GameManager.paper_quest_state < 2 and not director_censurado.visible:
+		director_censurado.position = Vector2(750, 155)
+		director_censurado.visible = true
+		director_censurado.set_meta("paper_only", true)
+		$DirectorCensurado/NameTag.text = "Personaje Legalmente Seguro"
+	elif GameManager.paper_quest_state == 2 and director_censurado.get_meta("paper_only", false):
+		director_censurado.visible = false
+		director_censurado.set_meta("paper_only", false)
+
+func _start_paper_quest_dialog():
+	var m_text = ""
+	if not GameManager.printer_defeated:
+		m_text = "¡Cuidado con esa máquina! ¡La impresora empezó a disparar tóner y tiene a Finanzas paralizado!"
+	elif GameManager.paper_quest_state == 0:
+		GameManager.paper_quest_accepted = true
+		m_text = "¡Hola! Por fin calmaron a la impresora, pero se quedó totalmente vacía sin papel para terminar la nómina. ¿Podrías ir al estante de suministros en Finanzas por un paquete de hojas bond?"
+		objective_label.text = "[Misión] Ve al estante de papelería en Finanzas por un paquete de hojas bond"
+	elif GameManager.paper_quest_state == 1:
+		m_text = "¡Excelente, ya tienes el paquete de hojas! Ve a colocarlas en la Bandeja 1 de la impresora para que pueda terminar la nómina."
+	else:
+		m_text = "¡Muchísimas gracias! Ahora sí pudimos imprimir toda la nómina quincenal a tiempo. ¡Eres el mejor de Sistemas!"
+
+	dialog_queue = [
+		{
+			"speaker": "Personaje Legalmente Seguro",
+			"portrait": "res://assets/characters/director_censurado_portrait.png",
+			"color": Color("#fdcb6e"),
+			"text": m_text
+		}
+	]
+	on_dialog_closed_callback = func():
+		player.can_move = true
+	player.can_move = false
+	_show_next_in_queue()
+
 func _setup_paper_quest():
-	if mariana_node != null:
-		mariana_node.queue_free()
-		mariana_node = null
 	if supply_box_node != null:
 		supply_box_node.queue_free()
 		supply_box_node = null
-		
-	# 1. Mariana en Finanzas (x: 750, y: 155 cerca del escritorio de finanzas)
-	mariana_node = Node2D.new()
-	mariana_node.name = "MarianaPapel"
-	mariana_node.y_sort_enabled = true
-	mariana_node.position = Vector2(750, 155)
-	
-	var spr_m = Sprite2D.new()
-	spr_m.name = "Sprite2D"
-	spr_m.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	var sheet_path_m = "res://assets/characters/npc_coleta_spritesheet.png"
-	if ResourceLoader.exists(sheet_path_m):
-		spr_m.texture = load(sheet_path_m)
-	spr_m.hframes = 4
-	spr_m.vframes = 12
-	spr_m.frame = 0 # Mirando al frente
-	spr_m.scale = Vector2(0.24, 0.24)
-	spr_m.position = Vector2(0, -10)
-	mariana_node.add_child(spr_m)
-	
-	var tag_m = Label.new()
-	tag_m.name = "NameTag"
-	tag_m.offset_left = -70.0
-	tag_m.offset_top = -32.0
-	tag_m.offset_right = 70.0
-	tag_m.offset_bottom = -16.0
-	tag_m.add_theme_font_size_override("font_size", 8)
-	tag_m.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tag_m.text = "[NPC] Mariana (Finanzas)"
-	tag_m.modulate = Color(0.4, 0.8, 1.0)
-	mariana_node.add_child(tag_m)
-	
-	var area_m = Area2D.new()
-	area_m.name = "InteractArea"
-	area_m.collision_layer = 4
-	area_m.collision_mask = 1
-	var col_m = CollisionShape2D.new()
-	var circle_m = CircleShape2D.new()
-	circle_m.radius = 28.0
-	col_m.shape = circle_m
-	area_m.add_child(col_m)
-	mariana_node.add_child(area_m)
-	
-	area_m.body_entered.connect(func(body):
-		if body == player:
-			_set_interactable("mariana_papel")
-	)
-	area_m.body_exited.connect(func(body):
-		if body == player and current_interactable == "mariana_papel":
-			_clear_interactable()
-	)
-	add_child(mariana_node)
-	
-	# 2. Estante de Hojas en el Pasillo (x: 530, y: 75)
+	# The existing censored director gives the quest; do not spawn another NPC.
+	# Estante de hojas en Finanzas, fuera de los cuatro escritorios del site.
 	supply_box_node = Node2D.new()
 	supply_box_node.name = "SupplyPaperBox"
 	supply_box_node.y_sort_enabled = true
-	supply_box_node.position = Vector2(530, 75)
+	supply_box_node.position = Vector2(1200, 75)
 	
 	var spr_b = Sprite2D.new()
 	spr_b.name = "Sprite2D"
@@ -1134,14 +1274,17 @@ func _setup_brujiris_office():
 	# 2. Estructura e interior de la oficina independiente (x: 3200..3840, y: 0..360)
 	brujiris_office_root = Node2D.new()
 	brujiris_office_root.name = "BrujirisOfficeRoot"
+	brujiris_office_root.y_sort_enabled = true
 	brujiris_office_root.position = Vector2(3200, 0)
 	
 	var floor_rect = ColorRect.new()
+	floor_rect.z_index = -2
 	floor_rect.size = Vector2(640, 360)
 	floor_rect.color = Color(0.12, 0.09, 0.16)
 	brujiris_office_root.add_child(floor_rect)
 	
 	var rug_rect = ColorRect.new()
+	rug_rect.z_index = -1
 	rug_rect.position = Vector2(100, 80)
 	rug_rect.size = Vector2(440, 210)
 	rug_rect.color = Color(0.19, 0.14, 0.26)
@@ -1270,7 +1413,7 @@ func _setup_brujiris_office():
 	brujiris_office_root.add_child(cctv_panel)
 	
 	var desk_node = Node2D.new()
-	desk_node.y_sort_enabled = true
+	desk_node.y_sort_enabled = false
 	desk_node.position = Vector2(320, 180)
 	var desk_vis = ColorRect.new()
 	desk_vis.size = Vector2(100, 40)
@@ -1533,6 +1676,9 @@ func _show_save_toast(msg: String):
 		tw.tween_property(save_toast_label, "modulate:a", 0.0, 0.6)
 
 func _update_objective_label_for_current_state():
+	if GameManager.intro_cutscene_done and not GameManager.office_cutscene_done and GameManager.party.size() < 4:
+		objective_label.text = "[!] Recluta tres compañeros en sus escritorios. Equipo: %d/4" % GameManager.party.size()
+		return
 	if GameManager.inside_brujiris_office:
 		objective_label.text = "[!] Oficina de Auditoría - Habla con Brujiris"
 	elif GameManager.server_boss_defeated:
@@ -1542,8 +1688,10 @@ func _update_objective_label_for_current_state():
 	elif GameManager.printer_defeated:
 		if GameManager.paper_quest_state == 1:
 			objective_label.text = "[Misión] Coloca las hojas bond en la Bandeja 1 de la impresora de Finanzas"
+		elif GameManager.paper_quest_state == 0 and GameManager.paper_quest_accepted:
+			objective_label.text = "[Misión] Recoge las hojas bond del estante de Finanzas y llévalas a la impresora"
 		elif GameManager.paper_quest_state == 0:
-			objective_label.text = "[Misión] Habla con Mariana en Finanzas para ayudar con el papel"
+			objective_label.text = "[Misión] Habla con el Personaje Legalmente Seguro en Finanzas para ayudar con el papel"
 		else:
 			objective_label.text = obj_victory_text
 	elif GameManager.office_cutscene_done:
@@ -1810,14 +1958,6 @@ func _set_interactable(id: String):
 			else:
 				interact_label.text = "[E] ¡Combatir Impresora Maldita!"
 				btn_interact.text = "[E] Batalla"
-		"mariana_papel":
-			if GameManager.paper_quest_state == 2:
-				interact_label.text = "[E] Hablar con Mariana (Nómina lista)"
-			elif GameManager.paper_quest_state == 1:
-				interact_label.text = "[E] Hablar con Mariana (Hojas listas)"
-			else:
-				interact_label.text = "[E] Hablar con Mariana (Misión de Hojas)"
-			btn_interact.text = "[E] Hablar"
 		"supply_paper_box":
 			if GameManager.paper_quest_state == 1:
 				interact_label.text = "[E] Estante de Papelería (Ya tienes hojas)"
@@ -1880,7 +2020,9 @@ func _trigger_current_interaction():
 		"dragon_boss":
 			_start_dragon_boss_battle()
 		"director":
-			if GameManager.server_boss_defeated:
+			if not GameManager.dragon_boss_defeated or GameManager.paper_quest_state < 2:
+				_start_paper_quest_dialog()
+			elif GameManager.server_boss_defeated:
 				dialog_queue = [
 					{
 						"speaker": "Personaje Legalmente Seguro",
@@ -1916,7 +2058,11 @@ func _trigger_current_interaction():
 			player.can_move = false
 			_show_next_in_queue()
 		"roberto":
-			if GameManager.server_boss_defeated:
+			if not GameManager.office_cutscene_done and GameManager.party.size() < 4:
+				_warn_about_solo_it()
+			elif not GameManager.office_cutscene_done:
+				_refresh_team_departure()
+			elif GameManager.server_boss_defeated:
 				_open_demo_modal()
 			elif GameManager.dragon_boss_defeated:
 				dialog_queue = [
@@ -1976,33 +2122,11 @@ func _trigger_current_interaction():
 			$Player/Camera2D.limit_right = 3072
 			_update_objective_label_for_current_state()
 			_clear_interactable()
-		"mariana_papel":
-			var m_text = ""
-			if not GameManager.printer_defeated:
-				m_text = "¡Cuidado con esa máquina! ¡La impresora empezó a disparar tóner y tiene a Finanzas paralizado!"
-			elif GameManager.paper_quest_state == 0:
-				m_text = "¡Hola! Por fin calmaron a la impresora, pero se quedó totalmente vacía sin papel para terminar la nómina. ¿Podrías ir al estante de suministros en el pasillo por un paquete de hojas bond?"
-				objective_label.text = "[Misión] Ve al estante de papelería en el pasillo por un paquete de hojas bond"
-			elif GameManager.paper_quest_state == 1:
-				m_text = "¡Excelente, ya tienes el paquete de hojas! Ve a colocarlas en la Bandeja 1 de la impresora para que pueda terminar la nómina."
-			else:
-				m_text = "¡Muchísimas gracias! Ahora sí pudimos imprimir toda la nómina quincenal a tiempo. ¡Eres el mejor de Sistemas!"
-			
-			dialog_queue = [
-				{
-					"speaker": "Mariana (Finanzas)",
-					"portrait": "res://assets/characters/npc_coleta_portrait.png",
-					"color": Color("#74b9ff"),
-					"text": m_text
-				}
-			]
-			on_dialog_closed_callback = func():
-				player.can_move = true
-			player.can_move = false
-			_show_next_in_queue()
 		"supply_paper_box":
 			var b_text = ""
-			if GameManager.paper_quest_state == 0:
+			if not GameManager.paper_quest_accepted and GameManager.paper_quest_state == 0:
+				b_text = "Primero habla con el Personaje Legalmente Seguro en Finanzas: él te encargará entregar las hojas a la impresora."
+			elif GameManager.paper_quest_state == 0:
 				GameManager.paper_quest_state = 1
 				b_text = "¡Has recogido un paquete sellado de 500 hojas de papel bond blanco (75g)!\n\nLlévalas a la impresora en Finanzas para abastecerla."
 				objective_label.text = "[Misión] Coloca las hojas bond en la Bandeja 1 de la impresora en Finanzas"
@@ -2085,7 +2209,7 @@ func _trigger_current_interaction():
 							"speaker": "Impresora",
 							"portrait": "res://assets/props/printer.png",
 							"color": Color("#4ade80"),
-							"text": printer_neutralized_text + "\n(Nota: La bandeja de papel está completamente vacía. Habla con Mariana en Finanzas)."
+							"text": printer_neutralized_text + "\n(Nota: La bandeja de papel está completamente vacía. Habla con el Personaje Legalmente Seguro en Finanzas)."
 						}
 					]
 				on_dialog_closed_callback = func():
@@ -2133,7 +2257,10 @@ func _show_next_in_queue():
 	dialog_speaker.modulate = data["color"]
 	dialog_message.text = data["text"]
 	
-	if ResourceLoader.exists(data["portrait"]):
+	if data.get("portrait_texture") is Texture2D:
+		dialog_portrait.texture = data["portrait_texture"]
+		dialog_portrait.visible = true
+	elif ResourceLoader.exists(data["portrait"]):
 		dialog_portrait.texture = load(data["portrait"])
 		dialog_portrait.visible = true
 	else:
@@ -2293,7 +2420,7 @@ func _update_shop_ui():
 		buy_btn.pressed.connect(func():
 			if GameManager.buy_item(key):
 				if key == "certificacion":
-					shop_feedback_label.text = "¡Acreditada Certificación IT (+120 EXP al equipo)! Salud y estadísticas aumentadas."
+					shop_feedback_label.text = "¡Acreditada Certificación IT (+160 EXP al equipo)! Salud y estadísticas aumentadas."
 				else:
 					shop_feedback_label.text = "¡Compraste 1 %s por $%d!" % [iname, iprice]
 				shop_feedback_label.modulate = Color(0.3, 0.9, 0.4)
@@ -2386,7 +2513,7 @@ func _setup_companions():
 		
 		var node = Node2D.new()
 		node.name = "Companion_" + hero_id
-		node.y_sort_enabled = true
+		node.y_sort_enabled = false
 		node.set_meta("hero_id", hero_id)
 		node.set_meta("office_pos", desk_pos)
 		
@@ -2438,76 +2565,30 @@ func _setup_companions():
 		)
 		node.add_child(area)
 		
-		# Posición inicial: si ya está en la party, cerca del jugador; si no, en su escritorio
-		if GameManager.is_hero_in_party(hero_id):
-			node.global_position = player.global_position + Vector2(randf_range(-15, 15), randf_range(-15, 15))
-		else:
-			node.global_position = desk_pos
-			
+		node.position = desk_pos
+
 		companions_root.add_child(node)
 		companion_nodes[hero_id] = node
 		
 	_update_squad_hud()
+	_update_stationed_companions()
 
-func _update_companions_movement(delta: float):
-	var active_party_ids: Array = []
-	for member in GameManager.party:
-		var mid = member.get("id", "")
-		if mid != GameManager.selected_hero_id and not mid.is_empty():
-			active_party_ids.append(mid)
-			
-	for hero_id in companion_nodes.keys():
+func _update_stationed_companions():
+	for hero_id in companion_nodes:
 		var node = companion_nodes[hero_id]
-		if not is_instance_valid(node):
-			continue
-		var spr = node.get_node_or_null("Sprite2D") as Sprite2D
-		var tag = node.get_node_or_null("NameTag") as Label
-		var is_in_party = GameManager.is_hero_in_party(hero_id)
-		
-		if is_in_party:
-			var slot = active_party_ids.find(hero_id)
-			if slot == -1:
-				slot = 0
-			var trail_idx = (slot + 1) * 16
-			if player_trail.size() > trail_idx:
-				var target_step = player_trail[trail_idx]
-				var target_pos = target_step["pos"]
-				var dist = node.global_position.distance_to(target_pos)
-				if dist > 3.0:
-					var move_vec = (target_pos - node.global_position).normalized()
-					var speed = 145.0 if dist < 40.0 else 180.0
-					node.global_position = node.global_position.move_toward(target_pos, speed * delta)
-					var walk_col = int(anim_timer * 8.0) % 4
-					var row = 0
-					if abs(move_vec.x) > abs(move_vec.y):
-						row = 6 if move_vec.x > 0 else 2
-					else:
-						row = 0 if move_vec.y > 0 else 4
-					if spr:
-						spr.frame = row * 4 + walk_col
-				else:
-					var target_row = target_step.get("row", 0)
-					if spr:
-						spr.frame = target_row * 4 + 0
-			if tag:
-				tag.text = GameManager.characters_data[hero_id]["name"]
-		else:
-			# Está en la oficina descansando / trabajando en su escritorio
-			var desk_pos = node.get_meta("office_pos", Vector2(160, 118))
-			var dist = node.global_position.distance_to(desk_pos)
-			if dist > 3.0:
-				var move_vec = (desk_pos - node.global_position).normalized()
-				node.global_position = node.global_position.move_toward(desk_pos, 130.0 * delta)
-				var walk_col = int(anim_timer * 8.0) % 4
-				var row = 6 if move_vec.x > 0 else (2 if move_vec.x < 0 else (0 if move_vec.y > 0 else 4))
-				if spr:
-					spr.frame = row * 4 + walk_col
-			else:
-				node.global_position = desk_pos
-				if spr:
-					spr.frame = 0 # Mirando al frente hacia el escritorio
-			if tag:
-				tag.text = "💻 " + GameManager.characters_data[hero_id]["name"]
+		node.position = node.get_meta("office_pos")
+		var recruited = GameManager.is_hero_in_party(hero_id)
+		node.visible = not recruited
+		var interaction = node.get_node("InteractArea") as Area2D
+		interaction.set_deferred("monitoring", not recruited)
+		interaction.collision_layer = 0 if recruited else 4
+		if recruited and current_interactable == "companion_" + hero_id:
+			_clear_interactable()
+		var tag = node.get_node("NameTag") as Label
+		tag.text = ("[✓] " if GameManager.is_hero_in_party(hero_id) else "[+] ") + GameManager.characters_data[hero_id]["name"]
+		# Recruited heroes join combat without leaving a second visible body on the map.
+		node.get_node("Sprite2D").frame = 0
+
 
 func _interact_with_companion(hero_id: String):
 	var data = GameManager.characters_data.get(hero_id, {})

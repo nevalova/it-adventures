@@ -9,9 +9,13 @@ extends Control
 @onready var boss_target_arrow = $MainBox/BattleArena/EnemySide/EnemyPanel/VBox/BossTargetArrow
 @onready var enemy_panel = $MainBox/BattleArena/EnemySide/EnemyPanel
 
+@onready var hero_arena = $MainBox/BattleArena/BattlersArena
 @onready var hero_sprites_container = $MainBox/BattleArena/BattlersArena/HeroSpritesContainer
 @onready var party_container = $MainBox/BattleArena/PartySide/PartyContainer
 @onready var log_label = $MainBox/LogPanel/Margin/LogLabel
+
+@onready var command_panel = $MainBox/CommandPanel
+@onready var battle_log_panel = $MainBox/LogPanel
 
 @onready var commands_box = $MainBox/CommandPanel/Margin/HBox/Commands
 @onready var btn_attack = $MainBox/CommandPanel/Margin/HBox/Commands/BtnAttack
@@ -50,6 +54,7 @@ var battler_sprites: Array = [] # Sprite2D nodes for each hero
 var active_party_index: int = 0
 var is_player_turn: bool = true
 var is_battle_over: bool = false
+var battle_dialog_active: bool = false
 
 # Alineación sin escalonado (Línea recta vertical)
 const PARTY_LINE_X: float = 125.0
@@ -59,6 +64,7 @@ const PARTY_FORWARD_X: float = 85.0
 var javier_can_attack: bool = true
 var javier_first_attack: bool = true
 var boss_has_red_aura: bool = false
+var dragon_special_cooldown: int = 2
 
 # Printer Minions & Target State (4 CMYK Toners + Boss)
 enum TargetType { BOSS, MINION }
@@ -88,7 +94,7 @@ func _process(delta):
 			card["arrow"].position.y = -2.0 + bob
 
 	if boss_atlas != null and not is_battle_over:
-		if not boss_is_special_anim:
+		if not boss_is_special_anim and enemy.get("type") != "senor_apoyo":
 			boss_anim_timer += delta
 			if boss_anim_timer >= 0.4:
 				boss_anim_timer = 0.0
@@ -98,6 +104,7 @@ func _process(delta):
 func _ready():
 	get_viewport().canvas_transform = Transform2D.IDENTITY
 	$Camera2D.make_current()
+	hero_arena.resized.connect(_layout_battlers)
 	setup_battle()
 	btn_attack.pressed.connect(_on_attack_pressed)
 	btn_skill.pressed.connect(_on_skill_pressed)
@@ -196,19 +203,27 @@ func setup_battle():
 		$Background.color = Color(0.04, 0.02, 0.02, 1.0)
 		enemy_name_label.text = "[OFICINA] El Señor"
 		enemy_name_label.modulate = Color(1.0, 0.65, 0.25)
-		var sheet_path = enemy.get("spritesheet_path", "res://assets/characters/senor_apoyo_spritesheet.png")
+		var sheet_path = enemy.get("spritesheet_path", GameManager.get_apoyo_spritesheet_path())
 		if ResourceLoader.exists(sheet_path):
 			boss_atlas = AtlasTexture.new()
 			boss_atlas.atlas = load(sheet_path)
-			boss_cell_size = 85
-			boss_frame_row = 2 # Row 2: mirando a la izquierda hacia la party
+			boss_cell_size = int(boss_atlas.atlas.get_width() / 4)
+			boss_frame_row = 6 # Postura quieta mirando a la derecha; no alternar pasos
 			boss_frame_col = 0
 			boss_is_special_anim = false
-			boss_atlas.region = Rect2(0, 2 * 85, 85, 85)
+			boss_atlas.region = Rect2(0, 6 * boss_cell_size, boss_cell_size, boss_cell_size)
 			enemy_sprite.texture = boss_atlas
 			enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			enemy_sprite.custom_minimum_size = Vector2(140, 140)
+			# Match the actual visible height of the selected hero.
+			var leader = GameManager.get_leader_data()
+			var hero_image = load(leader["spritesheet_path"]).get_image()
+			var hero_cell = Vector2i(hero_image.get_width() / 4, hero_image.get_height() / 12)
+			var hero_bounds = hero_image.get_region(Rect2i(Vector2i(0, hero_cell.y * 2), hero_cell)).get_used_rect()
+			var hero_height = hero_bounds.size.y * leader.get("battle_scale", Vector2(0.32, 0.32)).y
+			var enemy_bounds = boss_atlas.atlas.get_image().get_region(Rect2i(0, 6 * boss_cell_size, boss_cell_size, boss_cell_size)).get_used_rect()
+			var display_size = hero_height * float(boss_cell_size) / maxf(1, enemy_bounds.size.y)
+			enemy_sprite.custom_minimum_size = Vector2.ONE * display_size
 	elif enemy.get("type") == "brujiris":
 		$Background.color = Color(0.04, 0.01, 0.04, 1.0)
 		enemy_name_label.text = "[OFICINA] Brujiris"
@@ -266,7 +281,7 @@ func create_battler_sprites():
 	battler_sprites.clear()
 	
 	# Alineación en línea vertical recta (sin escalonado)
-	var start_y = 22.0
+	var start_y = 0.0
 	var step_y = 42.0
 	
 	for i in range(battle_party.size()):
@@ -283,6 +298,17 @@ func create_battler_sprites():
 		spr.frame = 2 * 4 + 0
 		hero_sprites_container.add_child(spr)
 		battler_sprites.append(spr)
+	_layout_battlers.call_deferred()
+
+func _layout_battlers() -> void:
+	# Containers settle their size after _ready. Keep every hero in the arena,
+	# including when the dialogue temporarily changes the available height.
+	var stack_height = maxf(0, (battler_sprites.size() - 1) * 42.0)
+	hero_sprites_container.position = Vector2(
+		hero_arena.size.x * 0.5 - PARTY_LINE_X,
+		maxf(32.0, (hero_arena.size.y - stack_height) * 0.5)
+	)
+	hero_sprites_container.visible = true
 
 func update_enemy_ui():
 	enemy_hp_bar.max_value = enemy_max_hp
@@ -349,7 +375,7 @@ func get_active_sprite() -> Sprite2D:
 	return null
 
 func start_turn():
-	if is_battle_over:
+	if is_battle_over or battle_dialog_active:
 		return
 		
 	var member = get_active_member()
@@ -698,7 +724,7 @@ func _on_flee_pressed():
 	set_log("¡El equipo de IT huyó al comedor a comer donas!")
 	is_battle_over = true
 	await get_tree().create_timer(1.2).timeout
-	GameManager.change_scene_instant(get_tree(), "res://scenes/overworld.tscn")
+	await GameManager.change_scene_with_fade(get_tree(), "res://scenes/overworld.tscn")
 
 func play_attack_anim(spr: Sprite2D):
 	if not spr:
@@ -1021,7 +1047,7 @@ func deal_damage_to_enemy(damage: int, message: String):
 		boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		get_tree().create_timer(0.35).timeout.connect(func():
 			if boss_atlas != null and not is_battle_over and not boss_is_special_anim:
-				boss_frame_row = 2 if (enemy.get("type") == "senor_apoyo" or enemy.get("type") == "brujiris") else 4
+				boss_frame_row = 6 if enemy.get("type") == "senor_apoyo" else (2 if enemy.get("type") == "brujiris" else 4)
 				boss_frame_col = 0
 				boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		)
@@ -1121,9 +1147,10 @@ func enemy_turn():
 	var log_msg = ""
 	
 	if is_dragon_boss:
+		dragon_special_cooldown = maxi(0, dragon_special_cooldown - 1)
 		if not boss_has_red_aura and randf() < 0.20:
 			chosen_atk = "Emputarse por nada"
-		elif randf() < 0.20:
+		elif dragon_special_cooldown == 0 and randf() < 0.15:
 			chosen_atk = "DONDE ESTA MI DRAGON IMPRESO EN 3D"
 		elif randf() < 0.50:
 			chosen_atk = "La Cólera del Dragón"
@@ -1131,17 +1158,18 @@ func enemy_turn():
 			chosen_atk = "Acoso"
 
 		if chosen_atk == "DONDE ESTA MI DRAGON IMPRESO EN 3D":
-			dmg = 55 # Daño especial ajustado a 55 (balanceado y no fulminante)
+			dmg = maxi(12, 34 - int(target["def"] * 0.4))
+			dragon_special_cooldown = 3
 			await play_dragon_special_anim(target["name"])
 			log_msg = "¡¡DONDE ESTA MI DRAGON IMPRESO EN 3D!! ¡El Señor del Dragón invoca al dragón espectral e inflige %d de daño a %s!" % [dmg, target["name"]]
 		elif chosen_atk == "Emputarse por nada":
 			boss_has_red_aura = true
-			enemy["atk"] = enemy.get("atk", 18) + 4 # Boost de +4 ATQ
+			enemy["atk"] = enemy.get("atk", 14) + 2 # Una sola mejora moderada de ira
 			dmg = max(10, enemy["atk"] + randi_range(1, 3) - int(target["def"] * 0.4))
 			var aura_tween = create_tween().set_loops()
 			aura_tween.tween_property(enemy_sprite, "modulate", Color(3.5, 0.3, 0.3), 0.3)
 			aura_tween.tween_property(enemy_sprite, "modulate", Color(1.8, 0.6, 0.6), 0.3)
-			log_msg = "¡¡EMPUTARSE POR NADA!! El Señor del Dragón estalla de ira (+4 ATQ) y golpea a %s por %d de daño." % [target["name"], dmg]
+			log_msg = "¡¡EMPUTARSE POR NADA!! El Señor del Dragón estalla de ira (+2 ATQ) y golpea a %s por %d de daño." % [target["name"], dmg]
 		elif chosen_atk == "La Cólera del Dragón":
 			dmg = int(dmg * 1.25)
 			log_msg = "¡¡LA CÓLERA DEL DRAGÓN!! ¡Un rugido draconiano hace temblar la sala! %s recibió %d de daño." % [target["name"], dmg]
@@ -1205,10 +1233,13 @@ func enemy_turn():
 		advance_to_next_hero()
 
 func enemy_defeated():
+	if is_battle_over:
+		return
 	if has_alive_minions():
 		set_log("[!] ¡La batalla no puede terminar hasta acabar con los cartuchos de tóner!")
 		return
 	is_battle_over = true
+	command_panel.hide()
 	GameManager.victorious_count += 1
 	
 	if boss_atlas != null:
@@ -1240,7 +1271,7 @@ func enemy_defeated():
 	elif enemy_type_str == "senor_apoyo":
 		coins_reward = 0
 		exp_gained = 0
-		GameManager.just_defeated_senor_apoyo = true
+		GameManager.record_apoyo_defeat()
 	elif enemy_type_str == "brujiris":
 		coins_reward = 200
 		exp_gained = 260
@@ -1276,7 +1307,7 @@ func enemy_defeated():
 		GameManager.player_saved_position = Vector2(2560, 180)
 		set_log("[SITE SALVADO] ¡Ruta establecida al 189 y Servidor 117 desbloqueado! (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
 	elif enemy_type_str == "senor_apoyo":
-		set_log("[VICTORIA!] ¡El Señor fue noqueado de un solo golpe! Israel: 'Lo voy a revivir para volver a darle en su madre.'")
+		set_log("[VICTORIA] El Señor cayó otra vez. Derrotas: %d." % GameManager.apoyo_defeat_count)
 	elif enemy_type_str == "brujiris":
 		set_log("[VICTORIA!] ¡Brujiris se calma de golpe!: '¡Esperen, ya vi la caja debajo de mi escritorio!' (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
 	else:
@@ -1291,20 +1322,27 @@ func enemy_defeated():
 		
 	GameManager.save_game()
 	await get_tree().create_timer(2.2).timeout
-	GameManager.change_scene_instant(get_tree(), "res://scenes/overworld.tscn")
+	await GameManager.change_scene_with_fade(get_tree(), "res://scenes/overworld.tscn")
 
 func game_over():
 	is_battle_over = true
 	set_log("[KO] GAME OVER: Caída catastrófica de servidores. Todo IT fue despedido.")
 	await get_tree().create_timer(2.0).timeout
-	GameManager.change_scene_instant(get_tree(), "res://scenes/character_select.tscn")
+	await GameManager.change_scene_with_fade(get_tree(), "res://scenes/character_select.tscn")
 
 func set_log(text: String):
 	log_label.text = text
 
 func _show_boss_defeat_dialog(lines: Array):
+	var commands_were_visible = command_panel.visible
+	var log_was_visible = battle_log_panel.visible
+	battle_dialog_active = true
+	command_panel.hide()
+	battle_log_panel.hide()
 	var overlay = PanelContainer.new()
 	overlay.name = "BossDefeatDialog"
+	overlay.z_index = 20
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	overlay.anchor_top = 0.55
 	overlay.anchor_bottom = 0.95
 	overlay.anchor_left = 0.08
@@ -1366,18 +1404,22 @@ func _show_boss_defeat_dialog(lines: Array):
 	vbox.add_child(btn_next)
 	
 	add_child(overlay)
-	
+	btn_next.grab_focus()
+
 	for line in lines:
 		text_lbl.text = line
 		set_log("[JEFE HINCADO] " + line)
-		var advance_clicked = false
-		var advance_callable = func(): advance_clicked = true
+		var advance_state = {"clicked": false}
+		var advance_callable = func(): advance_state["clicked"] = true
 		btn_next.pressed.connect(advance_callable)
 		var elapsed = 0.0
-		while not advance_clicked and elapsed < 4.5:
+		while not advance_state["clicked"] and elapsed < 4.5:
 			await get_tree().process_frame
 			elapsed += get_process_delta_time()
 		if btn_next.pressed.is_connected(advance_callable):
 			btn_next.pressed.disconnect(advance_callable)
 			
 	overlay.queue_free()
+	battle_dialog_active = false
+	battle_log_panel.visible = log_was_visible
+	command_panel.visible = commands_were_visible and not is_battle_over

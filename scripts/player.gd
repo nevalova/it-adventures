@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const SpriteLayout = preload("res://scripts/sprite_layout.gd")
+
 @export var speed: float = 140.0
 @export var walk_anim_speed: float = 8.0
 
@@ -57,6 +59,9 @@ func _ready():
 		current_row = 6
 		sprite.frame = current_row * 4 + 0 # Mirando a la derecha
 		facing_direction = Vector2.RIGHT
+
+	SpriteLayout.configure(sprite, name_tag)
+	y_sort_enabled = false
 
 func play_walk_anim(dir: Vector2, frame_col: int):
 	is_scripted_walking = true

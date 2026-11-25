@@ -1,5 +1,11 @@
 extends Area2D
 
+const SpriteLayout = preload("res://scripts/sprite_layout.gd")
+var home_position: Vector2
+var wander_target: Vector2
+var walk_clock: float = 0.0
+var facing_row: int = 0
+
 @export var enemy_type: String = "printer" # "printer", "outlook", "usuario_red", "teclado", "cpu", "wifi_phone"
 @export var enemy_id: String = ""
 @export var move_speed: float = 30.0
@@ -169,6 +175,10 @@ func _ready():
 	body_entered.connect(_on_body_entered)
 	apply_spec()
 	wander_direction = Vector2.ZERO
+	home_position = global_position
+	wander_target = home_position
+	change_timer = randf_range(1.0, 3.0)
+	y_sort_enabled = false
 
 func apply_spec():
 	var spec = enemy_specs.get(enemy_type, enemy_specs["printer"])
@@ -181,7 +191,7 @@ func apply_spec():
 		sprite.frame = 0
 		sprite.scale = Vector2(0.2, 0.2)
 		if GameManager.printer_defeated:
-			sprite.position = Vector2.ZERO
+			sprite.position = Vector2(0, -19)
 			name_tag.text = "[V] Neutralizada"
 			name_tag.modulate = Color(0.3, 0.9, 0.6)
 		else:
@@ -210,26 +220,69 @@ func apply_spec():
 			name_tag.text = spec.get("user_name", "Usuario")
 			name_tag.modulate = spec.get("user_color", Color(1.0, 0.9, 0.4))
 			sprite.frame = 0 * 4 + 0 # Mirando al frente atento
-		move_speed = 0.0
+		move_speed = 22.0
+		SpriteLayout.configure(sprite, name_tag)
 
 func _process(delta):
 	if enemy_type == "printer":
 		if GameManager.printer_defeated:
-			sprite.position = Vector2.ZERO
+			sprite.position = Vector2(0, -19)
 			return
 		var shake = sin(Time.get_ticks_msec() * 0.04) * 1.8
 		sprite.position.x = shake
 		return
 
 func pick_random_direction():
-	wander_direction = Vector2.ZERO
+	# Short trips around the workstation; never leave the office corridor.
+	var choices = [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]
+	wander_direction = choices[randi() % choices.size()]
+	wander_target = home_position + wander_direction * randf_range(24.0, 48.0)
+	wander_target.y = clampf(wander_target.y, 65.0, 300.0)
+	change_timer = randf_range(2.0, 4.0)
+
+func _physics_process(delta: float):
+	if enemy_type == "printer":
+		return
+	var world = get_parent()
+	if not world.has_method("can_ambient_npcs_walk") or not world.can_ambient_npcs_walk():
+		return
+	var leader = world.get_node_or_null("Player")
+	if is_instance_valid(leader) and global_position.distance_to(leader.global_position) < 34.0:
+		return
+	change_timer -= delta
+	if change_timer <= 0.0:
+		pick_random_direction()
+	var offset = wander_target - global_position
+	if offset.length() < 2.0:
+		sprite.frame = facing_row * 4
+		return
+	var direction = offset.normalized()
+	var step = direction * minf(move_speed * delta, offset.length())
+	var query = PhysicsShapeQueryParameters2D.new()
+	var feet = CircleShape2D.new()
+	feet.radius = 8.0
+	query.shape = feet
+	query.transform = Transform2D(0.0, global_position + Vector2(0, 4))
+	query.motion = step
+	query.collision_mask = 2
+	var safe_motion = get_world_2d().direct_space_state.cast_motion(query)
+	query.transform.origin += step
+	if safe_motion[0] < 1.0 or not get_world_2d().direct_space_state.intersect_shape(query, 1).is_empty():
+		wander_target = global_position
+		change_timer = 0.5
+		sprite.frame = facing_row * 4
+		return
+	global_position += step
+	facing_row = (6 if direction.x > 0 else 2) if absf(direction.x) > absf(direction.y) else (0 if direction.y > 0 else 4)
+	walk_clock += delta * 6.0
+	sprite.frame = facing_row * 4 + int(walk_clock) % 4
 
 func _on_body_entered(body):
 	if body.name == "Player":
 		if enemy_type == "printer":
 			if GameManager.printer_defeated:
 				return
-			var overworld = get_parent()
+			var overworld = get_tree().current_scene
 			if overworld and overworld.has_method("_start_printer_battle"):
 				overworld._start_printer_battle()
 			return

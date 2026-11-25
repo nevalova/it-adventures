@@ -135,6 +135,16 @@ var server_site_cutscene_done: bool = false
 var password_quest_active: bool = false
 var server_boss_defeated: bool = false
 var just_defeated_senor_apoyo: bool = false
+var apoyo_defeat_count: int = 0
+var apoyo_skeleton_comment_seen: bool = false
+var scene_transition_active: bool = false
+const APOYO_TAUNTS = [
+	"Me gusta pararme cerca de ti porque me haces ver más grande.",
+	"No me duraste ni el arranque.",
+	"Me hablaste como si me aguantaras un vergazo.",
+	"Te voy a revivir para darte de nuevo en tu madre."
+]
+var paper_quest_accepted: bool = false
 var paper_quest_state: int = 0 # 0: no iniciada, 1: hojas recogidas para llevar a impresora, 2: entregadas y recargadas
 var brujiris_defeated: bool = false
 var inside_brujiris_office: bool = false
@@ -249,7 +259,10 @@ func reset_game():
 	password_quest_active = false
 	server_boss_defeated = false
 	just_defeated_senor_apoyo = false
+	apoyo_defeat_count = 0
+	apoyo_skeleton_comment_seen = false
 	paper_quest_state = 0
+	paper_quest_accepted = false
 	brujiris_defeated = false
 	inside_brujiris_office = false
 	it_budget = 200
@@ -273,6 +286,8 @@ func save_game() -> bool:
 		"party_ids": [],
 		"defeated_enemies": defeated_enemies,
 		"victorious_count": victorious_count,
+		"apoyo_defeat_count": apoyo_defeat_count,
+		"apoyo_skeleton_comment_seen": apoyo_skeleton_comment_seen,
 		"intro_cutscene_done": intro_cutscene_done,
 		"office_cutscene_done": office_cutscene_done,
 		"printer_defeated": printer_defeated,
@@ -286,6 +301,7 @@ func save_game() -> bool:
 		"password_quest_active": password_quest_active,
 		"server_boss_defeated": server_boss_defeated,
 		"paper_quest_state": paper_quest_state,
+		"paper_quest_accepted": paper_quest_accepted,
 		"brujiris_defeated": brujiris_defeated,
 		"inside_brujiris_office": inside_brujiris_office,
 		"it_budget": it_budget,
@@ -318,15 +334,31 @@ func load_game() -> bool:
 	var err = json.parse(json_str)
 	if err != OK or not (json.data is Dictionary):
 		return false
-	var data = json.data
-	
+	return restore_save_data(json.data)
+
+func restore_save_data(data: Dictionary) -> bool:
 	selected_hero_id = data.get("selected_hero_id", "israel")
-	if data.has("characters_data"):
-		for k in data["characters_data"].keys():
-			characters_data[k] = data["characters_data"][k]
+	if data.get("characters_data") is Dictionary:
+		for k in data["characters_data"]:
+			if not characters_data.has(k) or not data["characters_data"][k] is Dictionary:
+				continue
+			# JSON turns Color/Vector2 into strings. Restore progress only; keep
+			# typed art/scale metadata from the character definitions in this build.
+			var restored = characters_data[k].duplicate(true)
+			var saved = data["characters_data"][k]
+			for stat in ["level", "exp", "exp_to_next", "max_hp", "hp", "atk", "def"]:
+				if saved.get(stat) is float or saved.get(stat) is int:
+					restored[stat] = maxi(0, int(saved[stat]))
+			restored["level"] = maxi(1, restored["level"])
+			restored["exp_to_next"] = maxi(1, restored["exp_to_next"])
+			restored["max_hp"] = maxi(1, restored["max_hp"])
+			restored["hp"] = mini(restored["hp"], restored["max_hp"])
+			characters_data[k] = restored
 			
 	defeated_enemies = data.get("defeated_enemies", [])
 	victorious_count = int(data.get("victorious_count", 0))
+	apoyo_defeat_count = maxi(0, int(data.get("apoyo_defeat_count", 0)))
+	apoyo_skeleton_comment_seen = data.get("apoyo_skeleton_comment_seen", false)
 	intro_cutscene_done = data.get("intro_cutscene_done", true)
 	office_cutscene_done = data.get("office_cutscene_done", false)
 	printer_defeated = data.get("printer_defeated", false)
@@ -340,6 +372,7 @@ func load_game() -> bool:
 	password_quest_active = data.get("password_quest_active", false)
 	server_boss_defeated = data.get("server_boss_defeated", false)
 	paper_quest_state = int(data.get("paper_quest_state", 0))
+	paper_quest_accepted = data.get("paper_quest_accepted", paper_quest_state > 0)
 	brujiris_defeated = data.get("brujiris_defeated", false)
 	inside_brujiris_office = data.get("inside_brujiris_office", false)
 	it_budget = int(data.get("it_budget", 200))
@@ -426,6 +459,10 @@ func apply_debug_checkpoint(checkpoint_id: String):
 			player_saved_position = Vector2(3320, 200)
 
 func add_exp_to_party(exp_amount: int) -> Array:
+	for member in party:
+		var member_id = member.get("id", "")
+		if characters_data.has(member_id):
+			characters_data[member_id]["hp"] = member["hp"]
 	var level_ups = []
 	for char_id in characters_data.keys():
 		var char_data = characters_data[char_id]
@@ -496,6 +533,66 @@ func get_preloaded_scene(path: String) -> PackedScene:
 	preloaded_scenes[path] = scene
 	return scene
 
+func apoyo_is_skeleton() -> bool:
+	return apoyo_defeat_count >= 10
+
+func get_apoyo_spritesheet_path(force_human: bool = false) -> String:
+	if apoyo_is_skeleton() and not force_human:
+		return "res://assets/characters/senor_apoyo_skeleton_spritesheet.png"
+	return "res://assets/characters/senor_apoyo_spritesheet.png"
+
+func get_apoyo_portrait(force_human: bool = false) -> Texture2D:
+	if apoyo_is_skeleton() and not force_human:
+		return load("res://assets/characters/senor_apoyo_skeleton_portrait.png")
+	if apoyo_defeat_count == 0:
+		return load("res://assets/characters/senor_apoyo_portrait.png")
+	var texture = load("res://assets/characters/senor_apoyo_damage_portraits.png") as Texture2D
+	var cell = texture.get_size() / Vector2(2, 5)
+	var stage = mini(apoyo_defeat_count, 10) - 1
+	var portrait = AtlasTexture.new()
+	portrait.atlas = texture
+	portrait.region = Rect2(Vector2(stage % 2, stage / 2) * cell, cell)
+	return portrait
+
+func record_apoyo_defeat() -> void:
+	apoyo_defeat_count += 1
+	just_defeated_senor_apoyo = true
+
+func get_apoyo_taunt() -> String:
+	return APOYO_TAUNTS[maxi(0, apoyo_defeat_count - 1) % APOYO_TAUNTS.size()]
+
+func change_scene_with_fade(tree: SceneTree, path: String) -> void:
+	if scene_transition_active:
+		return
+	scene_transition_active = true
+	var was_paused = tree.paused
+	tree.paused = true
+	var overlay = CanvasLayer.new()
+	overlay.name = "SceneFade"
+	overlay.layer = 100
+	overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	var black = ColorRect.new()
+	black.name = "Black"
+	black.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	black.color = Color(0, 0, 0, 0)
+	black.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.add_child(black)
+	add_child(overlay)
+	var fade_out = overlay.create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	fade_out.tween_property(black, "color:a", 1.0, 0.28)
+	await fade_out.finished
+	var scene = get_preloaded_scene(path)
+	var error = tree.change_scene_to_packed(scene) if scene != null else ERR_CANT_OPEN
+	if error == OK:
+		await tree.scene_changed
+		await tree.process_frame
+	var fade_in = overlay.create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	fade_in.tween_property(black, "color:a", 0.0, 0.32)
+	await fade_in.finished
+	overlay.queue_free()
+	tree.paused = was_paused
+	scene_transition_active = false
+
 func change_scene_instant(tree: SceneTree, path: String) -> void:
 	var packed = get_preloaded_scene(path)
 	if packed != null:
@@ -524,15 +621,7 @@ func init_party(leader_id: String):
 	leader_data["id"] = leader_id
 	party.append(leader_data)
 	
-	# Por defecto, sumamos 2 compañeros iniciales (dejando 2 libres en la oficina)
-	# para que el squad tenga 3 miembros y el jugador pueda hablar con los demás y elegir
-	var companion_count = 0
-	for id in characters_data.keys():
-		if id != leader_id and companion_count < 2:
-			var member = characters_data[id].duplicate(true)
-			member["id"] = id
-			party.append(member)
-			companion_count += 1
+	# El resto del equipo se recluta personalmente en los cuatro escritorios.
 
 func is_hero_in_party(hero_id: String) -> bool:
 	for member in party:

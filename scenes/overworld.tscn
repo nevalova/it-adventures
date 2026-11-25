@@ -78,6 +78,7 @@ corner_radius_bottom_left = 8
 shadow_size = 8
 
 [node name="Overworld" type="Node2D"]
+y_sort_enabled = true
 script = ExtResource("1_overworld")
 
 [node name="Floor" type="TextureRect" parent="."]
@@ -263,12 +264,6 @@ y_sort_enabled = true
 [node name="DeskIT1" type="Sprite2D" parent="EnvironmentProps"]
 texture_filter = 1
 position = Vector2(160, 140)
-scale = Vector2(0.14, 0.14)
-texture = ExtResource("12_desk_office")
-
-[node name="DeskIT2" type="Sprite2D" parent="EnvironmentProps"]
-texture_filter = 1
-position = Vector2(345, 146)
 scale = Vector2(0.14, 0.14)
 texture = ExtResource("12_desk_office")
 
@@ -772,7 +767,7 @@ shape = SubResource("CircleShape2D_npc_interact")
 
 [node name="Nelly" type="Node2D" parent="."]
 y_sort_enabled = true
-position = Vector2(305, 146)
+position = Vector2(1110, 265)
 
 [node name="Sprite2D" type="Sprite2D" parent="Nelly"]
 texture_filter = 1
