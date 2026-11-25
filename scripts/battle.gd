@@ -209,6 +209,23 @@ func setup_battle():
 			enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			enemy_sprite.custom_minimum_size = Vector2(140, 140)
+	elif enemy.get("type") == "brujiris":
+		$Background.color = Color(0.04, 0.01, 0.04, 1.0)
+		enemy_name_label.text = "[OFICINA] Brujiris"
+		enemy_name_label.modulate = Color(0.95, 0.45, 0.85)
+		var sheet_path = enemy.get("spritesheet_path", "res://assets/characters/npc_curly_spritesheet.png")
+		if ResourceLoader.exists(sheet_path):
+			boss_atlas = AtlasTexture.new()
+			boss_atlas.atlas = load(sheet_path)
+			boss_cell_size = 93
+			boss_frame_row = 2 # Row 2: mirando a la izquierda hacia la party
+			boss_frame_col = 0
+			boss_is_special_anim = false
+			boss_atlas.region = Rect2(0, 2 * 93, 93, 93)
+			enemy_sprite.texture = boss_atlas
+			enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			enemy_sprite.custom_minimum_size = Vector2(140, 140)
 	elif enemy.get("type") == "password_boss":
 		$Background.color = Color(0.01, 0.04, 0.1, 1.0)
 		enemy_name_label.text = "[JEFE SITE] " + enemy.get("name", "Contraseña Olvidada")
@@ -235,6 +252,8 @@ func setup_battle():
 		set_log("¡SOMBRAS DEL PASADO! ¡El Señor del Dragón exige su dragón!")
 	elif enemy.get("type") == "senor_apoyo":
 		set_log("¡El Señor exige apoyo! Israel responde: 'Estoy ocupado.'")
+	elif enemy.get("type") == "brujiris":
+		set_log("¡PÁNICO EN AUDITORÍA! Brujiris: '¡Revisen las cámaras, no encuentro mi caja!'")
 	elif enemy.get("type") == "password_boss":
 		set_log("¡FALLA DE ENRUTAMIENTO! ¡Nadie se sabe la contraseña del Servidor 117!")
 	else:
@@ -997,12 +1016,12 @@ func deal_damage_to_enemy(damage: int, message: String):
 	
 	# Efecto visual y cambio de pose al recibir daño
 	if boss_atlas != null and enemy_current_hp > 0 and not boss_is_special_anim:
-		boss_frame_row = 10 if enemy.get("type") == "senor_apoyo" else 5 # Postura de impacto / dolor
+		boss_frame_row = 10 if (enemy.get("type") == "senor_apoyo" or enemy.get("type") == "brujiris") else 5 # Postura de impacto / dolor
 		boss_frame_col = 0
 		boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		get_tree().create_timer(0.35).timeout.connect(func():
 			if boss_atlas != null and not is_battle_over and not boss_is_special_anim:
-				boss_frame_row = 2 if enemy.get("type") == "senor_apoyo" else 4
+				boss_frame_row = 2 if (enemy.get("type") == "senor_apoyo" or enemy.get("type") == "brujiris") else 4
 				boss_frame_col = 0
 				boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		)
@@ -1198,6 +1217,10 @@ func enemy_defeated():
 			boss_frame_row = 11 # Row 11: Col 3 = tirado en el suelo
 			boss_frame_col = 3
 			boss_atlas.region = Rect2(3 * boss_cell_size, 11 * boss_cell_size, boss_cell_size, boss_cell_size)
+		elif enemy.get("type") == "brujiris":
+			boss_frame_row = 10
+			boss_frame_col = 0
+			boss_atlas.region = Rect2(0, 10 * boss_cell_size, boss_cell_size, boss_cell_size)
 		else:
 			boss_frame_row = 5 # Row 5: Col 5 = Hincado en pose de derrota
 			boss_frame_col = 5
@@ -1218,6 +1241,12 @@ func enemy_defeated():
 		coins_reward = 0
 		exp_gained = 0
 		GameManager.just_defeated_senor_apoyo = true
+	elif enemy_type_str == "brujiris":
+		coins_reward = 200
+		exp_gained = 260
+		GameManager.brujiris_defeated = true
+		GameManager.player_saved_position = Vector2(3320, 200)
+		GameManager.inside_brujiris_office = true
 	GameManager.it_budget += coins_reward
 	
 	for i in range(min(GameManager.party.size(), battle_party.size())):
@@ -1248,6 +1277,8 @@ func enemy_defeated():
 		set_log("[SITE SALVADO] ¡Ruta establecida al 189 y Servidor 117 desbloqueado! (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
 	elif enemy_type_str == "senor_apoyo":
 		set_log("[VICTORIA!] ¡El Señor fue noqueado de un solo golpe! Israel: 'Lo voy a revivir para volver a darle en su madre.'")
+	elif enemy_type_str == "brujiris":
+		set_log("[VICTORIA!] ¡Brujiris se calma de golpe!: '¡Esperen, ya vi la caja debajo de mi escritorio!' (+%d EXP, +$%d Presupuesto)" % [exp_gained, coins_reward])
 	else:
 		set_log("[!] ¡Ticket resuelto! '%s' neutralizado. (+%d EXP, +$%d Presupuesto)" % [enemy.get("name", "Enemigo"), exp_gained, coins_reward])
 		
@@ -1258,6 +1289,7 @@ func enemy_defeated():
 			names.append("%s (Nv. %d)" % [lup["name"], lup["level"]])
 		set_log("[⭐ LEVEL UP!] ¡%s subió de nivel! (+50 HP Max, +14 ATQ, +7 DEF, ¡Salud al 100%!)" % ", ".join(names))
 		
+	GameManager.save_game()
 	await get_tree().create_timer(2.2).timeout
 	GameManager.change_scene_instant(get_tree(), "res://scenes/overworld.tscn")
 

@@ -135,6 +135,11 @@ var server_site_cutscene_done: bool = false
 var password_quest_active: bool = false
 var server_boss_defeated: bool = false
 var just_defeated_senor_apoyo: bool = false
+var paper_quest_state: int = 0 # 0: no iniciada, 1: hojas recogidas para llevar a impresora, 2: entregadas y recargadas
+var brujiris_defeated: bool = false
+var inside_brujiris_office: bool = false
+
+const SAVE_FILE_PATH = "user://it_adventures_save.json"
 
 var it_budget: int = 200 # Presupuesto de caja chica de IT para la tiendita de Nelly
 
@@ -243,11 +248,182 @@ func reset_game():
 	server_site_cutscene_done = false
 	password_quest_active = false
 	server_boss_defeated = false
+	just_defeated_senor_apoyo = false
+	paper_quest_state = 0
+	brujiris_defeated = false
+	inside_brujiris_office = false
+	it_budget = 200
 	defeated_enemies.clear()
 	current_enemy_id = ""
 	player_saved_position = Vector2(140, 200)
 	victorious_count = 0
 	init_party(selected_hero_id)
+
+func has_save_file() -> bool:
+	return FileAccess.file_exists(SAVE_FILE_PATH)
+
+func delete_save_file():
+	if FileAccess.file_exists(SAVE_FILE_PATH):
+		DirAccess.remove_absolute(SAVE_FILE_PATH)
+
+func save_game() -> bool:
+	var save_dict = {
+		"selected_hero_id": selected_hero_id,
+		"characters_data": characters_data,
+		"party_ids": [],
+		"defeated_enemies": defeated_enemies,
+		"victorious_count": victorious_count,
+		"intro_cutscene_done": intro_cutscene_done,
+		"office_cutscene_done": office_cutscene_done,
+		"printer_defeated": printer_defeated,
+		"victory_dialogue_shown": victory_dialogue_shown,
+		"dragon_boss_cutscene_done": dragon_boss_cutscene_done,
+		"dragon_boss_fled": dragon_boss_fled,
+		"dragon_boss_defeated": dragon_boss_defeated,
+		"dragon_flee_cutscene_done": dragon_flee_cutscene_done,
+		"director_cutscene_done": director_cutscene_done,
+		"server_site_cutscene_done": server_site_cutscene_done,
+		"password_quest_active": password_quest_active,
+		"server_boss_defeated": server_boss_defeated,
+		"paper_quest_state": paper_quest_state,
+		"brujiris_defeated": brujiris_defeated,
+		"inside_brujiris_office": inside_brujiris_office,
+		"it_budget": it_budget,
+		"control_type": control_type,
+		"player_saved_position_x": player_saved_position.x,
+		"player_saved_position_y": player_saved_position.y,
+		"timestamp": Time.get_datetime_string_from_system()
+	}
+	for hero in party:
+		save_dict["party_ids"].append(hero.get("id", ""))
+		
+	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
+	if file:
+		var json_str = JSON.stringify(save_dict, "\t")
+		file.store_string(json_str)
+		file.close()
+		return true
+	return false
+
+func load_game() -> bool:
+	if not FileAccess.file_exists(SAVE_FILE_PATH):
+		return false
+	var file = FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
+	if not file:
+		return false
+	var json_str = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var err = json.parse(json_str)
+	if err != OK or not (json.data is Dictionary):
+		return false
+	var data = json.data
+	
+	selected_hero_id = data.get("selected_hero_id", "israel")
+	if data.has("characters_data"):
+		for k in data["characters_data"].keys():
+			characters_data[k] = data["characters_data"][k]
+			
+	defeated_enemies = data.get("defeated_enemies", [])
+	victorious_count = int(data.get("victorious_count", 0))
+	intro_cutscene_done = data.get("intro_cutscene_done", true)
+	office_cutscene_done = data.get("office_cutscene_done", false)
+	printer_defeated = data.get("printer_defeated", false)
+	victory_dialogue_shown = data.get("victory_dialogue_shown", false)
+	dragon_boss_cutscene_done = data.get("dragon_boss_cutscene_done", false)
+	dragon_boss_fled = data.get("dragon_boss_fled", false)
+	dragon_boss_defeated = data.get("dragon_boss_defeated", false)
+	dragon_flee_cutscene_done = data.get("dragon_flee_cutscene_done", false)
+	director_cutscene_done = data.get("director_cutscene_done", false)
+	server_site_cutscene_done = data.get("server_site_cutscene_done", false)
+	password_quest_active = data.get("password_quest_active", false)
+	server_boss_defeated = data.get("server_boss_defeated", false)
+	paper_quest_state = int(data.get("paper_quest_state", 0))
+	brujiris_defeated = data.get("brujiris_defeated", false)
+	inside_brujiris_office = data.get("inside_brujiris_office", false)
+	it_budget = int(data.get("it_budget", 200))
+	control_type = data.get("control_type", "dpad")
+	
+	var px = data.get("player_saved_position_x", 140)
+	var py = data.get("player_saved_position_y", 200)
+	player_saved_position = Vector2(px, py)
+	
+	# Reconstruir escuadrón
+	party.clear()
+	var p_ids = data.get("party_ids", [selected_hero_id])
+	for pid in p_ids:
+		if characters_data.has(pid):
+			party.append(characters_data[pid].duplicate(true))
+	if party.is_empty() and characters_data.has(selected_hero_id):
+		party.append(characters_data[selected_hero_id].duplicate(true))
+		
+	return true
+
+func apply_debug_checkpoint(checkpoint_id: String):
+	reset_game()
+	match checkpoint_id:
+		"new_game":
+			player_saved_position = Vector2(140, 200)
+		"post_printer":
+			intro_cutscene_done = true
+			office_cutscene_done = true
+			printer_defeated = true
+			victory_dialogue_shown = true
+			defeated_enemies = ["enemy_printer_main", "npc_mario_outlook"]
+			it_budget = 350
+			player_saved_position = Vector2(1000, 190)
+			add_exp_to_party(180) # Sube a nivel 2
+		"post_dragon":
+			intro_cutscene_done = true
+			office_cutscene_done = true
+			printer_defeated = true
+			victory_dialogue_shown = true
+			dragon_boss_cutscene_done = true
+			dragon_boss_fled = true
+			dragon_boss_defeated = true
+			dragon_flee_cutscene_done = true
+			director_cutscene_done = true
+			password_quest_active = true
+			defeated_enemies = ["enemy_printer_main", "npc_mario_outlook", "dragon_boss_main", "npc_dona_brenda_teclado"]
+			it_budget = 650
+			player_saved_position = Vector2(1820, 180)
+			add_exp_to_party(480) # Sube a nivel 3
+		"post_server":
+			intro_cutscene_done = true
+			office_cutscene_done = true
+			printer_defeated = true
+			victory_dialogue_shown = true
+			dragon_boss_cutscene_done = true
+			dragon_boss_fled = true
+			dragon_boss_defeated = true
+			dragon_flee_cutscene_done = true
+			director_cutscene_done = true
+			password_quest_active = true
+			server_boss_defeated = true
+			server_site_cutscene_done = true
+			defeated_enemies = ["enemy_printer_main", "npc_mario_outlook", "dragon_boss_main", "npc_dona_brenda_teclado", "boss_server_117", "npc_laura_cpu", "npc_diego_cable"]
+			it_budget = 1000
+			player_saved_position = Vector2(2560, 180)
+			add_exp_to_party(900) # Sube a nivel 4
+		"paper_quest":
+			intro_cutscene_done = true
+			office_cutscene_done = true
+			printer_defeated = true
+			victory_dialogue_shown = true
+			paper_quest_state = 1 # Con las hojas en mano
+			player_saved_position = Vector2(900, 190)
+			add_exp_to_party(150)
+		"brujiris_office":
+			intro_cutscene_done = true
+			office_cutscene_done = true
+			printer_defeated = true
+			victory_dialogue_shown = true
+			dragon_boss_defeated = true
+			dragon_flee_cutscene_done = true
+			add_exp_to_party(350)
+			inside_brujiris_office = true
+			player_saved_position = Vector2(3320, 200)
 
 func add_exp_to_party(exp_amount: int) -> Array:
 	var level_ups = []

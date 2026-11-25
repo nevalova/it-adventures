@@ -19,11 +19,37 @@ func _ready():
 	btn_options.pressed.connect(_open_options)
 	btn_close_options.pressed.connect(_close_options)
 	
+	_setup_continue_button()
+	
 	btn_mode_dpad.pressed.connect(func(): _select_control_mode("dpad"))
 	btn_mode_joystick.pressed.connect(func(): _select_control_mode("joystick"))
 	btn_mode_point_click.pressed.connect(func(): _select_control_mode("point_and_click"))
 	
 	_update_ui_state()
+
+var btn_continue: Button = null
+
+func _setup_continue_button():
+	if GameManager.has_save_file():
+		btn_start.text = "▶ NUEVA PARTIDA"
+		btn_continue = Button.new()
+		btn_continue.name = "BtnContinue"
+		btn_continue.custom_minimum_size = Vector2(220, 32)
+		btn_continue.focus_mode = Control.FOCUS_NONE
+		btn_continue.add_theme_color_override("font_color", Color(0.3, 1.0, 0.6, 1.0))
+		btn_continue.add_theme_font_size_override("font_size", 12)
+		btn_continue.text = "📂 CONTINUAR PARTIDA"
+		$MenuVBox.add_child(btn_continue)
+		$MenuVBox.move_child(btn_continue, 0)
+		btn_continue.pressed.connect(_continue_game)
+	else:
+		btn_start.text = "▶ INICIAR PARTIDA"
+
+func _continue_game():
+	if GameManager.load_game():
+		GameManager.change_scene_instant(get_tree(), "res://scenes/overworld.tscn")
+	else:
+		_start_game()
 
 func _update_ui_state():
 	var cur = GameManager.control_type

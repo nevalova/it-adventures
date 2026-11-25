@@ -147,10 +147,30 @@ var companion_nodes: Dictionary = {}
 var player_trail: Array = []
 var senor_apoyo_node: Node2D = null
 
+# Sistema de Misiones, Oficina Brujiris y Menú Debug/Guardado
+var mariana_node: Node2D = null
+var supply_box_node: Node2D = null
+var door_brujiris_node: Node2D = null
+var brujiris_office_root: Node2D = null
+var brujiris_npc_node: Node2D = null
+var debug_modal: PanelContainer = null
+var btn_save_hud: Button = null
+var btn_debug_hud: Button = null
+var save_toast_label: Label = null
+
 func _ready():
 	GameManager.preload_scene("res://scenes/battle.tscn")
 	GameManager.preload_scene("res://scenes/character_select.tscn")
 	$Player/Camera2D.make_current()
+	if GameManager.inside_brujiris_office:
+		$Player/Camera2D.limit_left = 3200
+		$Player/Camera2D.limit_right = 3840
+	else:
+		$Player/Camera2D.limit_left = 0
+		$Player/Camera2D.limit_right = 3072
+	$Player/Camera2D.limit_top = 0
+	$Player/Camera2D.limit_bottom = 360
+	
 	_update_hud_stats()
 	btn_close_shop.pressed.connect(_close_shop_modal)
 	btn_close_photo.pressed.connect(_close_photo_modal)
@@ -171,6 +191,9 @@ func _ready():
 			
 	_setup_companions()
 	_setup_senor_apoyo()
+	_setup_paper_quest()
+	_setup_brujiris_office()
+	_setup_debug_and_save_ui()
 	
 	btn_switch.visible = false
 	btn_switch.pressed.connect(func():
@@ -304,8 +327,15 @@ func _ready():
 		touch_controls.visible = false
 		objective_label.text = obj_intro_text
 	else:
-		if GameManager.player_saved_position != Vector2.ZERO:
-			player.global_position = GameManager.player_saved_position
+		if GameManager.inside_brujiris_office:
+			if GameManager.player_saved_position != Vector2.ZERO:
+				player.global_position = GameManager.player_saved_position
+			else:
+				player.global_position = Vector2(3260, 200)
+			objective_label.text = "[!] Oficina de Auditoría - Habla con Brujiris"
+		else:
+			if GameManager.player_saved_position != Vector2.ZERO:
+				player.global_position = GameManager.player_saved_position
 		player.can_move = true
 		touch_controls.visible = true
 		
@@ -910,6 +940,617 @@ func _start_post_senor_apoyo_dialogue():
 		touch_controls.visible = true
 	_show_next_in_queue()
 
+func _start_brujiris_battle():
+	GameManager.player_saved_position = player.global_position
+	GameManager.current_enemy_id = "brujiris"
+	var spec = {
+		"name": "Brujiris",
+		"type": "brujiris",
+		"desc": "¡Exige ver las grabaciones de seguridad de inmediato! No encuentra su caja con documentos clave.",
+		"hp": 180,
+		"max_hp": 180,
+		"atk": 16,
+		"def": 6,
+		"exp_reward": 260,
+		"portrait_path": "res://assets/characters/npc_curly_portrait.png",
+		"spritesheet_path": "res://assets/characters/npc_curly_spritesheet.png",
+		"attacks": [
+			"Auditoría Sorpresa Inapelable",
+			"Exigir Grabaciones de Cámaras",
+			"Póliza Extraviada de Alto Riesgo",
+			"Reclamo Directo a Dirección"
+		]
+	}
+	GameManager.current_enemy_data = spec
+	GameManager.change_scene_instant(get_tree(), "res://scenes/battle.tscn")
+
+func _setup_paper_quest():
+	if mariana_node != null:
+		mariana_node.queue_free()
+		mariana_node = null
+	if supply_box_node != null:
+		supply_box_node.queue_free()
+		supply_box_node = null
+		
+	# 1. Mariana en Finanzas (x: 750, y: 155 cerca del escritorio de finanzas)
+	mariana_node = Node2D.new()
+	mariana_node.name = "MarianaPapel"
+	mariana_node.y_sort_enabled = true
+	mariana_node.position = Vector2(750, 155)
+	
+	var spr_m = Sprite2D.new()
+	spr_m.name = "Sprite2D"
+	spr_m.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var sheet_path_m = "res://assets/characters/npc_coleta_spritesheet.png"
+	if ResourceLoader.exists(sheet_path_m):
+		spr_m.texture = load(sheet_path_m)
+	spr_m.hframes = 4
+	spr_m.vframes = 12
+	spr_m.frame = 0 # Mirando al frente
+	spr_m.scale = Vector2(0.24, 0.24)
+	spr_m.position = Vector2(0, -10)
+	mariana_node.add_child(spr_m)
+	
+	var tag_m = Label.new()
+	tag_m.name = "NameTag"
+	tag_m.offset_left = -70.0
+	tag_m.offset_top = -32.0
+	tag_m.offset_right = 70.0
+	tag_m.offset_bottom = -16.0
+	tag_m.add_theme_font_size_override("font_size", 8)
+	tag_m.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag_m.text = "[NPC] Mariana (Finanzas)"
+	tag_m.modulate = Color(0.4, 0.8, 1.0)
+	mariana_node.add_child(tag_m)
+	
+	var area_m = Area2D.new()
+	area_m.name = "InteractArea"
+	area_m.collision_layer = 4
+	area_m.collision_mask = 1
+	var col_m = CollisionShape2D.new()
+	var circle_m = CircleShape2D.new()
+	circle_m.radius = 28.0
+	col_m.shape = circle_m
+	area_m.add_child(col_m)
+	mariana_node.add_child(area_m)
+	
+	area_m.body_entered.connect(func(body):
+		if body == player:
+			_set_interactable("mariana_papel")
+	)
+	area_m.body_exited.connect(func(body):
+		if body == player and current_interactable == "mariana_papel":
+			_clear_interactable()
+	)
+	add_child(mariana_node)
+	
+	# 2. Estante de Hojas en el Pasillo (x: 530, y: 75)
+	supply_box_node = Node2D.new()
+	supply_box_node.name = "SupplyPaperBox"
+	supply_box_node.y_sort_enabled = true
+	supply_box_node.position = Vector2(530, 75)
+	
+	var spr_b = Sprite2D.new()
+	spr_b.name = "Sprite2D"
+	spr_b.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if ResourceLoader.exists("res://assets/props/printer.png"):
+		spr_b.texture = load("res://assets/props/printer.png")
+		spr_b.scale = Vector2(0.35, 0.35)
+	spr_b.modulate = Color(0.85, 0.9, 1.0)
+	supply_box_node.add_child(spr_b)
+	
+	var tag_b = Label.new()
+	tag_b.name = "NameTag"
+	tag_b.offset_left = -70.0
+	tag_b.offset_top = -30.0
+	tag_b.offset_right = 70.0
+	tag_b.offset_bottom = -15.0
+	tag_b.add_theme_font_size_override("font_size", 8)
+	tag_b.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag_b.text = "[Estante] Hojas Bond"
+	tag_b.modulate = Color(1.0, 0.85, 0.4)
+	supply_box_node.add_child(tag_b)
+	
+	var area_b = Area2D.new()
+	area_b.name = "InteractArea"
+	area_b.collision_layer = 4
+	area_b.collision_mask = 1
+	var col_b = CollisionShape2D.new()
+	var circle_b = CircleShape2D.new()
+	circle_b.radius = 28.0
+	col_b.shape = circle_b
+	area_b.add_child(col_b)
+	supply_box_node.add_child(area_b)
+	
+	area_b.body_entered.connect(func(body):
+		if body == player:
+			_set_interactable("supply_paper_box")
+	)
+	area_b.body_exited.connect(func(body):
+		if body == player and current_interactable == "supply_paper_box":
+			_clear_interactable()
+	)
+	add_child(supply_box_node)
+
+func _setup_brujiris_office():
+	if door_brujiris_node != null:
+		door_brujiris_node.queue_free()
+		door_brujiris_node = null
+	if brujiris_office_root != null:
+		brujiris_office_root.queue_free()
+		brujiris_office_root = null
+		
+	# 1. Puerta en el pasillo principal hacia la oficina de Auditoría (x: 1280, y: 52)
+	door_brujiris_node = Node2D.new()
+	door_brujiris_node.name = "DoorBrujiris"
+	door_brujiris_node.y_sort_enabled = true
+	door_brujiris_node.position = Vector2(1280, 52)
+	
+	var door_vis = ColorRect.new()
+	door_vis.size = Vector2(34, 44)
+	door_vis.position = Vector2(-17, -22)
+	door_vis.color = Color(0.25, 0.15, 0.35)
+	door_brujiris_node.add_child(door_vis)
+	
+	var door_inner = ColorRect.new()
+	door_inner.size = Vector2(28, 38)
+	door_inner.position = Vector2(-14, -19)
+	door_inner.color = Color(0.38, 0.22, 0.5)
+	door_brujiris_node.add_child(door_inner)
+	
+	var tag_d = Label.new()
+	tag_d.name = "NameTag"
+	tag_d.offset_left = -80.0
+	tag_d.offset_top = -36.0
+	tag_d.offset_right = 80.0
+	tag_d.offset_bottom = -20.0
+	tag_d.add_theme_font_size_override("font_size", 8)
+	tag_d.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag_d.text = "[Puerta] Oficina Auditoría"
+	tag_d.modulate = Color(0.9, 0.6, 1.0)
+	door_brujiris_node.add_child(tag_d)
+	
+	var area_d = Area2D.new()
+	area_d.name = "InteractArea"
+	area_d.collision_layer = 4
+	area_d.collision_mask = 1
+	var col_d = CollisionShape2D.new()
+	var circle_d = CircleShape2D.new()
+	circle_d.radius = 26.0
+	col_d.shape = circle_d
+	area_d.add_child(col_d)
+	door_brujiris_node.add_child(area_d)
+	
+	area_d.body_entered.connect(func(body):
+		if body == player:
+			_set_interactable("door_brujiris")
+	)
+	area_d.body_exited.connect(func(body):
+		if body == player and current_interactable == "door_brujiris":
+			_clear_interactable()
+	)
+	add_child(door_brujiris_node)
+	
+	# 2. Estructura e interior de la oficina independiente (x: 3200..3840, y: 0..360)
+	brujiris_office_root = Node2D.new()
+	brujiris_office_root.name = "BrujirisOfficeRoot"
+	brujiris_office_root.position = Vector2(3200, 0)
+	
+	var floor_rect = ColorRect.new()
+	floor_rect.size = Vector2(640, 360)
+	floor_rect.color = Color(0.12, 0.09, 0.16)
+	brujiris_office_root.add_child(floor_rect)
+	
+	var rug_rect = ColorRect.new()
+	rug_rect.position = Vector2(100, 80)
+	rug_rect.size = Vector2(440, 210)
+	rug_rect.color = Color(0.19, 0.14, 0.26)
+	brujiris_office_root.add_child(rug_rect)
+	
+	var wall_top = ColorRect.new()
+	wall_top.size = Vector2(640, 60)
+	wall_top.color = Color(0.08, 0.06, 0.11)
+	brujiris_office_root.add_child(wall_top)
+	
+	var wall_bottom = ColorRect.new()
+	wall_bottom.position = Vector2(0, 330)
+	wall_bottom.size = Vector2(640, 30)
+	wall_bottom.color = Color(0.08, 0.06, 0.11)
+	brujiris_office_root.add_child(wall_bottom)
+	
+	var wall_left = ColorRect.new()
+	wall_left.size = Vector2(25, 360)
+	wall_left.color = Color(0.08, 0.06, 0.11)
+	brujiris_office_root.add_child(wall_left)
+	
+	var wall_right = ColorRect.new()
+	wall_right.position = Vector2(615, 0)
+	wall_right.size = Vector2(25, 360)
+	wall_right.color = Color(0.08, 0.06, 0.11)
+	brujiris_office_root.add_child(wall_right)
+	
+	var borders_body = StaticBody2D.new()
+	borders_body.name = "OfficeBorders"
+	borders_body.collision_layer = 2
+	
+	var col_top = CollisionShape2D.new()
+	var rect_top = RectangleShape2D.new()
+	rect_top.size = Vector2(640, 60)
+	col_top.shape = rect_top
+	col_top.position = Vector2(320, 30)
+	borders_body.add_child(col_top)
+	
+	var col_bot = CollisionShape2D.new()
+	var rect_bot = RectangleShape2D.new()
+	rect_bot.size = Vector2(640, 30)
+	col_bot.shape = rect_bot
+	col_bot.position = Vector2(320, 345)
+	borders_body.add_child(col_bot)
+	
+	var col_l = CollisionShape2D.new()
+	var rect_l = RectangleShape2D.new()
+	rect_l.size = Vector2(25, 360)
+	col_l.shape = rect_l
+	col_l.position = Vector2(12.5, 180)
+	borders_body.add_child(col_l)
+	
+	var col_r = CollisionShape2D.new()
+	var rect_r = RectangleShape2D.new()
+	rect_r.size = Vector2(25, 360)
+	col_r.shape = rect_r
+	col_r.position = Vector2(627.5, 180)
+	borders_body.add_child(col_r)
+	
+	brujiris_office_root.add_child(borders_body)
+	
+	var exit_door = Node2D.new()
+	exit_door.name = "ExitDoor"
+	exit_door.position = Vector2(35, 200)
+	
+	var exit_vis = ColorRect.new()
+	exit_vis.size = Vector2(14, 48)
+	exit_vis.position = Vector2(-7, -24)
+	exit_vis.color = Color(0.2, 0.45, 0.6)
+	exit_door.add_child(exit_vis)
+	
+	var tag_ex = Label.new()
+	tag_ex.offset_left = 12.0
+	tag_ex.offset_top = -10.0
+	tag_ex.offset_right = 100.0
+	tag_ex.offset_bottom = 10.0
+	tag_ex.add_theme_font_size_override("font_size", 8)
+	tag_ex.text = "[Puerta] Salir"
+	tag_ex.modulate = Color(0.6, 0.85, 1.0)
+	exit_door.add_child(tag_ex)
+	
+	var area_ex = Area2D.new()
+	area_ex.name = "InteractArea"
+	area_ex.collision_layer = 4
+	area_ex.collision_mask = 1
+	var col_ex = CollisionShape2D.new()
+	var circle_ex = CircleShape2D.new()
+	circle_ex.radius = 26.0
+	col_ex.shape = circle_ex
+	area_ex.add_child(col_ex)
+	exit_door.add_child(area_ex)
+	
+	area_ex.body_entered.connect(func(body):
+		if body == player:
+			_set_interactable("door_brujiris_exit")
+	)
+	area_ex.body_exited.connect(func(body):
+		if body == player and current_interactable == "door_brujiris_exit":
+			_clear_interactable()
+	)
+	brujiris_office_root.add_child(exit_door)
+	
+	var cctv_panel = Node2D.new()
+	cctv_panel.position = Vector2(320, 38)
+	for ci in range(4):
+		var screen = ColorRect.new()
+		screen.size = Vector2(48, 28)
+		screen.position = Vector2(-110 + ci * 58, -14)
+		screen.color = Color(0.1, 0.25, 0.3)
+		cctv_panel.add_child(screen)
+		var screen_inner = ColorRect.new()
+		screen_inner.size = Vector2(44, 24)
+		screen_inner.position = Vector2(-108 + ci * 58, -12)
+		screen_inner.color = Color(0.15, 0.45, 0.4)
+		cctv_panel.add_child(screen_inner)
+	var cctv_tag = Label.new()
+	cctv_tag.offset_left = -120.0
+	cctv_tag.offset_top = -24.0
+	cctv_tag.offset_right = 120.0
+	cctv_tag.offset_bottom = -14.0
+	cctv_tag.add_theme_font_size_override("font_size", 7)
+	cctv_tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	cctv_tag.text = "CCTV MONITORING - PISOS 1 A 4"
+	cctv_tag.modulate = Color(0.4, 0.9, 0.8)
+	cctv_panel.add_child(cctv_tag)
+	brujiris_office_root.add_child(cctv_panel)
+	
+	var desk_node = Node2D.new()
+	desk_node.y_sort_enabled = true
+	desk_node.position = Vector2(320, 180)
+	var desk_vis = ColorRect.new()
+	desk_vis.size = Vector2(100, 40)
+	desk_vis.position = Vector2(-50, -20)
+	desk_vis.color = Color(0.3, 0.18, 0.12)
+	desk_node.add_child(desk_vis)
+	
+	var desk_body = StaticBody2D.new()
+	desk_body.collision_layer = 2
+	var desk_col = CollisionShape2D.new()
+	var desk_shape = RectangleShape2D.new()
+	desk_shape.size = Vector2(100, 36)
+	desk_col.shape = desk_shape
+	desk_body.add_child(desk_col)
+	desk_node.add_child(desk_body)
+	
+	var box_prop = ColorRect.new()
+	box_prop.size = Vector2(18, 14)
+	box_prop.position = Vector2(35, 12)
+	box_prop.color = Color(0.8, 0.65, 0.35)
+	desk_node.add_child(box_prop)
+	brujiris_office_root.add_child(desk_node)
+	
+	brujiris_npc_node = Node2D.new()
+	brujiris_npc_node.name = "BrujirisNPC"
+	brujiris_npc_node.y_sort_enabled = true
+	brujiris_npc_node.position = Vector2(320, 140)
+	
+	var spr_bruj = Sprite2D.new()
+	spr_bruj.name = "Sprite2D"
+	spr_bruj.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var sheet_path_bruj = "res://assets/characters/npc_curly_spritesheet.png"
+	if ResourceLoader.exists(sheet_path_bruj):
+		spr_bruj.texture = load(sheet_path_bruj)
+	spr_bruj.hframes = 4
+	spr_bruj.vframes = 12
+	spr_bruj.frame = 0
+	spr_bruj.scale = Vector2(0.24, 0.24)
+	spr_bruj.position = Vector2(0, -10)
+	brujiris_npc_node.add_child(spr_bruj)
+	
+	var tag_bruj = Label.new()
+	tag_bruj.name = "NameTag"
+	tag_bruj.offset_left = -70.0
+	tag_bruj.offset_top = -32.0
+	tag_bruj.offset_right = 70.0
+	tag_bruj.offset_bottom = -16.0
+	tag_bruj.add_theme_font_size_override("font_size", 8)
+	tag_bruj.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag_bruj.text = "[Auditoría] Brujiris"
+	tag_bruj.modulate = Color(0.95, 0.45, 0.85)
+	brujiris_npc_node.add_child(tag_bruj)
+	
+	var area_bruj = Area2D.new()
+	area_bruj.name = "InteractArea"
+	area_bruj.collision_layer = 4
+	area_bruj.collision_mask = 1
+	var col_bruj = CollisionShape2D.new()
+	var circle_bruj = CircleShape2D.new()
+	circle_bruj.radius = 32.0
+	col_bruj.shape = circle_bruj
+	area_bruj.add_child(col_bruj)
+	brujiris_npc_node.add_child(area_bruj)
+	
+	area_bruj.body_entered.connect(func(body):
+		if body == player:
+			_set_interactable("brujiris")
+	)
+	area_bruj.body_exited.connect(func(body):
+		if body == player and current_interactable == "brujiris":
+			_clear_interactable()
+	)
+	brujiris_office_root.add_child(brujiris_npc_node)
+	
+	add_child(brujiris_office_root)
+
+func _setup_debug_and_save_ui():
+	var top_right_bar = HBoxContainer.new()
+	top_right_bar.name = "TopRightBar"
+	top_right_bar.anchor_left = 1.0
+	top_right_bar.anchor_right = 1.0
+	top_right_bar.offset_left = -210.0
+	top_right_bar.offset_top = 8.0
+	top_right_bar.offset_right = -10.0
+	top_right_bar.offset_bottom = 34.0
+	top_right_bar.add_theme_constant_override("separation", 6)
+	
+	btn_save_hud = Button.new()
+	btn_save_hud.name = "BtnSaveHUD"
+	btn_save_hud.text = "💾 Guardar"
+	btn_save_hud.custom_minimum_size = Vector2(95, 26)
+	btn_save_hud.add_theme_font_size_override("font_size", 10)
+	btn_save_hud.pressed.connect(_on_save_pressed)
+	top_right_bar.add_child(btn_save_hud)
+	
+	btn_debug_hud = Button.new()
+	btn_debug_hud.name = "BtnDebugHUD"
+	btn_debug_hud.text = "🛠️ Debug"
+	btn_debug_hud.custom_minimum_size = Vector2(95, 26)
+	btn_debug_hud.add_theme_font_size_override("font_size", 10)
+	btn_debug_hud.pressed.connect(_open_debug_modal)
+	top_right_bar.add_child(btn_debug_hud)
+	
+	$CanvasLayer/HUD.add_child(top_right_bar)
+	
+	save_toast_label = Label.new()
+	save_toast_label.name = "SaveToast"
+	save_toast_label.anchor_left = 0.5
+	save_toast_label.anchor_right = 0.5
+	save_toast_label.offset_left = -160.0
+	save_toast_label.offset_top = 45.0
+	save_toast_label.offset_right = 160.0
+	save_toast_label.offset_bottom = 75.0
+	save_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	save_toast_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	save_toast_label.add_theme_font_size_override("font_size", 11)
+	save_toast_label.text = "💾 ¡Partida guardada con éxito!"
+	save_toast_label.modulate = Color(0.3, 1.0, 0.5, 0.0)
+	$CanvasLayer.add_child(save_toast_label)
+	
+	_create_debug_modal()
+
+func _create_debug_modal():
+	debug_modal = PanelContainer.new()
+	debug_modal.name = "DebugModal"
+	debug_modal.anchor_left = 0.5
+	debug_modal.anchor_top = 0.5
+	debug_modal.anchor_right = 0.5
+	debug_modal.anchor_bottom = 0.5
+	debug_modal.offset_left = -220.0
+	debug_modal.offset_top = -160.0
+	debug_modal.offset_right = 220.0
+	debug_modal.offset_bottom = 160.0
+	debug_modal.visible = false
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.08, 0.12, 0.95)
+	style.border_color = Color(0.9, 0.75, 0.2, 1.0)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(6)
+	debug_modal.add_theme_stylebox_override("panel", style)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	debug_modal.add_child(margin)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+	margin.add_child(vbox)
+	
+	var title = Label.new()
+	title.text = "🛠️ MENÚ DEBUG / PUNTOS DE CONTROL"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 12)
+	title.modulate = Color(1.0, 0.85, 0.3)
+	vbox.add_child(title)
+	
+	var subtitle = Label.new()
+	subtitle.text = "Inicia directamente desde cualquier jefe terminado o fase:"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 8)
+	subtitle.modulate = Color(0.7, 0.7, 0.7)
+	vbox.add_child(subtitle)
+	
+	var scroll = ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(390, 210)
+	var list = VBoxContainer.new()
+	list.add_theme_constant_override("separation", 5)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	vbox.add_child(scroll)
+	
+	var checkpoints = [
+		{"id": "new_game", "label": "▶️ 1. Nueva Partida (Intro con Roberto Huerta)"},
+		{"id": "post_printer", "label": "🖨️ 2. Post-Impresora (Capítulo 2: Finanzas abiertas, Tienda Nelly)"},
+		{"id": "post_dragon", "label": "🐉 3. Post-Señor del Dragón (Capítulo 3: Huyó, Personaje Seguro)"},
+		{"id": "post_server", "label": "💻 4. Post-Servidor 117 (Victoria Total Redes, Nivel 4)"},
+		{"id": "paper_quest", "label": "📄 5. Misión Hojas Impresora (Hojas en mano para entregar)"},
+		{"id": "brujiris_office", "label": "🚪 6. Teletransportar a Oficina de Brujiris (Auditoría)"}
+	]
+	
+	for cp in checkpoints:
+		var btn = Button.new()
+		btn.text = cp["label"]
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.add_theme_font_size_override("font_size", 9)
+		var c_id = cp["id"]
+		btn.pressed.connect(func():
+			_close_debug_modal()
+			GameManager.apply_debug_checkpoint(c_id)
+			get_tree().reload_current_scene()
+		)
+		list.add_child(btn)
+		
+	var sep = HSeparator.new()
+	list.add_child(sep)
+	
+	var btn_buff = Button.new()
+	btn_buff.text = "⚡ Buff Stats (+100 HP, +30 ATK a la party)"
+	btn_buff.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn_buff.add_theme_font_size_override("font_size", 9)
+	btn_buff.pressed.connect(func():
+		for p in GameManager.party:
+			p["max_hp"] += 100
+			p["hp"] = p["max_hp"]
+			p["atk"] += 30
+		for k in GameManager.characters_data.keys():
+			GameManager.characters_data[k]["max_hp"] += 100
+			GameManager.characters_data[k]["hp"] = GameManager.characters_data[k]["max_hp"]
+			GameManager.characters_data[k]["atk"] += 30
+		_update_hud_stats()
+		_show_save_toast("⚡ ¡Stats mejorados con éxito!")
+	)
+	list.add_child(btn_buff)
+	
+	var btn_del_save = Button.new()
+	btn_del_save.text = "🗑️ Borrar Archivo de Guardado"
+	btn_del_save.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn_del_save.add_theme_font_size_override("font_size", 9)
+	btn_del_save.pressed.connect(func():
+		GameManager.delete_save_file()
+		_show_save_toast("🗑️ Guardado eliminado")
+	)
+	list.add_child(btn_del_save)
+	
+	var btn_close = Button.new()
+	btn_close.text = "Cerrar Menú Debug"
+	btn_close.add_theme_font_size_override("font_size", 10)
+	btn_close.pressed.connect(_close_debug_modal)
+	vbox.add_child(btn_close)
+	
+	$CanvasLayer.add_child(debug_modal)
+
+func _open_debug_modal():
+	debug_modal.visible = true
+	player.can_move = false
+
+func _close_debug_modal():
+	debug_modal.visible = false
+	player.can_move = true
+
+func _on_save_pressed():
+	if player:
+		GameManager.player_saved_position = player.global_position
+	var ok = GameManager.save_game()
+	if ok:
+		_show_save_toast("💾 ¡Partida Guardada con éxito!")
+	else:
+		_show_save_toast("❌ Error al guardar partida")
+
+func _show_save_toast(msg: String):
+	if save_toast_label:
+		save_toast_label.text = msg
+		save_toast_label.modulate.a = 1.0
+		var tw = create_tween()
+		tw.tween_interval(1.5)
+		tw.tween_property(save_toast_label, "modulate:a", 0.0, 0.6)
+
+func _update_objective_label_for_current_state():
+	if GameManager.inside_brujiris_office:
+		objective_label.text = "[!] Oficina de Auditoría - Habla con Brujiris"
+	elif GameManager.server_boss_defeated:
+		objective_label.text = "[!] ¡Victoria Total! Servidores 100, 245, 189, 122 y 117 conectados. ¡Habla con Roberto!"
+	elif GameManager.dragon_boss_defeated:
+		objective_label.text = "[!] ¡Ve a la Sala de Servidores al este y resuelve el Servidor 117!"
+	elif GameManager.printer_defeated:
+		if GameManager.paper_quest_state == 1:
+			objective_label.text = "[Misión] Coloca las hojas bond en la Bandeja 1 de la impresora de Finanzas"
+		elif GameManager.paper_quest_state == 0:
+			objective_label.text = "[Misión] Habla con Mariana en Finanzas para ayudar con el papel"
+		else:
+			objective_label.text = obj_victory_text
+	elif GameManager.office_cutscene_done:
+		objective_label.text = obj_battle_text
+	else:
+		objective_label.text = obj_follow_text
+
 func _start_dragon_boss_flee_sequence():
 	player.can_move = false
 	touch_controls.visible = false
@@ -1157,11 +1798,47 @@ func _set_interactable(id: String):
 			btn_interact.text = "[E] Pelear"
 		"printer":
 			if GameManager.printer_defeated:
-				interact_label.text = "[E] Inspeccionar Impresora (Reparada)"
-				btn_interact.text = "[E] Revisar"
+				if GameManager.paper_quest_state == 1:
+					interact_label.text = "[E] Colocar hojas bond en la Bandeja 1"
+					btn_interact.text = "[E] Abastecer"
+				elif GameManager.paper_quest_state == 2:
+					interact_label.text = "[E] Inspeccionar Impresora (Abastecida y Operativa)"
+					btn_interact.text = "[E] Revisar"
+				else:
+					interact_label.text = "[E] Inspeccionar Impresora (Sin papel)"
+					btn_interact.text = "[E] Revisar"
 			else:
 				interact_label.text = "[E] ¡Combatir Impresora Maldita!"
 				btn_interact.text = "[E] Batalla"
+		"mariana_papel":
+			if GameManager.paper_quest_state == 2:
+				interact_label.text = "[E] Hablar con Mariana (Nómina lista)"
+			elif GameManager.paper_quest_state == 1:
+				interact_label.text = "[E] Hablar con Mariana (Hojas listas)"
+			else:
+				interact_label.text = "[E] Hablar con Mariana (Misión de Hojas)"
+			btn_interact.text = "[E] Hablar"
+		"supply_paper_box":
+			if GameManager.paper_quest_state == 1:
+				interact_label.text = "[E] Estante de Papelería (Ya tienes hojas)"
+			elif GameManager.paper_quest_state == 2:
+				interact_label.text = "[E] Estante de Papelería (Abastecido)"
+			else:
+				interact_label.text = "[E] Recoger paquete de hojas bond"
+			btn_interact.text = "[E] Tomar"
+		"door_brujiris":
+			interact_label.text = "[E] Entrar a Oficina de Auditoría"
+			btn_interact.text = "[E] Entrar"
+		"door_brujiris_exit":
+			interact_label.text = "[E] Salir al Pasillo Principal"
+			btn_interact.text = "[E] Salir"
+		"brujiris":
+			if GameManager.brujiris_defeated:
+				interact_label.text = "[E] Hablar con Brujiris (Tranquila)"
+				btn_interact.text = "[E] Hablar"
+			else:
+				interact_label.text = "[E] Hablar con Brujiris (¡Exige cámaras!)"
+				btn_interact.text = "[E] Hablar"
 		_:
 			if id.begins_with("companion_"):
 				var c_id = id.trim_prefix("companion_")
@@ -1285,16 +1962,132 @@ func _trigger_current_interaction():
 				player.can_move = true
 			player.can_move = false
 			_show_next_in_queue()
-		"printer":
-			if GameManager.printer_defeated:
+		"door_brujiris":
+			player.global_position = Vector2(3260, 200)
+			GameManager.inside_brujiris_office = true
+			$Player/Camera2D.limit_left = 3200
+			$Player/Camera2D.limit_right = 3840
+			objective_label.text = "[!] Oficina de Auditoría - Habla con Brujiris"
+			_clear_interactable()
+		"door_brujiris_exit":
+			player.global_position = Vector2(1280, 90)
+			GameManager.inside_brujiris_office = false
+			$Player/Camera2D.limit_left = 0
+			$Player/Camera2D.limit_right = 3072
+			_update_objective_label_for_current_state()
+			_clear_interactable()
+		"mariana_papel":
+			var m_text = ""
+			if not GameManager.printer_defeated:
+				m_text = "¡Cuidado con esa máquina! ¡La impresora empezó a disparar tóner y tiene a Finanzas paralizado!"
+			elif GameManager.paper_quest_state == 0:
+				m_text = "¡Hola! Por fin calmaron a la impresora, pero se quedó totalmente vacía sin papel para terminar la nómina. ¿Podrías ir al estante de suministros en el pasillo por un paquete de hojas bond?"
+				objective_label.text = "[Misión] Ve al estante de papelería en el pasillo por un paquete de hojas bond"
+			elif GameManager.paper_quest_state == 1:
+				m_text = "¡Excelente, ya tienes el paquete de hojas! Ve a colocarlas en la Bandeja 1 de la impresora para que pueda terminar la nómina."
+			else:
+				m_text = "¡Muchísimas gracias! Ahora sí pudimos imprimir toda la nómina quincenal a tiempo. ¡Eres el mejor de Sistemas!"
+			
+			dialog_queue = [
+				{
+					"speaker": "Mariana (Finanzas)",
+					"portrait": "res://assets/characters/npc_coleta_portrait.png",
+					"color": Color("#74b9ff"),
+					"text": m_text
+				}
+			]
+			on_dialog_closed_callback = func():
+				player.can_move = true
+			player.can_move = false
+			_show_next_in_queue()
+		"supply_paper_box":
+			var b_text = ""
+			if GameManager.paper_quest_state == 0:
+				GameManager.paper_quest_state = 1
+				b_text = "¡Has recogido un paquete sellado de 500 hojas de papel bond blanco (75g)!\n\nLlévalas a la impresora en Finanzas para abastecerla."
+				objective_label.text = "[Misión] Coloca las hojas bond en la Bandeja 1 de la impresora en Finanzas"
+				_show_save_toast("📄 ¡Obtuviste 500 Hojas Bond!")
+			elif GameManager.paper_quest_state == 1:
+				b_text = "Ya tienes un paquete de 500 hojas bond en tu inventario. Llévalo a la impresora de Finanzas."
+			else:
+				b_text = "El estante de suministros está en orden. Ya abasteciste a la impresora de Finanzas."
+			dialog_queue = [
+				{
+					"speaker": "Estante de Suministros",
+					"portrait": "res://assets/props/printer.png",
+					"color": Color("#ffeaa7"),
+					"text": b_text
+				}
+			]
+			on_dialog_closed_callback = func():
+				player.can_move = true
+			player.can_move = false
+			_show_next_in_queue()
+		"brujiris":
+			if GameManager.brujiris_defeated:
 				dialog_queue = [
 					{
-						"speaker": "Impresora",
-						"portrait": "res://assets/props/printer.png",
-						"color": Color("#4ade80"),
-						"text": printer_neutralized_text
+						"speaker": "Brujiris",
+						"portrait": "res://assets/characters/npc_curly_portrait.png",
+						"color": Color("#fd79a8"),
+						"text": "¡Qué pena con ustedes, muchachos! La caja con las pólizas y documentos fiscales estaba aquí abajo del escritorio detrás del bote de basura. ¡Ya no revisen las cámaras, gracias por la paciencia!"
 					}
 				]
+				on_dialog_closed_callback = func():
+					player.can_move = true
+				player.can_move = false
+				_show_next_in_queue()
+			else:
+				dialog_queue = [
+					{
+						"speaker": "Brujiris",
+						"portrait": "res://assets/characters/npc_curly_portrait.png",
+						"color": Color("#fd79a8"),
+						"text": "necesito revisen las camaras no encuetro una caja con documentacion muy importate"
+					}
+				]
+				on_dialog_closed_callback = func():
+					_start_brujiris_battle()
+				player.can_move = false
+				_show_next_in_queue()
+		"printer":
+			if GameManager.printer_defeated:
+				if GameManager.paper_quest_state == 1:
+					GameManager.paper_quest_state = 2
+					var exp_reward = 150
+					var coins_reward = 150
+					GameManager.it_budget += coins_reward
+					var _lvl_ups = GameManager.add_exp_to_party(exp_reward)
+					_update_hud_stats()
+					GameManager.save_game()
+					_show_save_toast("✅ ¡Misión cumplida: +150 EXP, +$150!")
+					
+					dialog_queue = [
+						{
+							"speaker": "Impresora",
+							"portrait": "res://assets/props/printer.png",
+							"color": Color("#55efc4"),
+							"text": "¡Colocas cuidadosamente las 500 hojas bond en la Bandeja 1!\n\nLos rodillos se alinean con un clic suave, la pantalla muestra 'BANDEJA 1: 100% LISTA' y una luz verde constante parpadea. ¡La nómina comienza a imprimirse con éxito!\n\n(Recompensa: +150 EXP para el escuadrón, +$150 Presupuesto IT)"
+						}
+					]
+				elif GameManager.paper_quest_state == 2:
+					dialog_queue = [
+						{
+							"speaker": "Impresora",
+							"portrait": "res://assets/props/printer.png",
+							"color": Color("#55efc4"),
+							"text": "La impresora está abastecida de papel y trabajando de forma silenciosa. Cartel pegado: 'OPERATIVA - ABASTECIDA POR SISTEMAS'."
+						}
+					]
+				else:
+					dialog_queue = [
+						{
+							"speaker": "Impresora",
+							"portrait": "res://assets/props/printer.png",
+							"color": Color("#4ade80"),
+							"text": printer_neutralized_text + "\n(Nota: La bandeja de papel está completamente vacía. Habla con Mariana en Finanzas)."
+						}
+					]
 				on_dialog_closed_callback = func():
 					player.can_move = true
 				player.can_move = false
