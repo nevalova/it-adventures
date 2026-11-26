@@ -787,7 +787,7 @@ theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "🏪 Nelly (Tiendita IT)"
+text = "Nelly (Tiendita IT)"
 horizontal_alignment = 1
 
 [node name="InteractArea" type="Area2D" parent="Nelly"]
@@ -1248,7 +1248,7 @@ layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 9
-text = "[⚙] Control: D-Pad"
+text = "[CTRL] D-Pad"
 
 [node name="BtnSquad" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
 custom_minimum_size = Vector2(120, 24)
@@ -1256,7 +1256,7 @@ layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
 theme_override_font_sizes/font_size = 9
-text = "[👥] Squad IT (3/4)"
+text = "[SQUAD] IT (3/4)"
 
 [node name="BtnInteract" type="Button" parent="CanvasLayer/HUD/TouchControls/RightBox"]
 visible = false
@@ -1451,7 +1451,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
 theme_override_font_sizes/font_size = 13
-text = "🏪 TIENDITA DE NELLY (SUMINISTROS IT)"
+text = "TIENDITA DE NELLY (SUMINISTROS IT)"
 
 [node name="BudgetLabel" type="Label" parent="CanvasLayer/ShopModal/Margin/VBox/HeaderHBox"]
 layout_mode = 2
@@ -1515,7 +1515,7 @@ theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 11
-text = "📱 Foto de la Pantalla del Servidor (Celular de Roberto)"
+text = "Foto de la Pantalla del Servidor (Celular de Roberto)"
 horizontal_alignment = 1
 
 [node name="PhotoRect" type="TextureRect" parent="CanvasLayer/PhotoModal/Margin/VBox"]
@@ -1573,7 +1573,7 @@ theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 11
-text = "🖥️ Terminal de Autenticación - Servidor Principal"
+text = "Terminal de Autenticacion - Servidor Principal"
 horizontal_alignment = 1
 
 [node name="UserRow" type="HBoxContainer" parent="CanvasLayer/ServerLoginModal/Margin/VBox"]
@@ -1622,7 +1622,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(110, 24)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
-text = "🔑 Probar Texto"
+text = "Probar Clave"
 
 [node name="BtnCancelPass" type="Button" parent="CanvasLayer/ServerLoginModal/Margin/VBox/BtnHBox"]
 custom_minimum_size = Vector2(70, 24)
@@ -1661,7 +1661,7 @@ theme_override_constants/separation = 5
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 12
-text = "⚙ OPCIONES DE CONTROL"
+text = "[ OPCIONES DE CONTROL ]"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="CanvasLayer/ControlOptionsModal/Margin/VBox"]
@@ -1764,7 +1764,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_font_sizes/font_size = 11
-text = "👥 GESTOR DE ESCUADRÓN DE TI"
+text = "GESTOR DE ESCUADRON DE TI"
 
 [node name="SlotCountLabel" type="Label" parent="CanvasLayer/SquadModal/Margin/VBox/HeaderHBox"]
 layout_mode = 2

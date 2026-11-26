@@ -750,18 +750,18 @@ func has_alive_minions() -> bool:
 
 func select_boss_target():
 	if has_alive_minions():
-		set_log("[🛡️ ESCUDO CMYK] ¡La Impresora está blindada! Debes acabar con los 4 cartuchos de tóner primero.")
+		set_log("[ESCUDO CMYK] ¡La Impresora está blindada! Debes acabar con los 4 cartuchos de tóner primero.")
 		return
 	current_target_type = TargetType.BOSS
 	update_target_selection_ui()
-	set_log("[🎯] Objetivo fijado: Impresora Maldita.")
+	set_log("[*] Objetivo fijado: Impresora Maldita.")
 
 func select_minion_target(idx: int):
 	if idx >= 0 and idx < printer_minions.size() and printer_minions[idx]["alive"]:
 		current_target_type = TargetType.MINION
 		selected_minion_index = idx
 		update_target_selection_ui()
-		set_log("[🎯] Objetivo fijado: %s." % printer_minions[idx]["name"])
+		set_log("[*] Objetivo fijado: %s." % printer_minions[idx]["name"])
 
 func cycle_next_target():
 	var valid_targets = []
@@ -788,9 +788,9 @@ func cycle_next_target():
 	current_target_type = nxt["type"]
 	if current_target_type == TargetType.MINION:
 		selected_minion_index = nxt["index"]
-		set_log("[🎯] Objetivo: %s." % printer_minions[selected_minion_index]["name"])
+		set_log("[*] Objetivo: %s." % printer_minions[selected_minion_index]["name"])
 	else:
-		set_log("[🎯] Objetivo: Impresora Maldita.")
+		set_log("[*] Objetivo: Impresora Maldita.")
 	update_target_selection_ui()
 
 func update_target_selection_ui():
@@ -798,12 +798,12 @@ func update_target_selection_ui():
 		if boss_target_arrow:
 			boss_target_arrow.visible = (printer_minions_spawned and has_alive_minions())
 		if btn_cycle_target:
-			btn_cycle_target.text = "[🎯] Obj: Impresora ▼"
+			btn_cycle_target.text = "[*] Obj: Impresora v"
 	else:
 		if boss_target_arrow:
 			boss_target_arrow.visible = false
 		if btn_cycle_target:
-			btn_cycle_target.text = "[🎯] Obj: %s ▼" % printer_minions[selected_minion_index]["short"]
+			btn_cycle_target.text = "[*] Obj: %s v" % printer_minions[selected_minion_index]["short"]
 	
 	update_minions_ui()
 
@@ -871,7 +871,7 @@ func spawn_printer_minions():
 	]
 	render_minions_ui()
 	update_target_selection_ui()
-	set_log("[⚠️ ESCUDO CMYK ACTIVO!] ¡La Impresora eyectó 4 Cartuchos de Tóner! La batalla no terminará hasta acabar con todos los cartuchos.")
+	set_log("[! ESCUDO CMYK ACTIVO!] ¡La Impresora eyecto 4 Cartuchos de Toner! La batalla no terminara hasta acabar con todos los cartuchos.")
 
 func render_minions_ui():
 	if not has_node("MainBox/BattleArena/EnemySide/MinionsContainer"):
@@ -895,7 +895,7 @@ func render_minions_ui():
 		vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		
 		var arrow_lbl = Label.new()
-		arrow_lbl.text = "▼"
+		arrow_lbl.text = "v"
 		arrow_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		arrow_lbl.add_theme_font_size_override("font_size", 9)
 		arrow_lbl.add_theme_color_override("font_color", Color(1, 0.9, 0.1))
@@ -980,7 +980,7 @@ func deal_aoe_damage_to_minions(damage: int, message: String):
 				set_log("¡El %s explotó por sobrecarga!" % m["name"])
 	update_minions_ui()
 	if not has_alive_minions():
-		set_log("[💥 EXPLOSIÓN EN CADENA!] ¡Todos los cartuchos de tóner fueron destruidos! ¡La Impresora Maldita explota en pedazos!")
+		set_log("[EXPLOSION EN CADENA!] ¡Todos los cartuchos de toner fueron destruidos! ¡La Impresora Maldita explota en pedazos!")
 		enemy_current_hp = 0
 		update_enemy_ui()
 		var tw_boss = create_tween()
@@ -1012,7 +1012,7 @@ func deal_damage_to_enemy(damage: int, message: String):
 			update_minions_ui()
 			set_log("¡El %s explotó y se quedó sin tinta!" % m["name"])
 			if not has_alive_minions():
-				set_log("[💥 EXPLOSIÓN EN CADENA!] ¡Todos los cartuchos de tóner fueron destruidos! ¡La Impresora Maldita explota en pedazos!")
+				set_log("[EXPLOSION EN CADENA!] ¡Todos los cartuchos de toner fueron destruidos! ¡La Impresora Maldita explota en pedazos!")
 				enemy_current_hp = 0
 				update_enemy_ui()
 				var tw_boss = create_tween()
@@ -1031,7 +1031,7 @@ func deal_damage_to_enemy(damage: int, message: String):
 		var tw = create_tween()
 		tw.tween_property(enemy_sprite, "modulate", Color(0.2, 1.8, 2.5), 0.15)
 		tw.tween_property(enemy_sprite, "modulate", Color.WHITE, 0.15)
-		set_log("[🛡️ ESCUDO CMYK] ¡La Impresora es invulnerable! Debes acabar con todos los cartuchos de tóner primero.")
+		set_log("[ESCUDO CMYK] ¡La Impresora es invulnerable! Debes acabar con todos los cartuchos de toner primero.")
 		end_hero_action()
 		return
 
@@ -1061,7 +1061,7 @@ func deal_damage_to_enemy(damage: int, message: String):
 		enemy_current_hp = 30 # Mantiene vida remanente mientras los tóners estén activos
 		update_enemy_ui()
 		spawn_printer_minions()
-		set_log("[⚠️ EMERGENCIA CMYK!] ¡La Impresora eyectó 4 Cartuchos de Tóner y activó su escudo! ¡Destruye los cartuchos!")
+		set_log("[! EMERGENCIA CMYK!] ¡La Impresora eyecto 4 Cartuchos de Toner y activo su escudo! ¡Destruye los cartuchos!")
 		end_hero_action()
 		return
 		
@@ -1069,7 +1069,7 @@ func deal_damage_to_enemy(damage: int, message: String):
 		if has_alive_minions():
 			enemy_current_hp = 30
 			update_enemy_ui()
-			set_log("[🛡️ ESCUDO CMYK] ¡La batalla no puede terminar hasta acabar con los cartuchos de tóner!")
+			set_log("[ESCUDO CMYK] ¡La batalla no puede terminar hasta acabar con los cartuchos de toner!")
 			end_hero_action()
 			return
 		enemy_defeated()
@@ -1318,7 +1318,7 @@ func enemy_defeated():
 		var names = []
 		for lup in level_ups:
 			names.append("%s (Nv. %d)" % [lup["name"], lup["level"]])
-		set_log("[⭐ LEVEL UP!] ¡%s subió de nivel! (+50 HP Max, +14 ATQ, +7 DEF, ¡Salud al 100%!)" % ", ".join(names))
+		set_log("[LEVEL UP!] ¡%s subió de nivel! (+50 HP Max, +14 ATQ, +7 DEF, ¡Salud al 100%!)" % ", ".join(names))
 		
 	GameManager.save_game()
 	await get_tree().create_timer(2.2).timeout
@@ -1398,7 +1398,7 @@ func _show_boss_defeat_dialog(lines: Array):
 	vbox.add_child(text_lbl)
 	
 	var btn_next = Button.new()
-	btn_next.text = "Continuar ▶"
+	btn_next.text = "Continuar >"
 	btn_next.custom_minimum_size = Vector2(90, 22)
 	btn_next.size_flags_horizontal = Control.SIZE_SHRINK_END
 	vbox.add_child(btn_next)

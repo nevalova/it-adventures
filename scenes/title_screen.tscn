@@ -3,20 +3,35 @@
 [ext_resource type="Script" uid="uid://b11jvxq0l1y3w" path="res://scripts/title_screen.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://d2kbtj4orjk7w" path="res://assets/logo.jpg" id="2_logo"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-bg_color = Color(0.06, 0.09, 0.16, 0.96)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.25, 0.75, 1, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-shadow_size = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_rpg"]
+bg_color = Color(0.04, 0.12, 0.45, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 10
 
-[node name="TitleScreen" type="Control" unique_id=1630920834]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.04, 0.12, 0.45, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 8
+
+[node name="TitleScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,7 +40,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_script")
 
-[node name="Background" type="TextureRect" parent="." unique_id=928189359]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,70 +51,156 @@ texture = ExtResource("2_logo")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Overlay" type="ColorRect" parent="." unique_id=133141512]
+[node name="Overlay" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.25)
+color = Color(0, 0, 0, 0.2)
 
-[node name="Sub" type="Label" parent="." unique_id=880053771]
+[node name="PressStartScreen" type="Control" parent="."]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_top = 8.0
-offset_right = 200.0
-offset_bottom = 31.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-text = "THE RETRO IT DEPT SIMULATOR"
-horizontal_alignment = 1
+grow_vertical = 2
 
-[node name="MenuVBox" type="VBoxContainer" parent="." unique_id=2097019639]
+[node name="TouchButton" type="Button" parent="PressStartScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+flat = true
+
+[node name="PromptVBox" type="VBoxContainer" parent="PressStartScreen"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -140.0
-offset_top = -120.0
-offset_right = 140.0
-offset_bottom = -14.0
+offset_left = -220.0
+offset_top = -68.0
+offset_right = 220.0
+offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/separation = 5
+mouse_filter = 2
+theme_override_constants/separation = 4
 
-[node name="BtnStart" type="Button" parent="MenuVBox" unique_id=1224341085]
-custom_minimum_size = Vector2(220, 32)
+[node name="PromptLabel" type="Label" parent="PressStartScreen/PromptVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 12
+text = "TOCA O HAZ CLIC EN LA PANTALLA"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SubPrompt" type="Label" parent="PressStartScreen/PromptVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 8
+text = "* O presiona ESPACIO / ENTER para continuar *"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BlueRPGMenu" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -125.0
+offset_right = 160.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_blue_rpg")
+
+[node name="Margin" type="MarginContainer" parent="BlueRPGMenu"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="BlueRPGMenu/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="BlueRPGMenu/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "[ MENU PRINCIPAL ]"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="BlueRPGMenu/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "- IT ADVENTURES -"
+horizontal_alignment = 1
+
+[node name="Separator" type="HSeparator" parent="BlueRPGMenu/Margin/VBox"]
+layout_mode = 2
+
+[node name="BtnContinue" type="Button" parent="BlueRPGMenu/Margin/VBox"]
+visible = false
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.3, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 10
+text = "CONTINUAR PARTIDA"
+
+[node name="BtnStart" type="Button" parent="BlueRPGMenu/Margin/VBox"]
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
-theme_override_font_sizes/font_size = 12
-text = "▶ INICIAR PARTIDA"
+theme_override_font_sizes/font_size = 10
+text = "INICIAR PARTIDA"
 
-[node name="BtnOptions" type="Button" parent="MenuVBox" unique_id=1620559400]
-custom_minimum_size = Vector2(220, 26)
+[node name="BtnOptions" type="Button" parent="BlueRPGMenu/Margin/VBox"]
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 10
-text = "⚙ TIPO DE CONTROL: D-PAD"
+text = "TIPO DE CONTROL: D-PAD"
 
-[node name="PromptLabel" type="Label" parent="MenuVBox" unique_id=192878025]
+[node name="BtnFullscreen" type="Button" parent="BlueRPGMenu/Margin/VBox"]
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 9
-text = "* O presiona ESPACIO / ENTER para jugar *"
-horizontal_alignment = 1
-vertical_alignment = 1
+focus_mode = 0
+theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "PANTALLA COMPLETA"
 
-[node name="ControlOptionsModal" type="PanelContainer" parent="." unique_id=1100376030]
+[node name="BtnBack" type="Button" parent="BlueRPGMenu/Margin/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 9
+text = "VOLVER AL INICIO"
+
+[node name="ControlOptionsModal" type="PanelContainer" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -115,66 +216,66 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
-[node name="Margin" type="MarginContainer" parent="ControlOptionsModal" unique_id=1866275109]
+[node name="Margin" type="MarginContainer" parent="ControlOptionsModal"]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="ControlOptionsModal/Margin" unique_id=14075493]
+[node name="VBox" type="VBoxContainer" parent="ControlOptionsModal/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="Title" type="Label" parent="ControlOptionsModal/Margin/VBox" unique_id=1091458658]
+[node name="Title" type="Label" parent="ControlOptionsModal/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 12
-text = "⚙ OPCIONES DE CONTROL"
+text = "[ OPCIONES DE CONTROL ]"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="ControlOptionsModal/Margin/VBox" unique_id=330462490]
+[node name="Subtitle" type="Label" parent="ControlOptionsModal/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.8, 0.9, 1)
 theme_override_font_sizes/font_size = 8
-text = "Selecciona el método de movimiento para tu aventura:"
+text = "Selecciona el metodo de movimiento para tu aventura:"
 horizontal_alignment = 1
 
-[node name="CardsBox" type="VBoxContainer" parent="ControlOptionsModal/Margin/VBox" unique_id=1069140767]
+[node name="CardsBox" type="VBoxContainer" parent="ControlOptionsModal/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="BtnModeDpad" type="Button" parent="ControlOptionsModal/Margin/VBox/CardsBox" unique_id=1718905557]
+[node name="BtnModeDpad" type="Button" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 10
-text = "1. D-Pad Clásico (Botones Fijos)"
+text = "1. D-Pad Clasico (Botones Fijos)"
 alignment = 0
 
-[node name="DescDpad" type="Label" parent="ControlOptionsModal/Margin/VBox/CardsBox" unique_id=151438641]
+[node name="DescDpad" type="Label" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
 theme_override_font_sizes/font_size = 8
-text = "• Cruceta tradicional de 4 direcciones fija en pantalla (y teclas WASD). Movimiento ortogonal clásico con máxima precisión."
+text = "Cruceta tradicional de 4 direcciones fija en pantalla (y teclas WASD). Movimiento ortogonal clasico con maxima precision."
 autowrap_mode = 2
 
-[node name="BtnModeJoystick" type="Button" parent="ControlOptionsModal/Margin/VBox/CardsBox" unique_id=1190265131]
+[node name="BtnModeJoystick" type="Button" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_font_sizes/font_size = 10
-text = "2. Análogo Arrastrable (Joystick Táctil)"
+text = "2. Analogo Arrastrable (Joystick Tactil)"
 alignment = 0
 
-[node name="DescJoystick" type="Label" parent="ControlOptionsModal/Margin/VBox/CardsBox" unique_id=1362417758]
+[node name="DescJoystick" type="Label" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
 theme_override_font_sizes/font_size = 8
-text = "• Stick análogo táctil arrastrable con el pulgar. Deslizamiento suave en 360° en cualquier dirección e inclinación. Ideal para celulares."
+text = "Stick analogo tactil arrastrable con el pulgar. Deslizamiento suave en 360 grados en cualquier direccion e inclinacion. Ideal para celulares."
 autowrap_mode = 2
 
-[node name="BtnModePointClick" type="Button" parent="ControlOptionsModal/Margin/VBox/CardsBox" unique_id=1132308731]
+[node name="BtnModePointClick" type="Button" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 focus_mode = 0
@@ -182,14 +283,14 @@ theme_override_font_sizes/font_size = 10
 text = "3. Point and Click (Tocar para Moverse)"
 alignment = 0
 
-[node name="DescPointClick" type="Label" parent="ControlOptionsModal/Margin/VBox/CardsBox" unique_id=6724907]
+[node name="DescPointClick" type="Label" parent="ControlOptionsModal/Margin/VBox/CardsBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
 theme_override_font_sizes/font_size = 8
-text = "• Toca o haz clic con el ratón en cualquier punto del suelo y el personaje caminará hacia allá. Ideal para mouse o una sola mano."
+text = "Toca o haz clic con el raton en cualquier punto del suelo y el personaje caminara hacia alla. Ideal para mouse o una sola mano."
 autowrap_mode = 2
 
-[node name="BtnCloseOptions" type="Button" parent="ControlOptionsModal/Margin/VBox" unique_id=1870492421]
+[node name="BtnCloseOptions" type="Button" parent="ControlOptionsModal/Margin/VBox"]
 custom_minimum_size = Vector2(140, 24)
 layout_mode = 2
 size_flags_horizontal = 4

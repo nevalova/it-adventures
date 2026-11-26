@@ -1503,17 +1503,17 @@ func _setup_debug_and_save_ui():
 	
 	btn_save_hud = Button.new()
 	btn_save_hud.name = "BtnSaveHUD"
-	btn_save_hud.text = "💾 Guardar"
+	btn_save_hud.text = "[ GUARDAR ]"
 	btn_save_hud.custom_minimum_size = Vector2(95, 26)
-	btn_save_hud.add_theme_font_size_override("font_size", 10)
+	btn_save_hud.add_theme_font_size_override("font_size", 9)
 	btn_save_hud.pressed.connect(_on_save_pressed)
 	top_right_bar.add_child(btn_save_hud)
 	
 	btn_debug_hud = Button.new()
 	btn_debug_hud.name = "BtnDebugHUD"
-	btn_debug_hud.text = "🛠️ Debug"
+	btn_debug_hud.text = "[ DEBUG ]"
 	btn_debug_hud.custom_minimum_size = Vector2(95, 26)
-	btn_debug_hud.add_theme_font_size_override("font_size", 10)
+	btn_debug_hud.add_theme_font_size_override("font_size", 9)
 	btn_debug_hud.pressed.connect(_open_debug_modal)
 	top_right_bar.add_child(btn_debug_hud)
 	
@@ -1530,7 +1530,7 @@ func _setup_debug_and_save_ui():
 	save_toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	save_toast_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	save_toast_label.add_theme_font_size_override("font_size", 11)
-	save_toast_label.text = "💾 ¡Partida guardada con éxito!"
+	save_toast_label.text = "[!] Partida guardada con exito"
 	save_toast_label.modulate = Color(0.3, 1.0, 0.5, 0.0)
 	$CanvasLayer.add_child(save_toast_label)
 	
@@ -1568,7 +1568,7 @@ func _create_debug_modal():
 	margin.add_child(vbox)
 	
 	var title = Label.new()
-	title.text = "🛠️ MENÚ DEBUG / PUNTOS DE CONTROL"
+	title.text = "[ MENU DEBUG / PUNTOS DE CONTROL ]"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 12)
 	title.modulate = Color(1.0, 0.85, 0.3)
@@ -1590,12 +1590,12 @@ func _create_debug_modal():
 	vbox.add_child(scroll)
 	
 	var checkpoints = [
-		{"id": "new_game", "label": "▶️ 1. Nueva Partida (Intro con Roberto Huerta)"},
-		{"id": "post_printer", "label": "🖨️ 2. Post-Impresora (Capítulo 2: Finanzas abiertas, Tienda Nelly)"},
-		{"id": "post_dragon", "label": "🐉 3. Post-Señor del Dragón (Capítulo 3: Huyó, Personaje Seguro)"},
-		{"id": "post_server", "label": "💻 4. Post-Servidor 117 (Victoria Total Redes, Nivel 4)"},
-		{"id": "paper_quest", "label": "📄 5. Misión Hojas Impresora (Hojas en mano para entregar)"},
-		{"id": "brujiris_office", "label": "🚪 6. Teletransportar a Oficina de Brujiris (Auditoría)"}
+		{"id": "new_game", "label": "1. Nueva Partida (Intro con Roberto Huerta)"},
+		{"id": "post_printer", "label": "2. Post-Impresora (Capitulo 2: Finanzas abiertas, Tienda Nelly)"},
+		{"id": "post_dragon", "label": "3. Post-Senor del Dragon (Capitulo 3: Huyo, Personaje Seguro)"},
+		{"id": "post_server", "label": "4. Post-Servidor 117 (Victoria Total Redes, Nivel 4)"},
+		{"id": "paper_quest", "label": "5. Mision Hojas Impresora (Hojas en mano para entregar)"},
+		{"id": "brujiris_office", "label": "6. Teletransportar a Oficina de Brujiris (Auditoria)"}
 	]
 	
 	for cp in checkpoints:
@@ -1615,7 +1615,7 @@ func _create_debug_modal():
 	list.add_child(sep)
 	
 	var btn_buff = Button.new()
-	btn_buff.text = "⚡ Buff Stats (+100 HP, +30 ATK a la party)"
+	btn_buff.text = "[+] Buff Stats (+100 HP, +30 ATK a la party)"
 	btn_buff.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn_buff.add_theme_font_size_override("font_size", 9)
 	btn_buff.pressed.connect(func():
@@ -1628,17 +1628,17 @@ func _create_debug_modal():
 			GameManager.characters_data[k]["hp"] = GameManager.characters_data[k]["max_hp"]
 			GameManager.characters_data[k]["atk"] += 30
 		_update_hud_stats()
-		_show_save_toast("⚡ ¡Stats mejorados con éxito!")
+		_show_save_toast("[+] Stats mejorados con exito")
 	)
 	list.add_child(btn_buff)
 	
 	var btn_del_save = Button.new()
-	btn_del_save.text = "🗑️ Borrar Archivo de Guardado"
+	btn_del_save.text = "[X] Borrar Archivo de Guardado"
 	btn_del_save.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn_del_save.add_theme_font_size_override("font_size", 9)
 	btn_del_save.pressed.connect(func():
 		GameManager.delete_save_file()
-		_show_save_toast("🗑️ Guardado eliminado")
+		_show_save_toast("[X] Guardado eliminado")
 	)
 	list.add_child(btn_del_save)
 	
@@ -1663,9 +1663,9 @@ func _on_save_pressed():
 		GameManager.player_saved_position = player.global_position
 	var ok = GameManager.save_game()
 	if ok:
-		_show_save_toast("💾 ¡Partida Guardada con éxito!")
+		_show_save_toast("[!] Partida Guardada con exito")
 	else:
-		_show_save_toast("❌ Error al guardar partida")
+		_show_save_toast("[X] Error al guardar partida")
 
 func _show_save_toast(msg: String):
 	if save_toast_label:
@@ -1985,10 +1985,10 @@ func _set_interactable(id: String):
 				var c_data = GameManager.characters_data.get(c_id, {})
 				var c_name = c_data.get("name", "Compañero")
 				if GameManager.is_hero_in_party(c_id):
-					interact_label.text = "[E] 👥 Hablar con %s (En Escuadrón)" % c_name
-					btn_interact.text = "[E] Escuadrón"
+					interact_label.text = "[E] Hablar con %s (En Escuadron)" % c_name
+					btn_interact.text = "[E] Escuadron"
 				else:
-					interact_label.text = "[E] 👥 Hablar / Reclutar a %s" % c_name
+					interact_label.text = "[E] Hablar / Reclutar a %s" % c_name
 					btn_interact.text = "[E] Reclutar"
 
 func _clear_interactable():
@@ -2129,8 +2129,8 @@ func _trigger_current_interaction():
 			elif GameManager.paper_quest_state == 0:
 				GameManager.paper_quest_state = 1
 				b_text = "¡Has recogido un paquete sellado de 500 hojas de papel bond blanco (75g)!\n\nLlévalas a la impresora en Finanzas para abastecerla."
-				objective_label.text = "[Misión] Coloca las hojas bond en la Bandeja 1 de la impresora en Finanzas"
-				_show_save_toast("📄 ¡Obtuviste 500 Hojas Bond!")
+				objective_label.text = "[Mision] Coloca las hojas bond en la Bandeja 1 de la impresora en Finanzas"
+				_show_save_toast("[+] ¡Obtuviste 500 Hojas Bond!")
 			elif GameManager.paper_quest_state == 1:
 				b_text = "Ya tienes un paquete de 500 hojas bond en tu inventario. Llévalo a la impresora de Finanzas."
 			else:
@@ -2184,7 +2184,7 @@ func _trigger_current_interaction():
 					var _lvl_ups = GameManager.add_exp_to_party(exp_reward)
 					_update_hud_stats()
 					GameManager.save_game()
-					_show_save_toast("✅ ¡Misión cumplida: +150 EXP, +$150!")
+					_show_save_toast("[!] ¡Mision cumplida: +150 EXP, +$150!")
 					
 					dialog_queue = [
 						{
@@ -2440,7 +2440,7 @@ func _update_touch_controls_mode():
 	var cur = GameManager.control_type
 	var mode_info = GameManager.control_modes.get(cur, {})
 	var short_name = mode_info.get("short", "D-Pad")
-	btn_control_mode.text = "[⚙] " + short_name
+	btn_control_mode.text = "[CTRL] " + short_name
 	
 	if not touch_controls.visible:
 		dpad_box.visible = false
@@ -2457,17 +2457,17 @@ func _update_touch_controls_mode():
 				dpad_box.visible = false
 				joystick_box.visible = false
 				
-	_format_overworld_mode_btn(btn_mode_dpad, "dpad", "1. D-Pad Clásico (Botones Fijos)")
-	_format_overworld_mode_btn(btn_mode_joystick, "joystick", "2. Análogo Arrastrable (Joystick Táctil)")
+	_format_overworld_mode_btn(btn_mode_dpad, "dpad", "1. D-Pad Clasico (Botones Fijos)")
+	_format_overworld_mode_btn(btn_mode_joystick, "joystick", "2. Analogo Arrastrable (Joystick Tactil)")
 	_format_overworld_mode_btn(btn_mode_point_click, "point_and_click", "3. Point and Click (Tocar para Moverse)")
 
 func _format_overworld_mode_btn(btn: Button, mode_key: String, base_title: String):
 	var is_selected = (GameManager.control_type == mode_key)
 	if is_selected:
-		btn.text = "  [✓] " + base_title + "  <ACTIVO>"
+		btn.text = "  [*] " + base_title + "  <ACTIVO>"
 		btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.7, 1.0))
 	else:
-		btn.text = "  [  ] " + base_title
+		btn.text = "  [ ] " + base_title
 		btn.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
 
 func _open_control_options():
@@ -2585,7 +2585,7 @@ func _update_stationed_companions():
 		if recruited and current_interactable == "companion_" + hero_id:
 			_clear_interactable()
 		var tag = node.get_node("NameTag") as Label
-		tag.text = ("[✓] " if GameManager.is_hero_in_party(hero_id) else "[+] ") + GameManager.characters_data[hero_id]["name"]
+		tag.text = ("[*] " if GameManager.is_hero_in_party(hero_id) else "[+] ") + GameManager.characters_data[hero_id]["name"]
 		# Recruited heroes join combat without leaving a second visible body on the map.
 		node.get_node("Sprite2D").frame = 0
 
@@ -2633,7 +2633,7 @@ func _interact_with_companion(hero_id: String):
 					"speaker": c_name,
 					"portrait": portrait,
 					"color": color,
-					"text": greeting + "\n\n[✓] ¡Me uniré a tu escuadrón de aventura!"
+					"text": greeting + "\n\n[*] ¡Me uniré a tu escuadrón de aventura!"
 				}
 			]
 			on_dialog_closed_callback = func():
@@ -2666,7 +2666,7 @@ func _close_squad_modal():
 
 func _update_squad_hud():
 	if btn_squad:
-		btn_squad.text = "[👥] Squad IT (%d/4)" % GameManager.party.size()
+		btn_squad.text = "[SQUAD] IT (%d/4)" % GameManager.party.size()
 
 func _update_squad_ui():
 	squad_slot_count_label.text = "Squad: %d/4" % GameManager.party.size()
@@ -2727,11 +2727,11 @@ func _update_squad_ui():
 		btn.add_theme_font_size_override("font_size", 9)
 		
 		if is_leader:
-			btn.text = "👑 Líder (Fijo)"
+			btn.text = "[LIDER] Fijo"
 			btn.disabled = true
 			btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 		elif is_in_party:
-			btn.text = "✓ En Escuadrón (Quitar)"
+			btn.text = "[X] Quitar de Squad"
 			btn.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
 			var h_id = hero_id
 			btn.pressed.connect(func():
@@ -2744,7 +2744,7 @@ func _update_squad_ui():
 				btn.disabled = true
 				btn.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
 			else:
-				btn.text = "+ Reclutar"
+				btn.text = "[+] Reclutar"
 				btn.add_theme_color_override("font_color", Color(0.4, 0.8, 1.0))
 				var h_id = hero_id
 				btn.pressed.connect(func():
