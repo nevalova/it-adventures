@@ -121,10 +121,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -160.0
-offset_top = -125.0
-offset_right = 160.0
-offset_bottom = 125.0
+offset_left = -165.0
+offset_top = -135.0
+offset_right = 165.0
+offset_bottom = 135.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_blue_rpg")
@@ -138,7 +138,7 @@ theme_override_constants/margin_bottom = 10
 
 [node name="VBox" type="VBoxContainer" parent="BlueRPGMenu/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 
 [node name="Title" type="Label" parent="BlueRPGMenu/Margin/VBox"]
 layout_mode = 2
@@ -161,7 +161,7 @@ layout_mode = 2
 
 [node name="BtnContinue" type="Button" parent="BlueRPGMenu/Margin/VBox"]
 visible = false
-custom_minimum_size = Vector2(0, 26)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.3, 1, 0.6, 1)
@@ -169,7 +169,7 @@ theme_override_font_sizes/font_size = 10
 text = "CONTINUAR PARTIDA"
 
 [node name="BtnStart" type="Button" parent="BlueRPGMenu/Margin/VBox"]
-custom_minimum_size = Vector2(0, 26)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
@@ -177,7 +177,7 @@ theme_override_font_sizes/font_size = 10
 text = "INICIAR PARTIDA"
 
 [node name="BtnOptions" type="Button" parent="BlueRPGMenu/Margin/VBox"]
-custom_minimum_size = Vector2(0, 26)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
@@ -185,15 +185,23 @@ theme_override_font_sizes/font_size = 10
 text = "TIPO DE CONTROL: D-PAD"
 
 [node name="BtnFullscreen" type="Button" parent="BlueRPGMenu/Margin/VBox"]
-custom_minimum_size = Vector2(0, 26)
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.85, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 10
 text = "PANTALLA COMPLETA"
 
+[node name="BtnInstall" type="Button" parent="BlueRPGMenu/Margin/VBox"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 10
+text = "GUARDAR EN PANTALLA"
+
 [node name="BtnBack" type="Button" parent="BlueRPGMenu/Margin/VBox"]
-custom_minimum_size = Vector2(0, 22)
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.7, 0.7, 0.8, 1)

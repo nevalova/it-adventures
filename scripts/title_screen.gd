@@ -9,6 +9,7 @@ extends Control
 @onready var btn_start = $BlueRPGMenu/Margin/VBox/BtnStart
 @onready var btn_options = $BlueRPGMenu/Margin/VBox/BtnOptions
 @onready var btn_fullscreen = $BlueRPGMenu/Margin/VBox/BtnFullscreen
+@onready var btn_install = $BlueRPGMenu/Margin/VBox/BtnInstall
 @onready var btn_back = $BlueRPGMenu/Margin/VBox/BtnBack
 
 @onready var modal_options = $ControlOptionsModal
@@ -31,6 +32,7 @@ func _ready():
 	btn_start.pressed.connect(_start_game)
 	btn_options.pressed.connect(_open_options)
 	btn_fullscreen.pressed.connect(_toggle_fullscreen)
+	btn_install.pressed.connect(_trigger_install_or_share)
 	btn_back.pressed.connect(_close_blue_menu)
 	
 	# Conexiones de opciones de control
@@ -137,6 +139,11 @@ func _open_options():
 func _close_options():
 	modal_options.visible = false
 	_update_ui_state()
+
+func _trigger_install_or_share():
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("if (window.triggerShareOrInstall) { window.triggerShareOrInstall(); }")
+
 
 func _process(delta):
 	blink_timer += delta * 4.0
