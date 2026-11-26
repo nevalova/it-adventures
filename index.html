@@ -158,7 +158,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":8118140,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":13691160,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -292,39 +292,29 @@ const engine = new Engine(GODOT_CONFIG);
 }());
 		</script>
 	
-	<!-- Floating Web Action Bar for Fullscreen & Mobile Home Screen -->
-	<div id="web-action-bar" style="position:fixed; top:10px; right:12px; z-index:9000; display:flex; gap:8px; pointer-events:auto;">
-		<button id="web-btn-fullscreen" onclick="toggleFullscreen()" style="background:rgba(15,23,42,0.88); color:#38bdf8; border:1px solid #38bdf8; border-radius:18px; padding:6px 14px; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; font-size:12px; font-weight:600; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 3px 10px rgba(0,0,0,0.5); display:inline-flex; align-items:center; gap:5px;">
-			<span>⛶</span> <span id="web-txt-fs">Pantalla Completa</span>
-		</button>
-		<button id="web-btn-share" onclick="triggerShareOrInstall()" style="background:rgba(15,23,42,0.88); color:#fbbf24; border:1px solid #fbbf24; border-radius:18px; padding:6px 14px; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; font-size:12px; font-weight:600; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 3px 10px rgba(0,0,0,0.5); display:inline-flex; align-items:center; gap:5px;">
-			<span>📲</span> <span>Guardar en Pantalla</span>
-		</button>
-	</div>
-
 	<!-- Modal Guia para Guardar en Pantalla de Inicio / Escritorio -->
-	<div id="install-guide-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.82); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(8px); padding:20px; box-sizing:border-box;">
-		<div style="background:#0f172a; border:2px solid #38bdf8; border-radius:14px; max-width:440px; width:100%; padding:22px; color:#f8fafc; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; box-shadow:0 12px 36px rgba(0,0,0,0.8); position:relative;">
-			<h3 style="margin-top:0; color:#fbbf24; font-size:18px; display:flex; align-items:center; gap:8px;">
-				<span>📲</span> Guardar IT Adventures en tu Tel&eacute;fono
+	<div id="install-guide-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:99999; justify-content:center; align-items:center; backdrop-filter:blur(8px); padding:20px; box-sizing:border-box;">
+		<div style="background:#040c28; border:3px solid #ffffff; border-radius:8px; max-width:440px; width:100%; padding:22px; color:#f8fafc; font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif; box-shadow:0 12px 36px rgba(0,0,0,0.8); position:relative;">
+			<h3 style="margin-top:0; color:#fbbf24; font-size:16px; letter-spacing:1px;">
+				[ ACCESO DIRECTO EN CELULAR ]
 			</h3>
 			<p style="font-size:13px; line-height:1.5; color:#cbd5e1; margin-bottom:14px;">
-				Puedes guardar el juego como una aplicaci&oacute;n directa en tu pantalla de inicio sin ocupar espacio de tienda:
+				Puedes guardar el juego como una aplicacion directa en tu pantalla de inicio:
 			</p>
-			<div style="background:rgba(30,41,59,0.8); border-radius:8px; padding:12px; margin-bottom:14px; font-size:12px; line-height:1.5; border-left:3px solid #38bdf8;">
-				<b style="color:#38bdf8;">🍏 En iPhone / iPad (Safari):</b><br>
-				1. Toca el bot&oacute;n <b>Compartir</b> (el icono con una flecha hacia arriba ⬆️ en la barra del navegador).<br>
-				2. Desliza hacia abajo y elige <b>'Agregar a pantalla de inicio' (➕)</b>.<br>
-				3. &iexcl;Listo! Se abrir&aacute; en pantalla completa horizontal sin barra de Safari.
+			<div style="background:rgba(15,23,42,0.9); border-radius:6px; padding:12px; margin-bottom:12px; font-size:12px; line-height:1.5; border-left:3px solid #38bdf8;">
+				<b style="color:#38bdf8;">En iPhone / iPad (Safari):</b><br>
+				1. Toca el boton <b>Compartir</b> (icono con flecha hacia arriba en la barra de Safari).<br>
+				2. Elige <b>'Agregar a pantalla de inicio'</b>.<br>
+				3. ¡Listo! Se abrira como app a pantalla completa.
 			</div>
-			<div style="background:rgba(30,41,59,0.8); border-radius:8px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.5; border-left:3px solid #4ade80;">
-				<b style="color:#4ade80;">🤖 En Android (Chrome):</b><br>
+			<div style="background:rgba(15,23,42,0.9); border-radius:6px; padding:12px; margin-bottom:16px; font-size:12px; line-height:1.5; border-left:3px solid #4ade80;">
+				<b style="color:#4ade80;">En Android (Chrome):</b><br>
 				1. Toca los <b>tres puntos</b> ⋮ arriba a la derecha.<br>
-				2. Selecciona <b>'Instalar aplicaci&oacute;n'</b> o <b>'Agregar a la pantalla principal'</b>.
+				2. Selecciona <b>'Instalar aplicacion'</b> o <b>'Agregar a la pantalla principal'</b>.
 			</div>
 			<div style="display:flex; justify-content:flex-end;">
-				<button onclick="closeInstallGuide()" style="background:#38bdf8; color:#0f172a; border:none; border-radius:8px; padding:8px 18px; font-weight:700; font-size:12px; cursor:pointer;">
-					&iexcl;Entendido, volver al juego!
+				<button onclick="closeInstallGuide()" style="background:#38bdf8; color:#0f172a; border:none; border-radius:6px; padding:8px 18px; font-weight:700; font-size:12px; cursor:pointer;">
+					Volver al juego
 				</button>
 			</div>
 		</div>
