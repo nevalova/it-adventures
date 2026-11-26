@@ -233,14 +233,14 @@ func setup_battle():
 			boss_atlas = AtlasTexture.new()
 			boss_atlas.atlas = load(sheet_path)
 			boss_cell_size = 93
-			boss_frame_row = 4 # Row 4: pose exigente / señalando
+			boss_frame_row = 2 # Row 2: mirando a la DERECHA hacia los héroes
 			boss_frame_col = 0
 			boss_is_special_anim = false
-			boss_atlas.region = Rect2(0, 4 * 93, 93, 93)
+			boss_atlas.region = Rect2(0, 2 * 93, 93, 93)
 			enemy_sprite.texture = boss_atlas
 			enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			enemy_sprite.custom_minimum_size = Vector2(140, 140)
+			enemy_sprite.custom_minimum_size = Vector2(75, 75)
 	elif enemy.get("type") == "password_boss":
 		$Background.color = Color(0.01, 0.04, 0.1, 1.0)
 		enemy_name_label.text = "[JEFE SITE] " + enemy.get("name", "Contraseña Olvidada")
@@ -249,12 +249,13 @@ func setup_battle():
 			enemy_sprite.texture = load(enemy.get("texture_path"))
 		enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		enemy_sprite.custom_minimum_size = Vector2(160, 150)
+		enemy_sprite.custom_minimum_size = Vector2(85, 85)
 	else:
 		if ResourceLoader.exists(enemy.get("texture_path", "")):
 			enemy_sprite.texture = load(enemy.get("texture_path"))
 		enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		enemy_sprite.custom_minimum_size = Vector2(75, 75)
 	
 	update_enemy_ui()
 	
@@ -1047,7 +1048,7 @@ func deal_damage_to_enemy(damage: int, message: String):
 		boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		get_tree().create_timer(0.35).timeout.connect(func():
 			if boss_atlas != null and not is_battle_over and not boss_is_special_anim:
-				boss_frame_row = 6 if enemy.get("type") == "senor_apoyo" else 4
+				boss_frame_row = 6 if enemy.get("type") == "senor_apoyo" else (2 if enemy.get("type") == "brujiris" else 4)
 				boss_frame_col = 0
 				boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		)
