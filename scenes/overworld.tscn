@@ -1092,26 +1092,6 @@ theme_override_font_sizes/font_size = 11
 text = "D-Pad / WASD / E: Hablar"
 horizontal_alignment = 2
 
-[node name="ObjectiveBanner" type="PanelContainer" parent="CanvasLayer/HUD"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -220.0
-offset_top = 40.0
-offset_right = 220.0
-offset_bottom = 66.0
-grow_horizontal = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_objective")
-
-[node name="Label" type="Label" parent="CanvasLayer/HUD/ObjectiveBanner"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
-theme_override_font_sizes/font_size = 11
-text = "[!] ¡Roberto Huerta viene corriendo a pedir ayuda!"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="InteractBanner" type="PanelContainer" parent="CanvasLayer/HUD"]
 visible = false
 layout_mode = 1

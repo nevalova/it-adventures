@@ -228,15 +228,15 @@ func setup_battle():
 		$Background.color = Color(0.04, 0.01, 0.04, 1.0)
 		enemy_name_label.text = "[OFICINA] Brujiris"
 		enemy_name_label.modulate = Color(0.95, 0.45, 0.85)
-		var sheet_path = enemy.get("spritesheet_path", "res://assets/characters/npc_curly_spritesheet.png")
+		var sheet_path = enemy.get("spritesheet_path", "res://assets/characters/brujiris_spritesheet.png")
 		if ResourceLoader.exists(sheet_path):
 			boss_atlas = AtlasTexture.new()
 			boss_atlas.atlas = load(sheet_path)
 			boss_cell_size = 93
-			boss_frame_row = 2 # Row 2: mirando a la izquierda hacia la party
+			boss_frame_row = 4 # Row 4: pose exigente / señalando
 			boss_frame_col = 0
 			boss_is_special_anim = false
-			boss_atlas.region = Rect2(0, 2 * 93, 93, 93)
+			boss_atlas.region = Rect2(0, 4 * 93, 93, 93)
 			enemy_sprite.texture = boss_atlas
 			enemy_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			enemy_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -1047,7 +1047,7 @@ func deal_damage_to_enemy(damage: int, message: String):
 		boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		get_tree().create_timer(0.35).timeout.connect(func():
 			if boss_atlas != null and not is_battle_over and not boss_is_special_anim:
-				boss_frame_row = 6 if enemy.get("type") == "senor_apoyo" else (2 if enemy.get("type") == "brujiris" else 4)
+				boss_frame_row = 6 if enemy.get("type") == "senor_apoyo" else 4
 				boss_frame_col = 0
 				boss_atlas.region = Rect2(0, boss_frame_row * boss_cell_size, boss_cell_size, boss_cell_size)
 		)
@@ -1249,9 +1249,9 @@ func enemy_defeated():
 			boss_frame_col = 3
 			boss_atlas.region = Rect2(3 * boss_cell_size, 11 * boss_cell_size, boss_cell_size, boss_cell_size)
 		elif enemy.get("type") == "brujiris":
-			boss_frame_row = 10
+			boss_frame_row = 11
 			boss_frame_col = 0
-			boss_atlas.region = Rect2(0, 10 * boss_cell_size, boss_cell_size, boss_cell_size)
+			boss_atlas.region = Rect2(0, 11 * boss_cell_size, boss_cell_size, boss_cell_size)
 		else:
 			boss_frame_row = 5 # Row 5: Col 5 = Hincado en pose de derrota
 			boss_frame_col = 5

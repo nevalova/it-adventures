@@ -67,7 +67,10 @@ const SpriteLayout = preload("res://scripts/sprite_layout.gd")
 @onready var btn_demo_modal = $CanvasLayer/HUD/TouchControls/RightBox/BtnDemoModal
 @onready var btn_interact = $CanvasLayer/HUD/TouchControls/RightBox/BtnInteract
 @onready var touch_controls = $CanvasLayer/HUD/TouchControls
-@onready var objective_label = $CanvasLayer/HUD/ObjectiveBanner/Label
+# Barra de objetivos retirada para no estorbar la vista de oficinas y personajes
+class DummyObjectiveLabel:
+	var text: String = ""
+var objective_label = DummyObjectiveLabel.new()
 @onready var interact_banner = $CanvasLayer/HUD/InteractBanner
 @onready var interact_label = $CanvasLayer/HUD/InteractBanner/Label
 
@@ -1107,8 +1110,8 @@ func _start_brujiris_battle():
 		"atk": 16,
 		"def": 6,
 		"exp_reward": 260,
-		"portrait_path": "res://assets/characters/npc_curly_portrait.png",
-		"spritesheet_path": "res://assets/characters/npc_curly_spritesheet.png",
+		"portrait_path": "res://assets/characters/brujiris_portrait.png",
+		"spritesheet_path": "res://assets/characters/brujiris_spritesheet.png",
 		"attacks": [
 			"Auditoría Sorpresa Inapelable",
 			"Exigir Grabaciones de Cámaras",
@@ -1445,15 +1448,12 @@ func _setup_brujiris_office():
 	var spr_bruj = Sprite2D.new()
 	spr_bruj.name = "Sprite2D"
 	spr_bruj.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	var sheet_path_bruj = "res://assets/characters/npc_curly_spritesheet.png"
+	var sheet_path_bruj = "res://assets/characters/brujiris_spritesheet.png"
 	if ResourceLoader.exists(sheet_path_bruj):
 		spr_bruj.texture = load(sheet_path_bruj)
 	spr_bruj.hframes = 4
 	spr_bruj.vframes = 12
 	spr_bruj.frame = 0
-	spr_bruj.scale = Vector2(0.24, 0.24)
-	spr_bruj.position = Vector2(0, -10)
-	brujiris_npc_node.add_child(spr_bruj)
 	
 	var tag_bruj = Label.new()
 	tag_bruj.name = "NameTag"
@@ -1465,6 +1465,9 @@ func _setup_brujiris_office():
 	tag_bruj.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tag_bruj.text = "[Auditoría] Brujiris"
 	tag_bruj.modulate = Color(0.95, 0.45, 0.85)
+	
+	SpriteLayout.configure(spr_bruj, tag_bruj, 38.0)
+	brujiris_npc_node.add_child(spr_bruj)
 	brujiris_npc_node.add_child(tag_bruj)
 	
 	var area_bruj = Area2D.new()
@@ -2152,7 +2155,7 @@ func _trigger_current_interaction():
 				dialog_queue = [
 					{
 						"speaker": "Brujiris",
-						"portrait": "res://assets/characters/npc_curly_portrait.png",
+						"portrait": "res://assets/characters/brujiris_portrait.png",
 						"color": Color("#fd79a8"),
 						"text": "¡Qué pena con ustedes, muchachos! La caja con las pólizas y documentos fiscales estaba aquí abajo del escritorio detrás del bote de basura. ¡Ya no revisen las cámaras, gracias por la paciencia!"
 					}
@@ -2165,7 +2168,7 @@ func _trigger_current_interaction():
 				dialog_queue = [
 					{
 						"speaker": "Brujiris",
-						"portrait": "res://assets/characters/npc_curly_portrait.png",
+						"portrait": "res://assets/characters/brujiris_portrait.png",
 						"color": Color("#fd79a8"),
 						"text": "necesito revisen las camaras no encuetro una caja con documentacion muy importate"
 					}
